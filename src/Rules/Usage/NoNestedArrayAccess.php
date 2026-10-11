@@ -18,6 +18,8 @@ use PhpParser\NodeFinder;
 final class NoNestedArrayAccess extends Check
 {
     /**
+     * Use the parsed syntax tree directly without requesting additional metric collectors.
+     *
      * @return list<string>
      */
     #[\Override]

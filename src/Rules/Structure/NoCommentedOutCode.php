@@ -20,6 +20,8 @@ final class NoCommentedOutCode extends Check
     }
 
     /**
+     * Request source comment facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -29,6 +31,8 @@ final class NoCommentedOutCode extends Check
     }
 
     /**
+     * Report recorded code retained inside source comments at their original source locations.
+     *
      * @return iterable<Violation>
      */
     #[\Override]

@@ -68,7 +68,11 @@ final class OperationSequence
         $operations = [];
         foreach ($node->getSubNodeNames() as $field) {
             $child = get_object_vars($node)[$field];
-            $children = $child instanceof Node ? [$child] : (is_array($child) ? $child : []);
+            $children = is_array($child) ? $child : [];
+            if ($child instanceof Node) {
+                $children = [$child];
+            }
+
             $nested = $this->encode($children);
             if ($nested !== null) {
                 $operations[] = $nested;

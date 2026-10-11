@@ -46,6 +46,8 @@ final class MaxClassesPerFile extends ExpressionCheck
     }
 
     /**
+     * Report a file class count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

@@ -25,11 +25,15 @@ use Cosmira\Soda\Rules\Check;
 final class SodaConfig
 {
     /**
+     * Rule instances executed in their registration order.
+     *
      * @var list<Check>
      */
     private array $checkers = [];
 
     /**
+     * Source paths registered through the fluent configuration API.
+     *
      * @var list<non-empty-string>
      */
     private array $paths = [];
@@ -129,6 +133,8 @@ final class SodaConfig
     }
 
     /**
+     * Return the source paths registered for analysis without command-line arguments.
+     *
      * @return list<non-empty-string>
      */
     public function paths(): array

@@ -16,16 +16,22 @@ final class UnusedMethodAnalyser
     use UnusedMethodResolution;
 
     /**
+     * Project type declarations indexed for private method usage resolution.
+     *
      * @var array<string, array>
      */
     private array $types = [];
 
     /**
+     * Effective method surfaces after resolving inheritance and trait composition.
+     *
      * @var array<string, array>
      */
     private array $surfaces = [];
 
     /**
+     * Resolved method identities proven to have a caller.
+     *
      * @var array<string, true>
      */
     private array $used = [];

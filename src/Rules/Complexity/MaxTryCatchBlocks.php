@@ -46,6 +46,8 @@ final class MaxTryCatchBlocks extends ExpressionCheck
     }
 
     /**
+     * Report a try block count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

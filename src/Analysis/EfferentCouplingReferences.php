@@ -125,6 +125,8 @@ final readonly class EfferentCouplingReferences
     }
 
     /**
+     * Normalize a class reference by removing its leading namespace separator.
+     *
      * @psalm-return non-empty-string|null
      */
     public function className(Name $name): ?string

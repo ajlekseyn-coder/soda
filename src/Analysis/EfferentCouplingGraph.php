@@ -16,16 +16,22 @@ use function strcasecmp;
 final class EfferentCouplingGraph
 {
     /**
+     * Distinct outgoing dependency names grouped by owning class.
+     *
      * @var array<string, array<string, true>>
      */
     private array $dependencies = [];
 
     /**
+     * Nested class scopes retaining their owner and parent names.
+     *
      * @var list<array{name: non-empty-string, parent: ?non-empty-string}>
      */
     private array $frames = [];
 
     /**
+     * Enter a class scope and initialize its outgoing dependency set.
+     *
      * @psalm-param non-empty-string $name
      * @psalm-param non-empty-string|null $parent
      */
@@ -46,6 +52,8 @@ final class EfferentCouplingGraph
     }
 
     /**
+     * Return the class owning references in the active traversal scope.
+     *
      * @psalm-return non-empty-string|null
      */
     public function currentOwner(): ?string
@@ -57,6 +65,8 @@ final class EfferentCouplingGraph
     }
 
     /**
+     * Return the parent class of the active traversal scope.
+     *
      * @psalm-return non-empty-string|null
      */
     public function currentParent(): ?string
@@ -68,6 +78,8 @@ final class EfferentCouplingGraph
     }
 
     /**
+     * Record an outgoing dependency for the active owner while excluding self references.
+     *
      * @psalm-param non-empty-string $fqcn
      */
     public function addEdge(string $fqcn): void
@@ -90,6 +102,8 @@ final class EfferentCouplingGraph
     }
 
     /**
+     * Return the number of distinct outgoing dependencies for each class.
+     *
      * @psalm-return array<string, int>
      */
     public function couplingCountsByClass(): array
@@ -104,6 +118,8 @@ final class EfferentCouplingGraph
     }
 
     /**
+     * Return distinct outgoing dependency names grouped by owning class.
+     *
      * @return array<string, list<string>>
      */
     public function dependenciesByClass(): array

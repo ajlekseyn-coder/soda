@@ -32,11 +32,16 @@ final readonly class RuleMetadata
     public const string COMPARISON_MIN = 'min';
 
     /**
+     * Retain presentation metadata indexed by stable rule identifiers.
+     *
      * @param array $rules Presentation metadata indexed by stable rule identifier.
      *
      * @psalm-param array<string, array{severity: 'error'|'warning', label: string, advice: non-empty-string, comparison?: 'min'|'max'}> $rules
      */
     public function __construct(
+        /**
+         * Rule presentation metadata used for labels, severity, advice, and comparisons.
+         */
         private array $rules,
     ) {}
 
@@ -49,6 +54,8 @@ final readonly class RuleMetadata
     }
 
     /**
+     * Return the configured severity, using warning for an unknown rule.
+     *
      * @return 'error'|'warning'
      */
     public function severity(string $rule): string
@@ -89,6 +96,8 @@ final readonly class RuleMetadata
     }
 
     /**
+     * Return the identifiers with registered presentation metadata.
+     *
      * @return list<string>
      */
     public function ruleKeys(): array

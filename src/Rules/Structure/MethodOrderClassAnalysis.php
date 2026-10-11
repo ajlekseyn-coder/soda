@@ -10,16 +10,26 @@ namespace Cosmira\Soda\Rules\Structure;
 final class MethodOrderClassAnalysis
 {
     /**
+     * Cached cyclic call-order edges excluded from ordering requirements.
+     *
      * @var array<string, true>|null
      */
     private ?array $cycles = null;
 
     /**
+     * Retain declared method order and call relationships for one class.
+     *
      * @param list<MethodOrderMethod> $methods
      * @param string                  $name    Original declaration name retained for diagnostics.
      */
     public function __construct(
+        /**
+         * Original class declaration name retained for ordering diagnostics.
+         */
         public readonly string $name,
+        /**
+         * Methods in declaration order with their recorded call sequences.
+         */
         public readonly array $methods,
     ) {}
 
@@ -44,6 +54,8 @@ final class MethodOrderClassAnalysis
     }
 
     /**
+     * Find call-order constraints participating in cycles so contradictory ordering is ignored.
+     *
      * @return array<string, true>
      */
     private function cyclicEdges(): array
@@ -75,6 +87,8 @@ final class MethodOrderClassAnalysis
     }
 
     /**
+     * Determine graph reachability without revisiting nodes.
+     *
      * @param array<string, list<string>> $graph
      * @param array<string, true>         $visited
      */
@@ -100,6 +114,8 @@ final class MethodOrderClassAnalysis
     }
 
     /**
+     * Index methods by normalized name while preserving declaration order.
+     *
      * @return array<string, MethodOrderMethod>
      */
     public function methodsByName(): array

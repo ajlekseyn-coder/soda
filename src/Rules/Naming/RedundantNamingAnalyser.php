@@ -55,6 +55,8 @@ final readonly class RedundantNamingAnalyser
     ) {}
 
     /**
+     * Collect redundant naming suggestions across class and method facts.
+     *
      * @param array{classes: list<array{class: string, line: int}>, methods: list<array{name: string, methodName: string, class: string|null, firstParamType: string|null, returnType: string|null, line: int, isPublic: bool}>} $data
      *
      * @return list<array{type: 'class'|'method', current: string, suggested: string, reason: string, similarity: float, line: int, className?: string}>
@@ -84,6 +86,8 @@ final readonly class RedundantNamingAnalyser
     }
 
     /**
+     * Find namespace or type context repeated in a class name.
+     *
      * @return array{type: 'class', current: string, suggested: string, reason: string, similarity: float, line: int}|null
      */
     private function checkClass(array $classData): ?array
@@ -145,6 +149,8 @@ final readonly class RedundantNamingAnalyser
     }
 
     /**
+     * Split a camel-case identifier into nonempty words for similarity checks.
+     *
      * @return list<string>
      */
     private function splitCamelCase(string $name): array

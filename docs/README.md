@@ -30,6 +30,8 @@ Inside this repository, use `php soda` instead of `vendor/bin/soda`.
 |------|----------------|
 | [Structural Metrics](STRUCTURAL_METRICS.md) | Size, coupling, namespace, and structural smell checks. |
 | [Complexity](COMPLEXITY_READABILITY_METRICS.md) | Branches, nesting, returns and exception-handling thresholds. |
+| [Expressions and Local State](EXPRESSION_AND_LOCAL_STATE_RULES.md) | Boolean ternaries, finally returns, parameter rebinding, local assignment runs and repeated strings. |
+| [Owner Behavior](OWNER_BEHAVIOR_RULES.md) | Standard concern, owner-method, and fluent API recommendations. |
 | [Naming Rules](NAMING_RULES.md) | Redundant names and boolean method naming. |
 
 ## Design Notes
@@ -48,3 +50,5 @@ configurator DSL. Expression syntax lives inside named PHP check classes. Keep e
 ## Research RFCs
 
 - [Explicit behavior rules](rfcs/explicit-behavior-rules.md): factory and repeated-condition candidates, principle matrix, examples and corpus admission results. Both checks now run by default; the original corpus admission result remains documented.
+- [Representation consistency](rfcs/representation-consistency.md): application-wide design standard, legitimate conversion boundaries, and an interprocedural `representation_churn` research check included in the standard bundle. Structural evidence is reported separately from quality violations.
+- [Representation consistency review](rfcs/representation-consistency-review.md): independent attack/defense panel of six agents, revision decisions and the readiness matrix for the manual standard and future detector.

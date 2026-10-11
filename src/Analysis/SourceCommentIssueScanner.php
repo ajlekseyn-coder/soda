@@ -21,6 +21,8 @@ use function trim;
 final class SourceCommentIssueScanner
 {
     /**
+     * Collect maintenance markers and commented-out code locations from PHP comment tokens.
+     *
      * @return array{
      *   todoFixme: list<array{line: int, kind: string, text: string}>,
      *   commentedCode: list<array{line: int, text: string}>
@@ -47,6 +49,8 @@ final class SourceCommentIssueScanner
     }
 
     /**
+     * Split a comment into physical lines while preserving source line numbers.
+     *
      * @return list<array{line: int, text: string}>
      */
     private static function commentLines(string $comment, int $startLine): array
@@ -95,6 +99,8 @@ final class SourceCommentIssueScanner
     }
 
     /**
+     * Dispatch comment tokens to the per-line issue scanner.
+     *
      * @param array{
      *   todoFixme: list<array{line: int, kind: string, text: string}>,
      *   commentedCode: list<array{line: int, text: string}>
@@ -120,6 +126,8 @@ final class SourceCommentIssueScanner
     }
 
     /**
+     * Normalize a comment line and record applicable marker or commented-code findings.
+     *
      * @param array{line: int, text: string} $commentLine
      * @param array{
      *   todoFixme: list<array{line: int, kind: string, text: string}>,
@@ -150,6 +158,8 @@ final class SourceCommentIssueScanner
     }
 
     /**
+     * Record maintenance markers with their source line and comment text.
+     *
      * @param array{
      *   todoFixme: list<array{line: int, kind: string, text: string}>,
      *   commentedCode: list<array{line: int, text: string}>

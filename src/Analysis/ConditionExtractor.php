@@ -25,12 +25,10 @@ final class ConditionExtractor
     public static function extract(Node $node): ?Expr
     {
         return match (true) {
-            $node instanceof If_          => $node->cond,
-            $node instanceof ElseIf_      => $node->cond,
-            $node instanceof While_       => $node->cond,
-            $node instanceof Do_          => $node->cond,
-            $node instanceof For_         => collect($node->cond)->first(),
+            $node instanceof If_, $node instanceof ElseIf_,
+            $node instanceof While_, $node instanceof Do_,
             $node instanceof Expr\Ternary => $node->cond,
+            $node instanceof For_         => collect($node->cond)->first(),
             default                       => null,
         };
     }

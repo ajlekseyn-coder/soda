@@ -14,9 +14,16 @@ use Cosmira\Soda\Rules\Check;
 final class NoEmptyLocalInterfaces extends Check
 {
     /**
+     * Allow marker interfaces required by explicitly named external protocols.
+     *
      * @param list<string> $protocols Qualified marker interfaces required by an external protocol.
      */
-    public function __construct(private readonly array $protocols = []) {}
+    public function __construct(
+        /**
+         * External marker interfaces exempted from the local method-contract requirement.
+         */
+        private readonly array $protocols = [],
+    ) {}
 
     /**
      * Report interfaces without a declared or inherited method contract.

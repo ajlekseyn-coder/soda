@@ -37,6 +37,8 @@ final class BooleanMethodPrefix extends Check
     private array $prefix;
 
     /**
+     * Configure ignored boolean methods and extend the allowed predicate prefixes.
+     *
      * @param string[] $ignore Method names to skip.
      * @param string[] $prefix Allowed prefixes (defaults cover the most common ones).
      */

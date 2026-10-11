@@ -35,7 +35,12 @@ final class TypeDispatchAnalysis
             $this->record($node, $groups);
             foreach (array_reverse($node->getSubNodeNames()) as $field) {
                 $child = get_object_vars($node)[$field];
-                array_push($nodes, ...($child instanceof Node ? [$child] : (is_array($child) ? array_reverse($child) : [])));
+                $children = is_array($child) ? array_reverse($child) : [];
+                if ($child instanceof Node) {
+                    $children = [$child];
+                }
+
+                array_push($nodes, ...$children);
             }
         }
 

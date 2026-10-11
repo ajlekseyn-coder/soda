@@ -7,8 +7,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__invoke must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__invoke must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -18,8 +18,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::show must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::show must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -29,8 +29,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::handle must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::handle must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -40,8 +40,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__invoke must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__invoke must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -51,8 +51,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__invoke must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__invoke must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -62,8 +62,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__invoke must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__invoke must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -73,8 +73,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -84,8 +84,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::isRetained must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::isRetained must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -95,8 +95,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::retained must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::retained must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -106,8 +106,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -117,8 +117,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::isInherited must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::isInherited must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -128,8 +128,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::enabled must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::enabled must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -139,8 +139,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -150,8 +150,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::isEnabled must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::isEnabled must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -161,8 +161,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::enabled must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::enabled must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -172,8 +172,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::up must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::up must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -183,8 +183,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::down must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::down must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -194,8 +194,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::up must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::up must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -205,8 +205,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::down must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::down must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -216,8 +216,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::up must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::up must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -227,8 +227,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::down must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::down must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -238,8 +238,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -249,8 +249,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::localize must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::localize must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -260,8 +260,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::timeZone must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::timeZone must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -271,8 +271,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -282,8 +282,8 @@
         "line": 16,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::format must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::format must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -293,8 +293,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::prefix must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::prefix must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -304,8 +304,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -315,8 +315,8 @@
         "line": 16,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::tryClaim must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::tryClaim must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -326,8 +326,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::remaining must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::remaining must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -337,8 +337,8 @@
         "line": 15,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -348,8 +348,8 @@
         "line": 22,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::toArray must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::toArray must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -359,8 +359,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::opensAt must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::opensAt must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -370,8 +370,8 @@
         "line": 13,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::closesAt must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::closesAt must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -381,8 +381,8 @@
         "line": 13,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -392,8 +392,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::identifier must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::identifier must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -403,8 +403,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::environment must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::environment must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -414,8 +414,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::release must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::release must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -425,8 +425,8 @@
         "line": 13,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -436,8 +436,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::formatted must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::formatted must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -447,8 +447,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::amount must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::amount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -458,8 +458,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::currency must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::currency must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -469,8 +469,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::format must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::format must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_constant_phpdoc",
@@ -480,8 +480,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public constant::DECIMALS must have a multiline PHPDoc comment",
-        "recommendation": "Document each constant with a multiline PHPDoc block describing its contract."
+        "message": "Public constant::DECIMALS must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each constant in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -491,8 +491,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::defaultChannel must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::defaultChannel must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_constant_phpdoc",
@@ -502,8 +502,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public constant::EMAIL must have a multiline PHPDoc comment",
-        "recommendation": "Document each constant with a multiline PHPDoc block describing its contract."
+        "message": "Public constant::EMAIL must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each constant in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -513,8 +513,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::isTerminal must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::isTerminal must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_constant_phpdoc",
@@ -524,8 +524,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public constant::PAID must have a multiline PHPDoc comment",
-        "recommendation": "Document each constant with a multiline PHPDoc block describing its contract."
+        "message": "Public constant::PAID must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each constant in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -535,8 +535,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -546,8 +546,8 @@
         "line": 16,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::summary must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::summary must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -557,8 +557,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::environment must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::environment must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -568,8 +568,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::release must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::release must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -579,8 +579,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::initiatedBy must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::initiatedBy must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -590,8 +590,8 @@
         "line": 13,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::reason must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::reason must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -601,8 +601,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -612,8 +612,8 @@
         "line": 16,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::identifier must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::identifier must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -623,8 +623,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::email must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::email must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -634,8 +634,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::name must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::name must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -645,8 +645,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::locale must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::locale must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -656,8 +656,8 @@
         "line": 13,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::source must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::source must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -667,8 +667,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -678,8 +678,8 @@
         "line": 16,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::label must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::label must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -689,8 +689,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::orderNumber must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::orderNumber must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -700,8 +700,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::address must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::address must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -711,8 +711,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::serviceLevel must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::serviceLevel must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -722,8 +722,8 @@
         "line": 13,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::requestedDate must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::requestedDate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -733,8 +733,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::connect must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::connect must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -744,8 +744,8 @@
         "line": 18,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::disconnect must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::disconnect must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -755,8 +755,8 @@
         "line": 25,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -766,8 +766,8 @@
         "line": 30,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::syncSession must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::syncSession must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -777,8 +777,8 @@
         "line": 35,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::recordTransition must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::recordTransition must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -788,8 +788,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -799,8 +799,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::deploy must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::deploy must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -810,8 +810,8 @@
         "line": 18,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::rollback must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::rollback must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -821,8 +821,8 @@
         "line": 25,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -832,8 +832,8 @@
         "line": 30,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::switchTraffic must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::switchTraffic must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -843,8 +843,8 @@
         "line": 35,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::announce must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::announce must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -854,8 +854,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -865,8 +865,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::acquire must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::acquire must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -876,8 +876,8 @@
         "line": 18,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::release must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::release must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -887,8 +887,8 @@
         "line": 25,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -898,8 +898,8 @@
         "line": 30,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::changeReservation must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::changeReservation must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -909,8 +909,8 @@
         "line": 35,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::recordLease must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::recordLease must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -920,8 +920,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -931,8 +931,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -942,8 +942,8 @@
         "line": 17,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::summary must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::summary must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -953,8 +953,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::catalog must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::catalog must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -964,8 +964,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::mode must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::mode must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -975,8 +975,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::region must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::region must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -986,8 +986,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -997,8 +997,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::batchId must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::batchId must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1008,8 +1008,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::fileName must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::fileName must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1019,8 +1019,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::requestedBy must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::requestedBy must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1030,8 +1030,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1041,8 +1041,8 @@
         "line": 17,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::summary must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::summary must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1052,8 +1052,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::amount must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::amount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1063,8 +1063,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::currency must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::currency must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1074,8 +1074,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::status must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::status must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1085,8 +1085,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1096,8 +1096,8 @@
         "line": 17,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::summary must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::summary must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1107,8 +1107,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::orderNumber must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::orderNumber must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1118,8 +1118,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::address must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::address must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1129,8 +1129,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::serviceLevel must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::serviceLevel must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1140,8 +1140,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1151,8 +1151,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::requestId must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::requestId must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1162,8 +1162,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::actorId must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::actorId must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1173,8 +1173,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::locale must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::locale must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1184,8 +1184,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1195,8 +1195,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::eventId must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::eventId must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1206,8 +1206,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::occurredAt must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::occurredAt must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -1217,8 +1217,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Public property::source must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Public property::source must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1228,8 +1228,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::import must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::import must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1239,8 +1239,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::export must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::export must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1250,8 +1250,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::publish must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::publish must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1261,8 +1261,8 @@
         "line": 24,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::unpublish must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::unpublish must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1272,8 +1272,8 @@
         "line": 29,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::index must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::index must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1283,8 +1283,8 @@
         "line": 34,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::search must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::search must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1294,8 +1294,8 @@
         "line": 39,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::filter must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::filter must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1305,8 +1305,8 @@
         "line": 44,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::classify must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::classify must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1316,8 +1316,8 @@
         "line": 49,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::price must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::price must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1327,8 +1327,8 @@
         "line": 54,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::discount must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::discount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1338,8 +1338,8 @@
         "line": 59,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::localize must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::localize must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1349,8 +1349,8 @@
         "line": 64,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::validate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::validate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1360,8 +1360,8 @@
         "line": 69,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::enrich must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::enrich must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1371,8 +1371,8 @@
         "line": 74,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::deduplicate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::deduplicate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1382,8 +1382,8 @@
         "line": 79,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::synchronize must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::synchronize must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1393,8 +1393,8 @@
         "line": 84,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::snapshot must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::snapshot must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1404,8 +1404,8 @@
         "line": 89,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::restore must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::restore must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1415,8 +1415,8 @@
         "line": 94,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::archive must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::archive must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1426,8 +1426,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::negotiate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::negotiate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1437,8 +1437,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::consolidate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::consolidate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1448,8 +1448,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::escalate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::escalate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1459,8 +1459,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::quote must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::quote must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1470,8 +1470,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::reserve must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::reserve must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1481,8 +1481,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::release must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::release must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1492,8 +1492,8 @@
         "line": 24,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::charge must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::charge must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1503,8 +1503,8 @@
         "line": 29,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::refund must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::refund must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1514,8 +1514,8 @@
         "line": 34,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::invoice must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::invoice must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1525,8 +1525,8 @@
         "line": 39,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::notify must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::notify must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1536,8 +1536,8 @@
         "line": 44,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::audit must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::audit must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1547,8 +1547,8 @@
         "line": 49,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::schedule must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::schedule must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1558,8 +1558,8 @@
         "line": 54,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::cancel must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::cancel must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1569,8 +1569,8 @@
         "line": 59,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::status must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::status must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1580,8 +1580,8 @@
         "line": 64,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::address must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::address must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1591,8 +1591,8 @@
         "line": 69,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::discount must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::discount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1602,8 +1602,8 @@
         "line": 74,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::tax must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::tax must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1613,8 +1613,8 @@
         "line": 79,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::capture must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::capture must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1624,8 +1624,8 @@
         "line": 84,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::authorize must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::authorize must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1635,8 +1635,8 @@
         "line": 89,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::fulfill must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::fulfill must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1646,8 +1646,8 @@
         "line": 94,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::archive must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::archive must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1657,8 +1657,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::embargo must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::embargo must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1668,8 +1668,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::allocate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::allocate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1679,8 +1679,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::reconcile must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::reconcile must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1690,8 +1690,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::register must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::register must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1701,8 +1701,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::activate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::activate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1712,8 +1712,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::suspend must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::suspend must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1723,8 +1723,8 @@
         "line": 24,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::resume must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::resume must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1734,8 +1734,8 @@
         "line": 29,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::renew must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::renew must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1745,8 +1745,8 @@
         "line": 34,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::expire must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::expire must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1756,8 +1756,8 @@
         "line": 39,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::upgrade must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::upgrade must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1767,8 +1767,8 @@
         "line": 44,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::downgrade must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::downgrade must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1778,8 +1778,8 @@
         "line": 49,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::invoice must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::invoice must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1789,8 +1789,8 @@
         "line": 54,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::collect must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::collect must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1800,8 +1800,8 @@
         "line": 59,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::credit must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::credit must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1811,8 +1811,8 @@
         "line": 64,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::notify must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::notify must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1822,8 +1822,8 @@
         "line": 69,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::audit must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::audit must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1833,8 +1833,8 @@
         "line": 74,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::forecast must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::forecast must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1844,8 +1844,8 @@
         "line": 79,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::reconcile must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::reconcile must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1855,8 +1855,8 @@
         "line": 84,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::transfer must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::transfer must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1866,8 +1866,8 @@
         "line": 89,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::cancel must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::cancel must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1877,8 +1877,8 @@
         "line": 94,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::archive must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::archive must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1888,8 +1888,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::approve must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::approve must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1899,8 +1899,8 @@
         "line": 14,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::allocate must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::allocate must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1910,8 +1910,8 @@
         "line": 19,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::reconcile must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::reconcile must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "max_line_length",
@@ -1932,8 +1932,8 @@
         "line": 41,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::allowedAfter must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::allowedAfter must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_constant_phpdoc",
@@ -1943,8 +1943,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Private constant::NEXT_STATES must have a multiline PHPDoc comment",
-        "recommendation": "Document each constant with a multiline PHPDoc block describing its contract."
+        "message": "Private constant::NEXT_STATES must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each constant in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1954,8 +1954,8 @@
         "line": 41,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::delaysFor must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::delaysFor must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_constant_phpdoc",
@@ -1965,8 +1965,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Private constant::DELAYS_IN_MINUTES must have a multiline PHPDoc comment",
-        "recommendation": "Document each constant with a multiline PHPDoc block describing its contract."
+        "message": "Private constant::DELAYS_IN_MINUTES must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each constant in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1976,8 +1976,8 @@
         "line": 37,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::handlerFor must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::handlerFor must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_constant_phpdoc",
@@ -1987,8 +1987,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Private constant::HANDLERS must have a multiline PHPDoc comment",
-        "recommendation": "Document each constant with a multiline PHPDoc block describing its contract."
+        "message": "Private constant::HANDLERS must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each constant in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -1998,8 +1998,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -2009,8 +2009,8 @@
         "line": 15,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::unresolvedAmount must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::unresolvedAmount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2020,8 +2020,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::expectedSettlementAmount must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::expectedSettlementAmount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2031,8 +2031,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::capturedSettlementAmount must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::capturedSettlementAmount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2042,8 +2042,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::refundedSettlementAmount must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::refundedSettlementAmount must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "variable_name_length",
@@ -2086,8 +2086,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -2097,8 +2097,8 @@
         "line": 15,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::remainingGracePeriod must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::remainingGracePeriod must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2108,8 +2108,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::configuredGracePeriodDays must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::configuredGracePeriodDays must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2119,8 +2119,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::elapsedGracePeriodDays must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::elapsedGracePeriodDays must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2130,8 +2130,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::suspendedGracePeriodDays must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::suspendedGracePeriodDays must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "variable_name_length",
@@ -2174,8 +2174,8 @@
         "line": 9,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__construct must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__construct must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -2185,8 +2185,8 @@
         "line": 15,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::availableQuantity must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::availableQuantity must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2196,8 +2196,8 @@
         "line": 10,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::physicalInventoryQuantity must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::physicalInventoryQuantity must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2207,8 +2207,8 @@
         "line": 11,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::reservedInventoryQuantity must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::reservedInventoryQuantity must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2218,8 +2218,8 @@
         "line": 12,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::damagedInventoryQuantity must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::damagedInventoryQuantity must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "variable_name_length",
@@ -2306,8 +2306,8 @@
         "line": 26,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::reserve must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::reserve must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2317,8 +2317,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::ledger must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::ledger must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2328,8 +2328,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::outbox must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::outbox must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "no_behavior_magic_methods",
@@ -2350,8 +2350,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::customers must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::customers must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -2361,8 +2361,8 @@
         "line": 22,
         "value": 0,
         "threshold": 1,
-        "message": "Private method::waitForReplica must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Private method::waitForReplica must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -2372,8 +2372,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::ledger must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::ledger must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "no_blocking_sleep",
@@ -2394,8 +2394,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::handlers must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::handlers must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "no_dynamic_invocation",
@@ -2427,8 +2427,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::receipts must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::receipts must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "no_blocking_sleep",
@@ -2471,8 +2471,8 @@
         "line": 8,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::events must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::events must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "no_runtime_hooks",
@@ -2897,41 +2897,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 25,
-        "value": 144,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 26,
+        "line": 29,
         "value": 143,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 27,
-        "value": 152,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 28,
-        "value": 158,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -2942,7 +2909,7 @@
         "method": null,
         "class": null,
         "line": 30,
-        "value": 139,
+        "value": 152,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -2953,18 +2920,7 @@
         "method": null,
         "class": null,
         "line": 31,
-        "value": 146,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 32,
-        "value": 141,
+        "value": 158,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -2975,193 +2931,6 @@
         "method": null,
         "class": null,
         "line": 33,
-        "value": 146,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 34,
-        "value": 148,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 35,
-        "value": 140,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 36,
-        "value": 122,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 37,
-        "value": 145,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 38,
-        "value": 136,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 39,
-        "value": 134,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 40,
-        "value": 130,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 41,
-        "value": 148,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 42,
-        "value": 150,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 43,
-        "value": 143,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 44,
-        "value": 134,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 45,
-        "value": 148,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 46,
-        "value": 146,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 47,
-        "value": 156,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 48,
-        "value": 154,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 49,
-        "value": 147,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 50,
         "value": 139,
         "threshold": 100,
         "message": null,
@@ -3172,18 +2941,7 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 51,
-        "value": 128,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 52,
+        "line": 34,
         "value": 146,
         "threshold": 100,
         "message": null,
@@ -3194,8 +2952,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 53,
-        "value": 142,
+        "line": 35,
+        "value": 141,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3205,8 +2963,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 54,
-        "value": 150,
+        "line": 36,
+        "value": 146,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3216,8 +2974,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 55,
-        "value": 136,
+        "line": 37,
+        "value": 148,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3227,7 +2985,7 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 56,
+        "line": 38,
         "value": 140,
         "threshold": 100,
         "message": null,
@@ -3238,8 +2996,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 57,
-        "value": 137,
+        "line": 39,
+        "value": 122,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3249,8 +3007,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 58,
-        "value": 144,
+        "line": 40,
+        "value": 145,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3260,7 +3018,95 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 59,
+        "line": 41,
+        "value": 136,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 42,
+        "value": 134,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 43,
+        "value": 130,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 44,
+        "value": 148,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 45,
+        "value": 150,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 46,
+        "value": 143,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 47,
+        "value": 134,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 48,
+        "value": 148,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 49,
         "value": 146,
         "threshold": 100,
         "message": null,
@@ -3271,8 +3117,118 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
+        "line": 50,
+        "value": 156,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 51,
+        "value": 154,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 52,
+        "value": 147,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 53,
+        "value": 139,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 54,
+        "value": 128,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 55,
+        "value": 146,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 56,
+        "value": 142,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 57,
+        "value": 150,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 58,
+        "value": 136,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 59,
+        "value": 140,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
         "line": 60,
-        "value": 132,
+        "value": 137,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3283,7 +3239,7 @@
         "method": null,
         "class": null,
         "line": 61,
-        "value": 151,
+        "value": 144,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3305,7 +3261,7 @@
         "method": null,
         "class": null,
         "line": 63,
-        "value": 139,
+        "value": 132,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3316,7 +3272,7 @@
         "method": null,
         "class": null,
         "line": 64,
-        "value": 138,
+        "value": 151,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3327,7 +3283,7 @@
         "method": null,
         "class": null,
         "line": 65,
-        "value": 133,
+        "value": 146,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3338,83 +3294,6 @@
         "method": null,
         "class": null,
         "line": 66,
-        "value": 138,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 67,
-        "value": 131,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 68,
-        "value": 135,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 69,
-        "value": 136,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 70,
-        "value": 140,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 71,
-        "value": 129,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 72,
-        "value": 135,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 73,
         "value": 139,
         "threshold": 100,
         "message": null,
@@ -3425,238 +3304,7 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 74,
-        "value": 134,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 75,
-        "value": 146,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 76,
-        "value": 134,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 77,
-        "value": 133,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 78,
-        "value": 150,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 79,
-        "value": 137,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 80,
-        "value": 149,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 81,
-        "value": 142,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 82,
-        "value": 144,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 83,
-        "value": 127,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 84,
-        "value": 133,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 85,
-        "value": 130,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 86,
-        "value": 145,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 87,
-        "value": 146,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 88,
-        "value": 162,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 89,
-        "value": 147,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 90,
-        "value": 136,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 91,
-        "value": 155,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 92,
-        "value": 144,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 93,
-        "value": 142,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 94,
-        "value": 142,
-        "threshold": 100,
-        "message": null,
-        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
-    },
-    {
-        "rule": "max_line_length",
-        "file": "demo-app/rule-challenges.php",
-        "method": null,
-        "class": null,
-        "line": 95,
+        "line": 67,
         "value": 138,
         "threshold": 100,
         "message": null,
@@ -3667,8 +3315,8 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 96,
-        "value": 145,
+        "line": 68,
+        "value": 133,
         "threshold": 100,
         "message": null,
         "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
@@ -3678,7 +3326,172 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 97,
+        "line": 69,
+        "value": 138,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 70,
+        "value": 131,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 71,
+        "value": 135,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 72,
+        "value": 136,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 73,
+        "value": 140,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 74,
+        "value": 129,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 75,
+        "value": 135,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 76,
+        "value": 139,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 77,
+        "value": 134,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 78,
+        "value": 146,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 79,
+        "value": 134,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 80,
+        "value": 133,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 81,
+        "value": 150,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 82,
+        "value": 137,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 87,
+        "value": 142,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 88,
         "value": 144,
         "threshold": 100,
         "message": null,
@@ -3689,7 +3502,172 @@
         "file": "demo-app/rule-challenges.php",
         "method": null,
         "class": null,
-        "line": 98,
+        "line": 89,
+        "value": 127,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 90,
+        "value": 133,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 91,
+        "value": 130,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 92,
+        "value": 145,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 93,
+        "value": 146,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 94,
+        "value": 162,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 95,
+        "value": 147,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 100,
+        "value": 136,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 101,
+        "value": 155,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 102,
+        "value": 144,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 103,
+        "value": 142,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 104,
+        "value": 142,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 105,
+        "value": 138,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 106,
+        "value": 145,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 107,
+        "value": 144,
+        "threshold": 100,
+        "message": null,
+        "recommendation": "Format long lines for readability using the project style: consistent indentation, logical breakpoints, and one argument or array item per line in multiline lists. Do not insert arbitrary line breaks just to satisfy the limit."
+    },
+    {
+        "rule": "max_line_length",
+        "file": "demo-app/rule-challenges.php",
+        "method": null,
+        "class": null,
+        "line": 108,
         "value": 128,
         "threshold": 100,
         "message": null,
@@ -3703,8 +3681,8 @@
         "line": 7,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::label must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::label must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -3714,8 +3692,8 @@
         "line": 22,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::__get must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::__get must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_method_phpdoc",
@@ -3725,8 +3703,8 @@
         "line": 27,
         "value": 0,
         "threshold": 1,
-        "message": "Public method::process must have a multiline PHPDoc comment",
-        "recommendation": "Document each method with a multiline PHPDoc block describing its contract."
+        "message": "Public method::process must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each method in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "multiline_property_phpdoc",
@@ -3736,8 +3714,8 @@
         "line": 20,
         "value": 0,
         "threshold": 1,
-        "message": "Private property::processed must have a multiline PHPDoc comment",
-        "recommendation": "Document each property with a multiline PHPDoc block describing its contract."
+        "message": "Private property::processed must have a multiline PHPDoc comment with a description before any tags",
+        "recommendation": "Describe each property in a multiline PHPDoc block before any tags; tags alone do not explain its purpose."
     },
     {
         "rule": "no_global_state",

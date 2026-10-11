@@ -1,0 +1,67 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Cosmira\Soda\Rules\Usage;
+
+use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Reporting\Violation;
+use Cosmira\Soda\Rules\Check;
+use InvalidArgumentException;
+use PhpParser\NodeTraverser;
+
+/**
+ * Optionally rejects direct rebinding of by-value parameters while preserving object mutation APIs.
+ */
+final class NoReassignedParameters extends Check
+{
+    /**
+     * Configure exact parameter names allowed to be rebound.
+     *
+     * @param list<string> $ignoredParameters Names without the dollar prefix.
+     */
+    public function __construct(
+        /**
+         * Explicit exceptions for intentional input normalization.
+         */
+        private readonly array $ignoredParameters = [],
+    ) {
+        foreach ($ignoredParameters as $name) {
+            throw_if(! is_string($name) || $name === '' || str_starts_with($name, '$'), InvalidArgumentException::class, 'Ignored parameter names must be non-empty strings without a dollar prefix.');
+        }
+    }
+
+    /**
+     * Identify the parameter-rebinding policy.
+     */
+    public function id(): string
+    {
+        return 'no_reassigned_parameters';
+    }
+
+    /**
+     * Analyze lexical bindings directly without requesting additional facts.
+     *
+     * @return list<string>
+     */
+    public function requiredAnalyses(): array
+    {
+        return [];
+    }
+
+    /**
+     * Report direct writes with parameter names and original source locations.
+     */
+    public function checkFile(FileFacts $file): iterable
+    {
+        $visitor = new ParameterReassignmentVisitor($this->ignoredParameters);
+        (new NodeTraverser($visitor))->traverse($file->nodes);
+        foreach ($visitor->writes() as $write) {
+            yield new Violation(
+                rule: $this->id(), file: $file->path, value: 1, threshold: 0,
+                line: $write['line'],
+                message: 'Parameter $'.$write['name'].' is rebound. Keep the input name for the original value and give a transformed value its own name, or configure intentional rebinding explicitly.',
+            );
+        }
+    }
+}

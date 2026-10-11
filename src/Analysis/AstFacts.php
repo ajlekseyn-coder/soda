@@ -26,6 +26,8 @@ final class AstFacts
     use CollectsDesignFacts;
 
     /**
+     * Collect only the requested metric families from the parsed syntax tree.
+     *
      * @param list<Node>        $nodes
      * @param list<string>|null $required
      *

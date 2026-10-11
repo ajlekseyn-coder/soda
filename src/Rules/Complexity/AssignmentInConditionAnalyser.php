@@ -38,6 +38,8 @@ final readonly class AssignmentInConditionAnalyser
     }
 
     /**
+     * Locate assignments embedded in control-flow conditions throughout the syntax tree.
+     *
      * @param Node[] $nodes
      *
      * @return list<AssignmentCondition>
@@ -61,6 +63,8 @@ final readonly class AssignmentInConditionAnalyser
     }
 
     /**
+     * Collect the expressions used as control-flow conditions.
+     *
      * @param Node[] $nodes
      *
      * @return list<Node\Expr>
@@ -104,6 +108,8 @@ final readonly class AssignmentInConditionAnalyser
     }
 
     /**
+     * Extract the condition expressions belonging to one control-flow node.
+     *
      * @return list<Node\Expr>
      */
     private function conditionsFrom(Node $node): array
@@ -125,6 +131,8 @@ final readonly class AssignmentInConditionAnalyser
     }
 
     /**
+     * Find assignments nested within a condition expression.
+     *
      * @return list<Assign|AssignOp>
      */
     private function assignmentsIn(Node $condition): array

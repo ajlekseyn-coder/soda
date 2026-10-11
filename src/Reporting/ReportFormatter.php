@@ -58,6 +58,8 @@ final readonly class ReportFormatter
             $output->newLine();
         }
 
+        $this->writeResearch($output, $result, $projectRoot);
+
         $passed = $result->isPassing();
         if ($passed) {
             $output->writeln('<fg=green;options=bold>[OK]</> No issues');
@@ -72,6 +74,59 @@ final readonly class ReportFormatter
     }
 
     /**
+     * Show research paths and incomplete coverage independently of the quality gate.
+     */
+    private function writeResearch(OutputStyle $output, QualityResult $result, string $projectRoot): void
+    {
+        foreach ($result->research as $id => $report) {
+            $candidates = $report['candidates'] ?? [];
+            $partial = $report['partial'] ?? [];
+            $coverage = $report['coverage'] ?? [];
+            $unknown = count(array_filter($partial, fn (array $path): bool => ($path['status'] ?? null) === 'unknown'));
+            $truncated = count(array_filter($partial, fn (array $path): bool => ($path['status'] ?? null) === 'truncated'));
+            $output->writeln('<fg=yellow;options=bold>Research (nongating): '.OutputFormatter::escape($id).'</>');
+            $output->writeln(sprintf(
+                '  %d candidates; %d partial paths (unknown: %d; truncated: %d)',
+                count($candidates), count($partial), $unknown, $truncated,
+            ));
+            if (($coverage['incomplete'] ?? false) === true) {
+                $output->writeln('  Coverage incomplete; absence of candidates does not establish absence of churn.');
+            }
+            foreach ($coverage['limitations'] ?? [] as $limitation) {
+                $output->writeln('  Coverage: '.OutputFormatter::escape($limitation));
+            }
+            foreach ($candidates as $candidate) {
+                $output->writeln('  Candidate: '.OutputFormatter::escape($candidate['message'] ?? 'Inspect the connected data path and its contracts.'));
+                $output->writeln('    Concept preservation: '.OutputFormatter::escape($candidate['concept_preservation'] ?? 'unknown').'; manual review required.');
+                foreach ($candidate['path'] ?? [] as $point) {
+                    $this->writeResearchLocation($output, $point, $projectRoot);
+                }
+            }
+            foreach ($partial as $path) {
+                $output->writeln('  '.OutputFormatter::escape(($path['status'] ?? 'unknown').': '.($path['reason'] ?? 'Incomplete path evidence.')));
+                if (isset($path['file'])) {
+                    $this->writeResearchLocation($output, $path, $projectRoot);
+                }
+            }
+            $output->newLine();
+        }
+    }
+
+    /**
+     * Render one source point from a research path without prescribing a change.
+     *
+     * @param array<string, mixed> $point
+     */
+    private function writeResearchLocation(OutputStyle $output, array $point, string $projectRoot): void
+    {
+        $location = $this->shortenPath($point['file'], $projectRoot).':'.($point['line'] ?? '?');
+        $detail = trim(($point['callable'] ?? '').' '.($point['operation'] ?? ''));
+        $output->writeln('    '.OutputFormatter::escape($location.($detail !== '' ? ' '.$detail : '')));
+    }
+
+    /**
+     * Render diagnostics grouped by file with source locations and remediation advice.
+     *
      * @param Collection<int, Violation> $violations
      */
     private function writeViolationsGrouped(OutputStyle $output, Collection $violations, string $projectRoot): void

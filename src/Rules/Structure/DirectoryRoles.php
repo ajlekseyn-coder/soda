@@ -24,6 +24,8 @@ final class DirectoryRoles
     private const string MIXED_ROLE = 'Mixed';
 
     /**
+     * Count file roles within each directory while retaining unclassified files in its total.
+     *
      * @param array<string, array<string, mixed>> $files
      *
      * @return array<string, array{file: string, fileCount: int, roleCounts: array<string, int>}>

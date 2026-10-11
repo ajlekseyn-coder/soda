@@ -20,6 +20,8 @@ use PhpParser\Node\Stmt\Trait_;
 final class ClassFactsExtractor
 {
     /**
+     * Build structural facts for a class or trait from its declaration.
+     *
      * @return ClassFacts
      */
     public static function extract(Class_|Trait_ $node, ?LogicalLineMap $logicalLineMap = null): array
@@ -67,6 +69,8 @@ final class ClassFactsExtractor
     }
 
     /**
+     * Return resolved names of interfaces implemented by the class.
+     *
      * @return list<string>
      */
     public static function implementedInterfaceNames(Class_ $node): array
@@ -75,6 +79,8 @@ final class ClassFactsExtractor
     }
 
     /**
+     * Return resolved names of parent interfaces.
+     *
      * @return list<string>
      */
     public static function extendedInterfaceNames(Interface_ $node): array
@@ -83,6 +89,8 @@ final class ClassFactsExtractor
     }
 
     /**
+     * Prefer resolved qualified names while retaining unresolved declarations.
+     *
      * @param list<Name> $names
      *
      * @return list<string>
@@ -112,6 +120,8 @@ final class ClassFactsExtractor
     }
 
     /**
+     * Collect the names of public methods declared by this class or trait.
+     *
      * @return list<string>
      */
     public static function publicMethodNames(Class_|Trait_ $node): array
@@ -128,6 +138,8 @@ final class ClassFactsExtractor
     }
 
     /**
+     * Collect qualified names of traits directly imported by this declaration.
+     *
      * @return list<string>
      */
     public static function usedTraitNames(Class_|Trait_ $node): array
@@ -184,6 +196,8 @@ final class ClassFactsExtractor
     }
 
     /**
+     * Derive the namespace name and depth from the qualified declaration name.
+     *
      * @return array{0: string, 1: int}
      */
     private static function extractNamespace(Class_|Trait_ $node): array

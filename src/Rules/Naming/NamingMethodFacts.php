@@ -25,6 +25,8 @@ use function strtolower;
 final class NamingMethodFacts
 {
     /**
+     * Extract a declared class method signature and its naming-policy context.
+     *
      * @return NamingMethod
      */
     public static function fromClassMethod(ClassMethod $node, ?string $class): array
@@ -45,6 +47,8 @@ final class NamingMethodFacts
     }
 
     /**
+     * Extract a named function signature for naming-policy measurements.
+     *
      * @return NamingMethod|null
      */
     public static function fromFunction(Function_ $node): ?array
@@ -69,6 +73,8 @@ final class NamingMethodFacts
     }
 
     /**
+     * Recognize the Override attribute marking an inherited method contract.
+     *
      * @param list<AttributeGroup> $attributeGroups
      */
     private static function hasOverrideAttribute(array $attributeGroups): bool
@@ -86,6 +92,8 @@ final class NamingMethodFacts
     }
 
     /**
+     * Extract the first parameter type for redundant-name comparisons.
+     *
      * @param list<Node\Param> $params
      */
     private static function firstParamType(array $params): ?string

@@ -22,7 +22,10 @@ return [
     'no_repeated_type_dispatch'       => ['iteration' => 100, 'attack' => 'Repeat a type family using instanceof in one method and match or switch in another.'],
     'no_untyped_parameters'           => ['iteration' => 100, 'attack' => 'Remove a parameter type to evade type-based restrictions.'],
     'no_unused_private_state'         => ['iteration' => 100, 'attack' => 'Add a write-only private property or unused constant to make a wrapper appear stateful.'],
-    'no_dependency_cycles'            => ['iteration' => 100, 'attack' => 'Use aliases and nested namespaces to hide a cycle between modules.'],
+    'no_dependency_cycles'            => [
+        'iteration' => 8,
+        'attack'    => 'Create a cycle across configured namespace modules.',
+    ],
     'no_empty_local_interfaces'       => ['iteration' => 100, 'attack' => 'Give a decorative marker a constant or an empty parent interface.'],
     'no_redundant_local_interfaces'   => ['iteration' => 100, 'attack' => 'Declare an interface and implement or import it without any type consumer.'],
     'no_unused_parameters'            => ['iteration' => 100, 'attack' => 'Use a same-named variable only in a nested callable to disguise an unused input.'],
@@ -77,7 +80,10 @@ return [
     'no_behavior_magic_methods'          => ['iteration' => 6, 'attack' => 'Move the hidden API to a trait or an invokable object.'],
     'no_static_mutable_properties'       => ['iteration' => 6, 'attack' => 'Hide shared state inside a static local variable or singleton instance.'],
     'no_blocking_sleep'                  => ['iteration' => 6, 'attack' => 'Block through time_nanosleep, stream_select, or a wrapper.'],
-    'max_efferent_coupling'              => ['iteration' => 6, 'attack' => 'Refer to dependencies through strings, reflection, and container keys.'],
+    'max_efferent_coupling'              => [
+        'iteration' => 8,
+        'attack'    => 'Reference distinct types through aliases and trait composition.',
+    ],
     'max_classes_per_file'               => ['iteration' => 7, 'attack' => 'Use anonymous classes and enum cases as miniature hidden types.'],
     'max_namespace_depth'                => ['iteration' => 7, 'attack' => 'Encode hierarchy into long class prefixes in a shallow namespace.'],
     'max_classes_per_namespace'          => ['iteration' => 7, 'attack' => 'Create near-identical numbered child namespaces.'],
@@ -87,6 +93,10 @@ return [
     'max_classes_per_project'            => ['iteration' => 7, 'attack' => 'Replace named classes with anonymous classes and generated proxies.'],
     'max_cyclomatic_complexity'          => ['iteration' => 8, 'attack' => 'Replace branches with lookup tables, callbacks, exceptions, and boolean arithmetic.'],
     'max_control_nesting'                => ['iteration' => 8, 'attack' => 'Flatten nesting into a long sequence of guards with shared mutation.'],
+    'max_statements_per_callable'        => [
+        'iteration' => 8,
+        'attack'    => 'Hide many executable instructions in a closure or on one line.',
+    ],
     'max_return_statements'              => ['iteration' => 8, 'attack' => 'Use one return and mutate a result through many branches.'],
     'max_boolean_conditions'             => ['iteration' => 8, 'attack' => 'Replace boolean operators with nested predicate calls and bitwise operators.'],
     'max_try_catch_blocks'               => ['iteration' => 8, 'attack' => 'Move recovery into promise callbacks and error-handler functions.'],
@@ -96,6 +106,14 @@ return [
     'method_name_length'                 => ['iteration' => 10, 'attack' => 'Use a short generic verb for a method with many responsibilities.'],
     'class_name_length'                  => ['iteration' => 10, 'attack' => 'Use a short prestigious suffix such as Manager for a god object.'],
     'namespace_name_length'              => ['iteration' => 10, 'attack' => 'Use short meaningless nested namespace segments.'],
+    'no_empty_finally_blocks'            => [
+        'iteration' => 8,
+        'attack'    => 'Hide an empty cleanup block behind comments and empty statements.',
+    ],
+    'max_cognitive_complexity' => [
+        'iteration' => 8,
+        'attack'    => 'Mix nested branches while keeping nested callables independent.',
+    ],
     'no_trivial_factories'               => [
         'iteration' => 3,
         'attack'    => 'Rename create to build; this deliberately leaves the narrow factory scope.',
@@ -107,5 +125,65 @@ return [
     'no_consecutive_block_comments' => [
         'iteration' => 4,
         'attack'    => 'Separate adjacent PHPDoc blocks with blank lines.',
+    ],
+    'no_identical_branches' => [
+        'iteration' => 100,
+        'attack'    => 'Repeat match results with different spacing or comments.',
+    ],
+    'no_nested_ternary' => [
+        'iteration' => 100,
+        'attack'    => 'Hide a full ternary inside a parenthesized result branch.',
+    ],
+    'no_assignment_in_return' => [
+        'iteration' => 4,
+        'attack'    => 'Hide an assignment inside a returned call argument or arrow expression.',
+    ],
+    'no_chained_assignments' => [
+        'iteration' => 4,
+        'attack'    => 'Combine reference or compound assignments into one right-hand chain.',
+    ],
+    'no_unneeded_ternary' => [
+        'iteration' => 100,
+        'attack'    => 'Select true and false from an unknown condition type.',
+    ],
+    'no_return_in_finally' => [
+        'iteration' => 8,
+        'attack'    => 'Replace the pending result with a return in cleanup.',
+    ],
+    'no_reassigned_parameters' => [
+        'iteration' => 8,
+        'attack'    => 'Rebind a parameter through destructuring or a reference capture.',
+    ],
+    'max_consecutive_local_assignments' => [
+        'iteration' => 8,
+        'attack'    => 'Hide a long preparation run behind comments and empty statements.',
+    ],
+    'no_repeated_string_literals' => [
+        'iteration' => 8,
+        'attack'    => 'Repeat decoded protocol strings across methods in one owner.',
+    ],
+    'fragmented_owner_behavior' => [
+        'iteration' => 8,
+        'attack'    => 'Split one owner operation across stateless collaborators.',
+    ],
+    'repeated_owner_concern' => [
+        'iteration' => 8,
+        'attack'    => 'Copy one stateful concern across independent owners.',
+    ],
+    'scattered_owner_concern' => [
+        'iteration' => 8,
+        'attack'    => 'Interleave a related behavior group with unrelated methods.',
+    ],
+    'repeated_configuration_sequence' => [
+        'iteration' => 8,
+        'attack'    => 'Repeat fresh-object setup with reordered arguments.',
+    ],
+    'repeated_foreign_state_decision' => [
+        'iteration' => 8,
+        'attack'    => 'Repeat a compound decision over one owner in multiple consumers.',
+    ],
+    'repeated_foreign_state_update' => [
+        'iteration' => 8,
+        'attack'    => 'Repeat owner arithmetic while varying receiver identity.',
     ],
 ];

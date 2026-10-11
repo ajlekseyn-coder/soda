@@ -10,6 +10,7 @@ use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
 use Cosmira\Soda\Reporting\QualityResult;
 use Cosmira\Soda\Reporting\ReportFormatter;
+use Cosmira\Soda\Reporting\ResearchJsonReportFormatter;
 use Cosmira\Soda\Reporting\RuleMetadata;
 
 use function file_put_contents;
@@ -46,6 +47,7 @@ final class QualityCommand extends Command
         {--exclude=* : Exclude files with path in their path}
         {--config= : Path to soda.php}
         {--report-json= : Write quality report to JSON file}
+        {--research-json= : Write nongating research evidence to a separate JSON file}
     ';
 
     /**
@@ -98,6 +100,7 @@ final class QualityCommand extends Command
 
         (new ReportFormatter(RuleMetadata::default()))->write($this->output, $result, $root);
         $this->writeReportJson($result);
+        $this->writeResearchJson($result);
 
         return $result->isPassing() ? self::SUCCESS : self::FAILURE;
     }
@@ -141,6 +144,8 @@ final class QualityCommand extends Command
     }
 
     /**
+     * Resolve the requested configuration file relative to the current working directory.
+     *
      * @return non-empty-string|null
      */
     private function resolveConfigPath(): ?string
@@ -156,6 +161,8 @@ final class QualityCommand extends Command
     }
 
     /**
+     * Expand configured or command-line paths into the PHP files to analyze.
+     *
      * @param list<non-empty-string> $directories
      *
      * @return list<non-empty-string>
@@ -190,5 +197,20 @@ final class QualityCommand extends Command
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         file_put_contents($reportJson, $json);
+    }
+
+    /**
+     * Write opt-in research evidence without changing the quality JSON schema.
+     */
+    private function writeResearchJson(QualityResult $result): void
+    {
+        $path = $this->option('research-json');
+        if (! is_string($path) || $path === '') {
+            return;
+        }
+
+        $data = (new ResearchJsonReportFormatter)->format($result);
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        file_put_contents($path, $json);
     }
 }

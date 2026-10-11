@@ -46,6 +46,8 @@ final class MaxNamespaceDepth extends ExpressionCheck
     }
 
     /**
+     * Report a namespace depth exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

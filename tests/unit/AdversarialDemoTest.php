@@ -37,6 +37,7 @@ use Cosmira\Soda\Rules\Check as SodaRule;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInCondition;
 use Cosmira\Soda\Rules\Complexity\NoComplexControlConditions;
 use Cosmira\Soda\Rules\Complexity\NoElseBranches;
+use Cosmira\Soda\Rules\ResearchCheck;
 use Cosmira\Soda\Tests\CheckFixture;
 use PHPUnit\Framework\TestCase;
 
@@ -89,11 +90,12 @@ final class AdversarialDemoTest extends TestCase
         );
     }
 
-    public function testEveryCatalogRuleHasAnAdversarialChallengeInOneOfOneHundredIterations(): void
+    public function testEveryGatingCatalogRuleHasAnAdversarialChallengeInOneOfOneHundredIterations(): void
     {
         $challenges = require dirname($this->demo).'/rule-challenges.php';
 
-        $this->assertSame(array_keys(RuleCatalog::standardDefinitions()), array_keys(array_intersect_key($challenges, RuleCatalog::standardDefinitions())));
+        $gating = array_filter(RuleCatalog::standardDefinitions(), static fn (array $definition): bool => ! is_subclass_of($definition['class'], ResearchCheck::class));
+        $this->assertSame(array_keys($gating), array_keys(array_intersect_key($challenges, $gating)));
         foreach ($challenges as $rule => $challenge) {
             $this->assertGreaterThanOrEqual(1, $challenge['iteration'], $rule);
             $this->assertLessThanOrEqual(100, $challenge['iteration'], $rule);
@@ -197,13 +199,15 @@ final class AdversarialDemoTest extends TestCase
         $this->assertStringContainsString((count($iterationFiles) - 9 + array_sum($phpDocCounts)).' issues', $report);
         $this->assertStringContainsString('$service', $report);
         $this->assertStringContainsString('Private property ledger is never read', $report);
+        $this->assertStringContainsString('Research (nongating): representation_churn', $report);
+        $qualityReport = strstr($report, 'Research (nongating):', true) ?: $report;
 
         foreach ($iterationFiles as $iterationFile) {
             $expectedMentions = in_array(basename($iterationFile), ['07-boolean-parameter.php', '09-static-state.php', '12-nullable-boolean.php', '15-static-local-cache.php', '44-dynamic-construction.php', '45-prototype-copy.php', '48-method-contract-probe.php', '49-property-contract-probe.php', '50-callable-contract-probe.php'], true) ? 0 : 1;
             if ($phpDocCounts[$iterationFile] > 0) {
                 $expectedMentions = 1;
             }
-            $this->assertSame($expectedMentions, substr_count($report, 'demo-app/iterations/'.basename($iterationFile)));
+            $this->assertSame($expectedMentions, substr_count($qualityReport, 'demo-app/iterations/'.basename($iterationFile)));
         }
     }
 

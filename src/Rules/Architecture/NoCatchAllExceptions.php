@@ -58,6 +58,8 @@ final class NoCatchAllExceptions extends Check
     }
 
     /**
+     * Recognize catch bodies that explicitly return, throw, or otherwise handle failure.
+     *
      * @param list<Stmt> $statements Statements in the current catch scope.
      */
     private function hasExplicitOutcome(array $statements): bool

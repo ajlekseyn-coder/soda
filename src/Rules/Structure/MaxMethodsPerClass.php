@@ -46,6 +46,8 @@ final class MaxMethodsPerClass extends ExpressionCheck
     }
 
     /**
+     * Report a declared method count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

@@ -14,9 +14,16 @@ use Cosmira\Soda\Rules\Check;
 final class NoRedundantLocalInterfaces extends Check
 {
     /**
+     * Register interfaces whose consumers reside outside the analyzed source.
+     *
      * @param list<string> $contracts Qualified interfaces consumed outside analysed source.
      */
-    public function __construct(private readonly array $contracts = []) {}
+    public function __construct(
+        /**
+         * Interface names with explicitly declared external consumers.
+         */
+        private readonly array $contracts = [],
+    ) {}
 
     /**
      * Require a type consumer beyond an implements clause or an explicit external contract.

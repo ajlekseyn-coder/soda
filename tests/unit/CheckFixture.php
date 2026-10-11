@@ -44,7 +44,10 @@ final class CheckFixture
             $class = $entry['class'];
             $args = $entry['arguments'];
             $options = $state['options'][$id] ?? [];
-            if (isset($args['max'])) {
+            if (str_starts_with($class, 'Cosmira\\Soda\\Rules\\Design\\')) {
+                // Owner diagnostics use several admission minima, not one numeric maximum.
+                $args = array_replace($args, $options);
+            } elseif (isset($args['max'])) {
                 $args = ['min' => $options['min'] ?? $args['min'], 'max' => $options['max'] ?? $limit];
             } elseif (isset($args['minMethods'])) {
                 $args['minMethods'] = $limit + 1;

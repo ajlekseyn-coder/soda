@@ -46,6 +46,8 @@ final class MaxControlNesting extends ExpressionCheck
     }
 
     /**
+     * Report a control-flow nesting depth exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

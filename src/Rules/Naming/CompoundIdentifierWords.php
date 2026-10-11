@@ -12,6 +12,8 @@ namespace Cosmira\Soda\Rules\Naming;
 final readonly class CompoundIdentifierWords
 {
     /**
+     * Split compound identifiers into their constituent words for naming measurements.
+     *
      * @return list<non-empty-string>
      */
     public static function split(string $name): array

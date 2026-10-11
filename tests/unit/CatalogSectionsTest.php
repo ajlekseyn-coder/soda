@@ -27,7 +27,7 @@ final class CatalogSectionsTest extends TestCase
         $this->assertContains('max_method_length', $sections['structural']);
         $this->assertContains('max_class_length', $sections['structural']);
         $this->assertContains('max_classes_per_project', $sections['structural']);
-        $this->assertNotContains('max_efferent_coupling', $sections['structural']);
+        $this->assertContains('max_efferent_coupling', $sections['structural']);
 
         $this->assertArrayHasKey('complexity', $sections);
         $this->assertContains('max_cyclomatic_complexity', $sections['complexity']);

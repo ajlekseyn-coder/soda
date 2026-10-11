@@ -57,6 +57,8 @@ final class TrivialDelegatingClassPolicy
     }
 
     /**
+     * Collect property names used to distinguish owned state from forwarding dependencies.
+     *
      * @return list<string>
      */
     private function propertyNames(Class_ $class): array
@@ -80,6 +82,8 @@ final class TrivialDelegatingClassPolicy
     }
 
     /**
+     * Return a method body statement only when exactly one statement is present.
+     *
      * @param list<Stmt> $statements
      */
     private function onlyStatement(array $statements): ?Stmt

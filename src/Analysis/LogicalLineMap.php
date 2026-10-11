@@ -17,9 +17,16 @@ use function trim;
 final readonly class LogicalLineMap
 {
     /**
+     * Retain the physical source lines that contain executable PHP tokens.
+     *
      * @param array<int, true> $codeLines
      */
-    private function __construct(private array $codeLines) {}
+    private function __construct(
+        /**
+         * Physical line numbers containing code rather than only whitespace or comments.
+         */
+        private array $codeLines,
+    ) {}
 
     /**
      * Build a map from PHP source while ignoring whitespace and comments.
@@ -71,6 +78,8 @@ final readonly class LogicalLineMap
     }
 
     /**
+     * Mark each physical line containing a non-whitespace part of a code token.
+     *
      * @param array<int, true>                        $lines
      * @param string|array{0: int, 1: string, 2: int} $token
      */
@@ -90,6 +99,8 @@ final readonly class LogicalLineMap
     }
 
     /**
+     * Exclude whitespace and comment tokens from logical line measurements.
+     *
      * @param string|array{0: int, 1: string, 2: int} $token
      */
     private static function isCodeToken(string|array $token): bool

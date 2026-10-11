@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 final class PragmaticApiPolicyTest extends TestCase
 {
-    public function testConventionsAreAcceptedByDefaultAndStrictPoliciesRemainAvailable(): void
+    public function testConventionsRetainOptionalPoliciesWhileDependencyCyclesAreStandard(): void
     {
         $file = tempnam(sys_get_temp_dir(), 'soda-conventions-');
         file_put_contents($file, <<<'SOURCE'
@@ -40,7 +40,7 @@ SOURCE);
 
         try {
             $standard = (new Runner)->check([$file], Soda::configure()->with(RuleCatalog::standard()));
-            self::assertSame([], array_values(array_intersect($policies, $standard->violations->pluck('rule')->all())));
+            self::assertSame(['no_dependency_cycles'], array_values(array_intersect($policies, $standard->violations->pluck('rule')->all())));
             $checks = [];
             foreach ($policies as $id) {
                 $entry = RuleCatalog::definitions()[$id];

@@ -20,7 +20,9 @@ trait UnusedMethodReceivers
         }
 
         if ($node instanceof Expr\Variable && is_string($node->name)) {
-            return $node->name === 'this' ? ($hasThis ? 'this' : null) : ($bindings[$node->name] ?? null);
+            $thisReceiver = $hasThis ? 'this' : null;
+
+            return $node->name === 'this' ? $thisReceiver : ($bindings[$node->name] ?? null);
         }
 
         $isClassName = $node instanceof Expr\ClassConstFetch && $node->name instanceof Node\Identifier;

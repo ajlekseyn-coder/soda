@@ -29,6 +29,8 @@ final readonly class TellDontAskCommandCollector
     ) {}
 
     /**
+     * Extract a command receiver and method name from a concrete call expression.
+     *
      * @return list<array{receiver: string, method: string, arguments: list<string>}>
      */
     private function commandFromCall(MethodCall|NullsafeMethodCall|StaticCall $expr): array
@@ -67,6 +69,8 @@ final readonly class TellDontAskCommandCollector
     }
 
     /**
+     * Collect command calls from an expression and its conditional branches.
+     *
      * @return list<array{receiver: string, method: string, arguments: list<string>}>
      */
     public function fromExpr(Expr $expr): array
@@ -93,6 +97,8 @@ final readonly class TellDontAskCommandCollector
     }
 
     /**
+     * Collect command calls from the supplied branch statements.
+     *
      * @param list<Node> $statements
      *
      * @return list<array{receiver: string, method: string, arguments: list<string>}>

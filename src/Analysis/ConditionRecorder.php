@@ -13,6 +13,8 @@ use PhpParser\Node\Expr;
 final class ConditionRecorder
 {
     /**
+     * Boolean-condition measurements indexed by callable name.
+     *
      * @var array<string, list<array{line: int, count: int}>>
      */
     private array $conditionsByMethod = [];
@@ -50,6 +52,8 @@ final class ConditionRecorder
     }
 
     /**
+     * Return the recorded boolean-condition locations and operand counts.
+     *
      * @psalm-return array<string, list<array{line: int, count: int}>>
      */
     public function conditionsByMethod(): array

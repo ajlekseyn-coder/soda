@@ -33,6 +33,8 @@ final class TellDontAskVisitor extends FactVisitor
     use CallableScopes;
 
     /**
+     * Query-then-command findings with their source and callable context.
+     *
      * @var list<AskThenTell>
      */
     private array $result = [];
@@ -119,6 +121,8 @@ final class TellDontAskVisitor extends FactVisitor
     }
 
     /**
+     * Return query-then-command findings recorded during traversal.
+     *
      * @return list<AskThenTell>
      */
     public function violations(): array
@@ -206,6 +210,8 @@ final class TellDontAskVisitor extends FactVisitor
     }
 
     /**
+     * Match conditional queries to commands executed by their branch statements.
+     *
      * @param list<array{receiver: string, method: string, arguments: list<string>}> ...$commandGroups
      */
     private function collectFromConditional(Expr $condition, int $line, array ...$commandGroups): void

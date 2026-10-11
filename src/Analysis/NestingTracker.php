@@ -8,11 +8,15 @@ namespace Cosmira\Soda\Analysis;
 final class NestingTracker
 {
     /**
+     * Maximum nesting depth recorded for each named callable.
+     *
      * @var array<string, array{depth: int, line: int}>
      */
     private array $nestingByMethod = [];
 
     /**
+     * Saved callable names and depths restored when leaving nested scopes.
+     *
      * @var list<array{name: string|null, depth: int}>
      */
     private array $scopes = [];
@@ -90,6 +94,8 @@ final class NestingTracker
     }
 
     /**
+     * Return the maximum control-flow nesting depth for each named callable.
+     *
      * @return array<string, array{depth: int, line: int}>
      */
     public function nestingByMethod(): array

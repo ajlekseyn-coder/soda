@@ -46,6 +46,8 @@ final class MaxTraitsPerClass extends ExpressionCheck
     }
 
     /**
+     * Report a imported trait count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

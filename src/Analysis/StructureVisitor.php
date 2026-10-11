@@ -25,6 +25,8 @@ use PhpParser\Node\Stmt\Trait_;
 final class StructureVisitor extends FactVisitor
 {
     /**
+     * Accumulated file, namespace, class, and method structural facts.
+     *
      * @var FileMetrics
      */
     private array $result = [
@@ -37,15 +39,22 @@ final class StructureVisitor extends FactVisitor
     ];
 
     /**
+     * Configure structural measurements with physical and logical file line information.
+     *
      * @param ?LogicalLineMap $logicalLineMap Maps physical source lines to logical statement counts.
      *
      * @psalm-param non-negative-int $fileLines
      */
     public function __construct(
         /**
+         * Total file line count used as the basis for structural measurements.
+         *
          * @psalm-var non-negative-int
          */
         private readonly int $fileLines,
+        /**
+         * Optional code-line map used to exclude whitespace and comments from lengths.
+         */
         private readonly ?LogicalLineMap $logicalLineMap = null,
     ) {}
 
@@ -210,6 +219,8 @@ final class StructureVisitor extends FactVisitor
     }
 
     /**
+     * Return the structural facts accumulated during syntax-tree traversal.
+     *
      * @return FileMetrics
      */
     public function metrics(): array

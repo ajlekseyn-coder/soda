@@ -20,6 +20,8 @@ final class NoAskThenTellPatterns extends Check
     }
 
     /**
+     * Request query-then-command facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -29,6 +31,8 @@ final class NoAskThenTellPatterns extends Check
     }
 
     /**
+     * Report recorded query-then-command patterns on the same receiver at their original source locations.
+     *
      * @return iterable<Violation>
      */
     #[\Override]

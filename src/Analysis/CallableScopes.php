@@ -13,6 +13,8 @@ use PhpParser\Node\Stmt\Interface_;
 trait CallableScopes
 {
     /**
+     * Stack of callable owners used to restore the enclosing scope after traversal.
+     *
      * @var list<string|null>
      */
     private array $methodScopes = [];

@@ -20,6 +20,8 @@ final class NoEmptyCatchBlocks extends Check
     }
 
     /**
+     * Request empty catch locations before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -29,6 +31,8 @@ final class NoEmptyCatchBlocks extends Check
     }
 
     /**
+     * Report recorded catch blocks that silently discard exceptions at their original source locations.
+     *
      * @return iterable<Violation>
      */
     #[\Override]

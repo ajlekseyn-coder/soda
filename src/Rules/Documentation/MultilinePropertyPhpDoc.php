@@ -18,6 +18,8 @@ use PhpParser\NodeFinder;
 final class MultilinePropertyPhpDoc extends Check
 {
     /**
+     * Select the member visibilities that require written documentation.
+     *
      * @param list<'public'|'protected'|'private'> $visibilities
      */
     public function __construct(private readonly array $visibilities = ['public']) {}
@@ -74,7 +76,7 @@ final class MultilinePropertyPhpDoc extends Check
                 rule: $this->id(), file: $file->path, value: 0, threshold: 1,
                 class: $class->name?->toString() ?? 'anonymous@'.$class->getLine(),
                 line: $parameter->getLine(),
-                message: sprintf('%s property::%s must have a multiline PHPDoc comment', ucfirst($visibility), $parameter->var->name),
+                message: sprintf('%s property::%s must have a multiline PHPDoc comment with a description before any tags', ucfirst($visibility), $parameter->var->name),
             );
         }
     }
@@ -123,7 +125,7 @@ final class MultilinePropertyPhpDoc extends Check
                 threshold: 1,
                 class: $class->name?->toString() ?? 'anonymous@'.$class->getLine(),
                 line: $member->getLine(),
-                message: sprintf('%s property::%s must have a multiline PHPDoc comment', ucfirst($visibility), $name),
+                message: sprintf('%s property::%s must have a multiline PHPDoc comment with a description before any tags', ucfirst($visibility), $name),
             );
         }
     }

@@ -16,6 +16,8 @@ use Cosmira\Soda\Rules\Check;
 final class NoAssignmentInCondition extends Check
 {
     /**
+     * Request assignment-in-condition facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]

@@ -10,7 +10,7 @@ use PhpParser\Node;
 final class MultilinePhpDocComment
 {
     /**
-     * Determine whether valid applies to the supplied input.
+     * Require a multiline PHPDoc block with a description before its tags.
      */
     public function isValid(Node $node): bool
     {
@@ -21,13 +21,13 @@ final class MultilinePhpDocComment
             return false;
         }
 
-        return $this->isMultilineWithContent($comment);
+        return $this->isMultilineWithDescription($comment);
     }
 
     /**
-     * Determine whether multiline with content applies to the supplied input.
+     * Check the block layout and the presence of a written description.
      */
-    private function isMultilineWithContent(Doc $comment): bool
+    private function isMultilineWithDescription(Doc $comment): bool
     {
         $lines = preg_split('/\R/', trim($comment->getText()));
         $isTooShort = $lines === false || count($lines) < 3;
@@ -41,17 +41,23 @@ final class MultilinePhpDocComment
 
         return trim($openingLine) === '/**'
             && trim($closingLine) === '*/'
-            && $this->hasContent($lines);
+            && $this->hasDescription($lines);
     }
 
     /**
+     * Find prose before the first tag, excluding tag continuations.
+     *
      * @param list<string> $lines
      */
-    private function hasContent(array $lines): bool
+    private function hasDescription(array $lines): bool
     {
         foreach ($lines as $line) {
-            $hasContent = trim(ltrim(trim($line), '*')) !== '';
-            if ($hasContent) {
+            $content = trim(ltrim(trim($line), '*'));
+            if (str_starts_with($content, '@')) {
+                return false;
+            }
+
+            if (preg_match('/\p{L}/u', $content) === 1) {
                 return true;
             }
         }

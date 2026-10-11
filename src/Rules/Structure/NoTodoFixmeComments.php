@@ -20,6 +20,8 @@ final class NoTodoFixmeComments extends Check
     }
 
     /**
+     * Request source comment facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -29,6 +31,8 @@ final class NoTodoFixmeComments extends Check
     }
 
     /**
+     * Report recorded maintenance markers remaining in source comments at their original source locations.
+     *
      * @return iterable<Violation>
      */
     #[\Override]

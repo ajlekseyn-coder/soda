@@ -20,9 +20,16 @@ use Cosmira\Soda\Rules\Check;
 final class NoUnusedParameters extends Check
 {
     /**
+     * Register callable contracts whose parameters are required by external consumers.
+     *
      * @param list<string> $contracts Exact qualified method/function names with externally fixed signatures.
      */
-    public function __construct(private readonly array $contracts = []) {}
+    public function __construct(
+        /**
+         * External callable contracts exempted from unused-parameter diagnostics.
+         */
+        private readonly array $contracts = [],
+    ) {}
 
     /**
      * Direct file checks resolve local declarations; the runner defers to complete project facts.

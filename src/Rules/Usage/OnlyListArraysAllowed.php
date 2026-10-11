@@ -23,6 +23,8 @@ use Cosmira\Soda\Rules\Check;
 final class OnlyListArraysAllowed extends Check
 {
     /**
+     * Use the parsed syntax tree directly without requesting additional metric collectors.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -59,6 +61,8 @@ final class OnlyListArraysAllowed extends Check
     private readonly FnmatchPathExclusion $pathExclusion;
 
     /**
+     * Configure nested array-access strictness and excluded source paths.
+     *
      * @param string[]                $ignorePathPatterns Extra fnmatch patterns against the full file path or basename.
      * @param string[]                $ignorePathPrefixes Normalized path prefixes: file is skipped if its resolved path is under one of these.
      * @param ListOnlyArrayStrictness $strictness         Selection policy for nested array access.
@@ -66,6 +70,9 @@ final class OnlyListArraysAllowed extends Check
     public function __construct(
         array $ignorePathPatterns = [],
         array $ignorePathPrefixes = [],
+        /**
+         * Policy deciding which nested array accesses should be reported.
+         */
         private readonly ListOnlyArrayStrictness $strictness = ListOnlyArrayStrictness::Pragmatic,
     ) {
         $patterns = array_values(array_unique([

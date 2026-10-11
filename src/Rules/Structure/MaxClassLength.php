@@ -46,6 +46,8 @@ final class MaxClassLength extends ExpressionCheck
     }
 
     /**
+     * Report a class source length exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

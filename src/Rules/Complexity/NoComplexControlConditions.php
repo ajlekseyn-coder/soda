@@ -12,6 +12,8 @@ use Cosmira\Soda\Rules\Check;
 final class NoComplexControlConditions extends Check
 {
     /**
+     * Request complex control-condition facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]

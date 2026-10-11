@@ -15,6 +15,8 @@ use PhpParser\NodeFinder;
 final class MultilineMethodPhpDoc extends Check
 {
     /**
+     * Select the member visibilities that require written documentation.
+     *
      * @param list<'public'|'protected'|'private'> $visibilities
      */
     public function __construct(private readonly array $visibilities = ['public']) {}
@@ -67,7 +69,7 @@ final class MultilineMethodPhpDoc extends Check
             method: $name,
             class: $class->name?->toString() ?? 'anonymous@'.$class->getLine(),
             line: $member->getLine(),
-            message: sprintf('%s method::%s must have a multiline PHPDoc comment', ucfirst($visibility), $name),
+            message: sprintf('%s method::%s must have a multiline PHPDoc comment with a description before any tags', ucfirst($visibility), $name),
         );
     }
 

@@ -18,6 +18,8 @@ use function is_string;
 final class BooleanMethodTypeIndexBuilder
 {
     /**
+     * Index declared methods and inherited types across all analyzed files.
+     *
      * @return array<string, array{inherits: list<string>, methods: array<string, true>}>
      */
     public static function build(ProjectFacts $project): array
@@ -48,6 +50,8 @@ final class BooleanMethodTypeIndexBuilder
     }
 
     /**
+     * Normalize one type declaration into its methods and inheritance entry.
+     *
      * @return array{name: string, data: array{inherits: list<string>, methods: array<string, true>}}|null
      */
     private static function typeIndexEntry(mixed $typeData): ?array
@@ -74,6 +78,8 @@ final class BooleanMethodTypeIndexBuilder
     }
 
     /**
+     * Retain only string entries when normalizing collected type facts.
+     *
      * @return list<string>
      */
     private static function stringList(mixed $values): array

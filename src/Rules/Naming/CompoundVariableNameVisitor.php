@@ -33,26 +33,36 @@ final class CompoundVariableNameVisitor extends FactVisitor
     ];
 
     /**
+     * Compound variable names recorded with their source and callable context.
+     *
      * @var list<CompoundVariableNameOccurrence>
      */
     private array $occurrences = [];
 
     /**
+     * Previously recorded identifiers used to avoid duplicate naming findings.
+     *
      * @var array<string, true>
      */
     private array $seen = [];
 
     /**
+     * Promoted property identifiers tracked alongside ordinary variable occurrences.
+     *
      * @var array<int, true>
      */
     private array $promotedProperties = [];
 
     /**
+     * Saved callable context restored after traversing nested scopes.
+     *
      * @var list<CompoundVariableScope>
      */
     private array $scopeStack = [];
 
     /**
+     * Saved class context restored after traversing nested declarations.
+     *
      * @var list<string|null>
      */
     private array $classStack = [];
@@ -195,9 +205,8 @@ final class CompoundVariableNameVisitor extends FactVisitor
     private function methodName(Node $node): ?string
     {
         return match (true) {
-            $node instanceof ClassMethod => $node->name->toString(),
-            $node instanceof Function_   => $node->name->toString(),
-            default                      => null,
+            $node instanceof ClassMethod, $node instanceof Function_ => $node->name->toString(),
+            default                                                  => null,
         };
     }
 

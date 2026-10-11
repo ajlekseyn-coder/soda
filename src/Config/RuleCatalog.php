@@ -10,6 +10,8 @@ use Cosmira\Soda\Rules\Naming\BooleanMethodPrefix;
 final class RuleCatalog
 {
     /**
+     * Load the built-in rule constructors, defaults, and presentation metadata.
+     *
      * @return array<string, array{class: class-string<Check>, arguments: array, section: string, severity: string, default: int|float, label: string, advice: string, comparison: ?string, standard?: bool}>
      */
     public static function definitions(): array

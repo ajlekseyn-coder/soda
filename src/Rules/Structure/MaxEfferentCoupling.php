@@ -46,6 +46,8 @@ final class MaxEfferentCoupling extends ExpressionCheck
     }
 
     /**
+     * Report a outgoing dependency count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

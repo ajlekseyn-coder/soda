@@ -40,11 +40,15 @@ final class NamingVisitor extends FactVisitor
     ];
 
     /**
+     * Nested class contexts used to associate methods with their owner.
+     *
      * @psalm-var list<non-empty-string>
      */
     private array $classStack = [];
 
     /**
+     * Naming facts accumulated while traversing class and callable declarations.
+     *
      * @var NamingFacts
      */
     private array $result = [
@@ -54,6 +58,8 @@ final class NamingVisitor extends FactVisitor
     ];
 
     /**
+     * Type declarations indexed for inherited naming-contract resolution.
+     *
      * @var array<string, NamingType>
      */
     private array $types = [];
@@ -174,6 +180,8 @@ final class NamingVisitor extends FactVisitor
     }
 
     /**
+     * Return the collected class, function, and method naming facts.
+     *
      * @return NamingFacts
      */
     public function facts(): array
@@ -192,6 +200,8 @@ final class NamingVisitor extends FactVisitor
     }
 
     /**
+     * Classify a class-like declaration for the naming facts model.
+     *
      * @return 'class'|'trait'|'interface'
      */
     private function kindOf(Class_|Trait_|Interface_ $node): string
@@ -204,6 +214,8 @@ final class NamingVisitor extends FactVisitor
     }
 
     /**
+     * Collect parent and interface names from a class-like declaration.
+     *
      * @return list<string>
      */
     private function inheritsOf(Class_|Trait_|Interface_ $node): array

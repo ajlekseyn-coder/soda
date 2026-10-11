@@ -46,6 +46,8 @@ final class MaxCyclomaticComplexity extends ExpressionCheck
     }
 
     /**
+     * Report a cyclomatic complexity exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

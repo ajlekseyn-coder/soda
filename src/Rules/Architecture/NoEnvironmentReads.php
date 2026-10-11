@@ -21,6 +21,8 @@ final class NoEnvironmentReads extends Check
     private readonly FnmatchPathExclusion $pathExclusion;
 
     /**
+     * Allow environment access at the explicitly configured source boundaries.
+     *
      * @param list<string> $ignorePathPrefixes Configuration boundaries allowed to read environment values.
      */
     public function __construct(array $ignorePathPrefixes = [])

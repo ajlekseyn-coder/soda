@@ -209,7 +209,12 @@ final readonly class ParameterUseAnalysis
         $result = $state;
         foreach ($node->getSubNodeNames() as $field) {
             $child = get_object_vars($node)[$field];
-            $result = $this->scan($child instanceof Node ? [$child] : (is_array($child) ? $child : []), $result);
+            $children = is_array($child) ? $child : [];
+            if ($child instanceof Node) {
+                $children = [$child];
+            }
+
+            $result = $this->scan($children, $result);
         }
 
         $isExit = in_array($node->getType(), ['Stmt_Return', 'Expr_Throw'], true);

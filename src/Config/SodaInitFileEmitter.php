@@ -69,6 +69,8 @@ PHP;
     }
 
     /**
+     * Reject ambiguous rule imports before generating an editable configuration file.
+     *
      * @param array<string, string> $shortNames
      */
     private static function assertUniqueShortName(array $shortNames, string $shortName, string $fqcn): void

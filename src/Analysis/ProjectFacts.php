@@ -13,6 +13,8 @@ use Cosmira\Soda\Rules\Architecture\Cohesion;
 final class ProjectFacts
 {
     /**
+     * Collected scalar and array facts indexed by source file path.
+     *
      * @var array<string, FileMetrics>
      */
     public array $files = [];
@@ -101,6 +103,8 @@ final class ProjectFacts
     }
 
     /**
+     * Collect an interface and its transitive parents while terminating inheritance cycles.
+     *
      * @param array<string, list<string>> $interfaceParents
      * @param array<string, true>         $seen
      *
@@ -123,6 +127,8 @@ final class ProjectFacts
     }
 
     /**
+     * Resolve public methods across parents and composed traits without revisiting types.
+     *
      * @param array<string, ClassFacts> $types
      * @param array<string, true>       $seen
      *
@@ -162,6 +168,8 @@ final class ProjectFacts
     }
 
     /**
+     * Resolve property identities across inheritance and trait composition.
+     *
      * @param array<string, ClassFacts> $types
      * @param array<string, true>       $seen
      *
@@ -195,6 +203,8 @@ final class ProjectFacts
     }
 
     /**
+     * Resolve interfaces inherited by a class and its ancestors without following cycles.
+     *
      * @param array<string, ClassFacts>   $types
      * @param array<string, list<string>> $interfaceParents
      * @param array<string, true>         $seenClasses

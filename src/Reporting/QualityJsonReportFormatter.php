@@ -19,6 +19,8 @@ final readonly class QualityJsonReportFormatter
     ) {}
 
     /**
+     * Serialize the analysis result into the versioned JSON diagnostic report.
+     *
      * @return array{schema_version: 4, passed: bool, violations: list<array<string, mixed>>}
      */
     public function format(QualityResult $result): array

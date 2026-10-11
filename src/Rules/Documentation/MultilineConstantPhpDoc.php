@@ -15,6 +15,8 @@ use PhpParser\NodeFinder;
 final class MultilineConstantPhpDoc extends Check
 {
     /**
+     * Select the member visibilities that require written documentation.
+     *
      * @param list<'public'|'protected'|'private'> $visibilities
      */
     public function __construct(private readonly array $visibilities = ['public']) {}
@@ -67,7 +69,7 @@ final class MultilineConstantPhpDoc extends Check
                 threshold: 1,
                 class: $class->name?->toString() ?? 'anonymous@'.$class->getLine(),
                 line: $member->getLine(),
-                message: sprintf('%s constant::%s must have a multiline PHPDoc comment', ucfirst($visibility), $name),
+                message: sprintf('%s constant::%s must have a multiline PHPDoc comment with a description before any tags', ucfirst($visibility), $name),
             );
         }
     }

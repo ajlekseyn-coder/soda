@@ -15,6 +15,8 @@ use PhpParser\NodeVisitor\ParentConnectingVisitor;
 final readonly class SingleVisitorTraversal
 {
     /**
+     * Traverse nodes with parent links available to the supplied analysis visitor.
+     *
      * @param list<Node> $nodes
      */
     public static function traverse(array $nodes, NodeVisitor $visitor): void

@@ -27,6 +27,8 @@ final class MaxBooleanConditions extends Check
     }
 
     /**
+     * Request boolean-condition measurements before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]

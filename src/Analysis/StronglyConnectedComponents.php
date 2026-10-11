@@ -40,6 +40,8 @@ final class StronglyConnectedComponents
     private int $next = 0;
 
     /**
+     * Find strongly connected graph components after resetting the traversal state.
+     *
      * @param array<string, list<string>> $graph
      */
     public function collect(array $graph): array

@@ -6,8 +6,10 @@ namespace Cosmira\Soda\Analysis;
 
 use Cosmira\Soda\Analysis\Composition\ClassBehaviorFacts;
 use Cosmira\Soda\Analysis\Frameworks\LaravelMiddlewareContracts;
+use Cosmira\Soda\Analysis\Representation\RepresentationFacts;
 use Cosmira\Soda\Rules\Architecture\Cohesion;
 use Cosmira\Soda\Rules\Complexity\CognitiveComplexity;
+use Cosmira\Soda\Rules\Design\DesignEvidence;
 use Cosmira\Soda\Rules\Usage\ParameterInputFacts;
 use Cosmira\Soda\Rules\Usage\UnusedMethodDeclarations;
 use PhpParser\Node;
@@ -44,6 +46,8 @@ trait CollectsDesignFacts
             $metrics['argumentContracts'] = NativeStreamContract::signatures($nodes);
         }
 
+        $metrics['ownerDesign'] = self::isRequired($required, 'ownerDesign') ? DesignEvidence::collect($nodes) : [];
+
         $metrics['classBehavior'] = self::isRequired($required, 'classBehavior') ? ClassBehaviorFacts::collect($nodes) : [];
 
         $metrics['privateState'] = self::isRequired($required, 'privateState') ? PrivateStateFacts::collect($nodes) : [];
@@ -53,6 +57,24 @@ trait CollectsDesignFacts
         $metrics['methodUsage'] = self::isRequired($required, 'methodUsage') ? UnusedMethodDeclarations::collect($nodes) : [];
 
         $metrics['cohesion'] = self::isRequired($required, 'cohesion') ? (new Cohesion)->collect($nodes) : [];
+
+        return self::representationMetrics($metrics, $nodes, $required);
+    }
+
+    /**
+     * Keep representation flow opt-in while collecting its compact syntax facts.
+     *
+     * @param FileMetrics       $metrics
+     * @param list<Node>        $nodes
+     * @param list<string>|null $required
+     *
+     * @return FileMetrics
+     */
+    private static function representationMetrics(array $metrics, array $nodes, ?array $required): array
+    {
+        if (self::isRequired($required, 'representationFlow')) {
+            $metrics['representationFlow'] = RepresentationFacts::collect($nodes);
+        }
 
         return $metrics;
     }

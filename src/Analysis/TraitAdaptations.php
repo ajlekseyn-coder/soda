@@ -34,6 +34,8 @@ final class TraitAdaptations
     }
 
     /**
+     * Collect trait aliases explicitly exposed with public visibility.
+     *
      * @return list<string>
      */
     public static function publicTraitAliasNames(Class_|Trait_ $node): array
@@ -62,6 +64,8 @@ final class TraitAdaptations
     }
 
     /**
+     * Collect trait method adaptations that restrict public visibility.
+     *
      * @return list<string>
      */
     public static function nonPublicTraitMethodNames(Class_|Trait_ $node): array

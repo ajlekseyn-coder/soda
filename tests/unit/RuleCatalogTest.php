@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda;
 
 use Cosmira\Soda\Config\RuleCatalog;
+use Cosmira\Soda\Config\SodaInitFileEmitter;
 use Cosmira\Soda\Reporting\RuleMetadata;
 use Cosmira\Soda\Rules\Check;
 use PHPUnit\Framework\TestCase;
@@ -13,12 +14,26 @@ final class RuleCatalogTest extends TestCase
 {
     public function testArchitecturalQuotasRequireExplicitSelection(): void
     {
-        foreach (['max_properties_per_class', 'max_arguments', 'max_efferent_coupling', 'no_boolean_parameters', 'no_dependency_cycles', 'no_service_locator_calls', 'no_runtime_contract_probes', 'no_static_mutable_properties', 'boolean_methods_without_prefix'] as $id) {
+        foreach (['max_properties_per_class', 'max_arguments', 'no_boolean_parameters', 'no_service_locator_calls', 'no_runtime_contract_probes', 'no_static_mutable_properties', 'boolean_methods_without_prefix'] as $id) {
             $definition = RuleCatalog::definitions()[$id];
             self::assertArrayNotHasKey($id, RuleCatalog::standardDefinitions());
             $class = $definition['class'];
             self::assertSame($id, (new $class(...$definition['arguments']))->id());
         }
+    }
+
+    public function testPromotedRulesAreEnabledInStandardAndGeneratedConfiguration(): void
+    {
+        $ids = ['no_empty_finally_blocks', 'max_cognitive_complexity', 'fragmented_owner_behavior', 'repeated_owner_concern', 'scattered_owner_concern', 'repeated_configuration_sequence', 'repeated_foreign_state_decision', 'repeated_foreign_state_update', 'max_efferent_coupling', 'no_dependency_cycles'];
+        $init = SodaInitFileEmitter::emit();
+        foreach ($ids as $id) {
+            $entry = RuleCatalog::standardDefinitions()[$id];
+            $rule = new $entry['class'](...$entry['arguments']);
+            self::assertSame($id, $rule->id());
+            self::assertStringContainsString('new '.(new \ReflectionClass($rule))->getShortName().'(', $init);
+        }
+        self::assertStringContainsString('new MaxCognitiveComplexity(15)', $init);
+        self::assertStringContainsString('new MaxEfferentCoupling(10)', $init);
     }
 
     public function testMetadataMatchesRuleMetadataDefault(): void
@@ -123,11 +138,11 @@ final class RuleCatalogTest extends TestCase
         $expected = array_column(RuleCatalog::standardDefinitions(), 'class');
         $actual = array_map(fn ($check) => $check::class, RuleCatalog::standard());
         $this->assertSame($expected, $actual);
-        $this->assertCount(77, $actual);
+        $this->assertCount(98, $actual);
         $ids = array_map(fn ($check) => $check->id(), RuleCatalog::standard());
-        $this->assertNotContains('max_cognitive_complexity', $ids);
+        $this->assertContains('max_cognitive_complexity', $ids);
         $this->assertNotContains('no_redundant_rethrow', $ids);
-        $this->assertNotContains('no_empty_finally_blocks', $ids);
+        $this->assertContains('no_empty_finally_blocks', $ids);
         $this->assertArrayNotHasKey('max_disconnected_method_groups', RuleCatalog::definitions());
     }
 }

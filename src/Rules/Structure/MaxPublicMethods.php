@@ -46,6 +46,8 @@ final class MaxPublicMethods extends ExpressionCheck
     }
 
     /**
+     * Report a public method count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

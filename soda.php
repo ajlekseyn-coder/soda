@@ -4,15 +4,34 @@ declare(strict_types=1);
 
 use Cosmira\Soda\Analyzer;
 use Cosmira\Soda\Config\Soda;
+use Cosmira\Soda\Rules\Architecture\NoDependencyCycles;
 use Cosmira\Soda\Rules\Complexity\MaxBooleanConditions;
+use Cosmira\Soda\Rules\Complexity\MaxCognitiveComplexity;
+use Cosmira\Soda\Rules\Complexity\MaxConsecutiveLocalAssignments;
 use Cosmira\Soda\Rules\Complexity\MaxControlNesting;
 use Cosmira\Soda\Rules\Complexity\MaxCyclomaticComplexity;
 use Cosmira\Soda\Rules\Complexity\MaxReturnStatements;
+use Cosmira\Soda\Rules\Complexity\MaxStatementsPerCallable;
 use Cosmira\Soda\Rules\Complexity\MaxTryCatchBlocks;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInCondition;
+use Cosmira\Soda\Rules\Complexity\NoAssignmentInReturn;
+use Cosmira\Soda\Rules\Complexity\NoChainedAssignments;
 use Cosmira\Soda\Rules\Complexity\NoComplexControlConditions;
 use Cosmira\Soda\Rules\Complexity\NoElseBranches;
+use Cosmira\Soda\Rules\Complexity\NoEmptyFinallyBlocks;
+use Cosmira\Soda\Rules\Complexity\NoIdenticalBranches;
+use Cosmira\Soda\Rules\Complexity\NoNestedTernary;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedCompoundConditions;
+use Cosmira\Soda\Rules\Complexity\NoRepeatedStringLiterals;
+use Cosmira\Soda\Rules\Complexity\NoReturnInFinally;
+use Cosmira\Soda\Rules\Complexity\NoUnneededTernary;
+use Cosmira\Soda\Rules\Design\FragmentedOwnerBehavior;
+use Cosmira\Soda\Rules\Design\RepeatedConfigurationSequence;
+use Cosmira\Soda\Rules\Design\RepeatedForeignStateDecision;
+use Cosmira\Soda\Rules\Design\RepeatedForeignStateUpdate;
+use Cosmira\Soda\Rules\Design\RepeatedOwnerConcern;
+use Cosmira\Soda\Rules\Design\RepresentationChurn;
+use Cosmira\Soda\Rules\Design\ScatteredOwnerConcern;
 use Cosmira\Soda\Rules\Documentation\MultilineConstantPhpDoc;
 use Cosmira\Soda\Rules\Documentation\MultilineMethodPhpDoc;
 use Cosmira\Soda\Rules\Documentation\MultilinePropertyPhpDoc;
@@ -48,6 +67,7 @@ use Cosmira\Soda\Rules\Structure\NoTodoFixmeComments;
 use Cosmira\Soda\Rules\Structure\NoTrivialDelegatingClasses;
 use Cosmira\Soda\Rules\Structure\NoTrivialFactories;
 use Cosmira\Soda\Rules\Usage\NoNumericArrayIndex;
+use Cosmira\Soda\Rules\Usage\NoReassignedParameters;
 use Cosmira\Soda\Rules\Usage\NoUnusedMethods;
 use Cosmira\Soda\Rules\Usage\OnlyListArraysAllowed;
 use Cosmira\Soda\Rules\Usage\UselessVariableRule;
@@ -59,6 +79,7 @@ return Soda::configure()
         'src/',
     ])
     ->with([
+        new RepresentationChurn(),
         // Structural
         new MaxFileLoc(2000),
         new MaxLineLength(240),
@@ -70,7 +91,7 @@ return Soda::configure()
         $properties,
         new MaxPublicMethods(20),
         new MaxDependencies(8),
-        new MaxEfferentCoupling(15),
+        new MaxEfferentCoupling(10),
         new MaxTraitsPerClass(10),
         new MaxInterfacesPerClass(5),
         new NoTodoFixmeComments(),
@@ -80,8 +101,12 @@ return Soda::configure()
         new NoAssignmentInCondition(),
         new NoComplexControlConditions(),
         new NoElseBranches(),
+        new NoIdenticalBranches(),
+        new NoNestedTernary(),
         new NoUnusedMethods(),
         new NoEmptyCatchBlocks(),
+        new NoDependencyCycles(),
+        new NoReassignedParameters(),
         new NoAskThenTellPatterns(),
         new NoTrivialDelegatingClasses(),
         new NoTrivialFactories(contracts: [
@@ -99,7 +124,24 @@ return Soda::configure()
         new MaxClassesPerNamespace(40),
         new MaxClassesPerProject(300),
 
+        // Owner behavior
+        new FragmentedOwnerBehavior(),
+        new RepeatedOwnerConcern(),
+        new ScatteredOwnerConcern(),
+        new RepeatedConfigurationSequence(),
+        new RepeatedForeignStateDecision(),
+        new RepeatedForeignStateUpdate(),
+
         // Complexity
+        new MaxCognitiveComplexity(15),
+        new MaxConsecutiveLocalAssignments(8),
+        new MaxStatementsPerCallable(20),
+        new NoAssignmentInReturn(),
+        new NoChainedAssignments(),
+        new NoEmptyFinallyBlocks(),
+        new NoRepeatedStringLiterals(3),
+        new NoReturnInFinally(),
+        new NoUnneededTernary(),
         new MaxCyclomaticComplexity(10),
         new MaxControlNesting(3),
         new MaxReturnStatements(4),

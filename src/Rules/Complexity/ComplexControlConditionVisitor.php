@@ -17,6 +17,8 @@ use PhpParser\Node\Expr;
 final class ComplexControlConditionVisitor extends FactVisitor
 {
     /**
+     * Source locations of complex control-flow conditions found during traversal.
+     *
      * @var list<ComplexCondition>
      */
     private array $occurrences = [];
@@ -41,6 +43,8 @@ final class ComplexControlConditionVisitor extends FactVisitor
     }
 
     /**
+     * Return recorded complex control-flow conditions with their source locations.
+     *
      * @return list<ComplexCondition>
      */
     public function occurrences(): array

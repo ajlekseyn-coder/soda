@@ -18,6 +18,8 @@ use PhpParser\NodeVisitorAbstract;
 final class ListOnlyArrayCollectingVisitor extends NodeVisitorAbstract
 {
     /**
+     * Source lines containing array access selected by the strictness policy.
+     *
      * @var array<int, true>
      */
     private array $byLine = [];
@@ -48,6 +50,8 @@ final class ListOnlyArrayCollectingVisitor extends NodeVisitorAbstract
     }
 
     /**
+     * Return distinct nested array-access locations in source line order.
+     *
      * @return list<int>
      */
     public function lines(): array

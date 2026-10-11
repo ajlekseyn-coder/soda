@@ -39,6 +39,8 @@ final readonly class TellDontAskQuestionProbe
     }
 
     /**
+     * Resolve a variable to queries recorded in the nearest enclosing alias scope.
+     *
      * @param list<array<string, list<array{receiver: string, method: string, result?: string}>>> $questionAliases
      *
      * @return list<array{receiver: string, method: string, result?: string}>
@@ -66,6 +68,8 @@ final readonly class TellDontAskQuestionProbe
     }
 
     /**
+     * Extract a query receiver and method name from a call expression.
+     *
      * @return list<array{receiver: string, method: string, result?: string}>
      */
     private function questionFromCall(MethodCall|NullsafeMethodCall|StaticCall $expr): array
@@ -85,6 +89,8 @@ final readonly class TellDontAskQuestionProbe
     }
 
     /**
+     * Find receiver queries in a condition, including variables holding earlier query results.
+     *
      * @param list<array<string, list<array{receiver: string, method: string, result?: string}>>> $questionAliases
      *
      * @return list<array{receiver: string, method: string, result?: string}>

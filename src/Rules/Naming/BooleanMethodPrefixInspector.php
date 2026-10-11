@@ -23,21 +23,33 @@ final readonly class BooleanMethodPrefixInspector
     private array $ignored;
 
     /**
+     * Declared methods and inherited type names used to resolve naming contracts.
+     *
      * @var array<string, array{inherits: list<string>, methods: array<string, true>}>
      */
     private array $typeIndex;
 
     /**
+     * Build the project inheritance index and configure boolean-method naming exceptions.
+     *
      * @param list<string> $ignore
      * @param list<string> $allowedPrefixes
      */
-    public function __construct(ProjectFacts $project, array $ignore, private array $allowedPrefixes)
-    {
+    public function __construct(
+        ProjectFacts $project,
+        array $ignore,
+        /**
+         * Predicate prefixes permitted for boolean-returning methods.
+         */
+        private array $allowedPrefixes,
+    ) {
         $this->ignored = array_fill_keys($ignore, true);
         $this->typeIndex = BooleanMethodTypeIndexBuilder::build($project);
     }
 
     /**
+     * Select boolean-returning methods that violate the configured naming policy.
+     *
      * @param array<string, mixed> $metrics
      *
      * @return list<array<string, mixed>>
@@ -56,6 +68,8 @@ final readonly class BooleanMethodPrefixInspector
     }
 
     /**
+     * Extract method naming facts from the collected file metrics.
+     *
      * @param array<string, mixed> $metrics
      *
      * @return list<array<string, mixed>>
@@ -69,6 +83,8 @@ final readonly class BooleanMethodPrefixInspector
     }
 
     /**
+     * Exclude allowed names and inherited contracts before flagging a boolean method.
+     *
      * @param array<string, mixed> $methodData
      */
     private function shouldReportMethod(array $methodData): bool
@@ -86,6 +102,8 @@ final readonly class BooleanMethodPrefixInspector
     }
 
     /**
+     * Recognize boolean-returning class methods in the collected naming facts.
+     *
      * @param array<string, mixed> $methodData
      */
     private function isBooleanClassMethod(array $methodData): bool
@@ -119,6 +137,8 @@ final readonly class BooleanMethodPrefixInspector
     }
 
     /**
+     * Match ignored method names and explicitly allowed naming prefixes.
+     *
      * @param array<string, mixed> $methodData
      */
     private function isExcepted(array $methodData): bool
@@ -132,6 +152,8 @@ final readonly class BooleanMethodPrefixInspector
     }
 
     /**
+     * Preserve method names required by an inherited declaration.
+     *
      * @param array<string, mixed> $methodData
      */
     private function isInheritedContract(array $methodData): bool

@@ -30,3 +30,39 @@ Each `violations[]` entry uses this shape:
 
 When the JSON shape changes in a major version, update `schema_version` and
 this document together.
+
+
+## Separate research JSON
+
+Research checks, including `representation_churn` in the standard bundle, write
+evidence with `--research-json=`:
+
+```bash
+php soda quality --report-json=build/soda-quality.json --research-json=build/soda-research.json
+```
+
+This separate report has schema **1**:
+
+```json
+{
+  "schema_version": 1,
+  "research": {
+    "representation_churn": {
+      "candidates": [],
+      "partial": [],
+      "excluded": [],
+      "coverage": {},
+      "limits": {},
+      "profiles": []
+    }
+  }
+}
+```
+
+`research` is an object keyed by configured research check id (an empty object
+when none are configured). Each report retains candidates, partial paths,
+exclusions, coverage, limits and profiles. Unknown and truncated evidence is
+research uncertainty, not a violation or proof of absence. Console output also
+shows research summaries when there are no candidates. Research evidence does
+not affect `passed` or the exit status; `--report-json` remains schema 4 with the
+same three top-level fields and only ordinary violations.

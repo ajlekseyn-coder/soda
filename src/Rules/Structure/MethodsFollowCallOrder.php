@@ -42,6 +42,8 @@ final class MethodsFollowCallOrder extends Check
     }
 
     /**
+     * Collect declaration-order diagnostics for all callers in one class.
+     *
      * @return list<Violation>
      */
     private function violationsForClass(string $file, MethodOrderClassAnalysis $class): array
@@ -60,6 +62,8 @@ final class MethodsFollowCallOrder extends Check
     }
 
     /**
+     * Compare a caller's consecutive targets with their declaration order, excluding cycles.
+     *
      * @return list<Violation>
      */
     private function violationsForCaller(

@@ -13,6 +13,8 @@ use function array_pop;
 final class TellDontAskScopes
 {
     /**
+     * Nested variable-to-query alias maps used when resolving conditions.
+     *
      * @psalm-var list<array<string, list<array{receiver: string, method: string}>>>
      */
     private array $scopes = [];
@@ -62,6 +64,8 @@ final class TellDontAskScopes
     }
 
     /**
+     * Return the active query-alias scopes from outermost to innermost.
+     *
      * @return list<array<string, list<array{receiver: string, method: string}>>>
      */
     public function all(): array
@@ -70,6 +74,8 @@ final class TellDontAskScopes
     }
 
     /**
+     * Associate a variable with query results in the active alias scope.
+     *
      * @param list<array{receiver: string, method: string}> $questions
      */
     public function record(string $variable, array $questions): void

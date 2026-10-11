@@ -26,11 +26,15 @@ final class RuleExpression
     public readonly string $scope;
 
     /**
+     * Validated comparison predicate compiled from the configured rule expression.
+     *
      * @var Closure(array): bool
      */
     private readonly Closure $predicate;
 
     /**
+     * Fact field names referenced while compiling the rule expression.
+     *
      * @var list<string>
      */
     private array $fields = [];
@@ -71,6 +75,8 @@ final class RuleExpression
     }
 
     /**
+     * Resolve the fact collectors needed by fields referenced in the compiled predicate.
+     *
      * @return list<string>
      */
     public function requiredAnalyses(): array

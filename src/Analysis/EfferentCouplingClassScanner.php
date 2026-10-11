@@ -88,6 +88,8 @@ final readonly class EfferentCouplingClassScanner
     }
 
     /**
+     * Resolve the parent class name, returning null for declarations without one.
+     *
      * @psalm-return non-empty-string|null
      */
     private function resolveExtends(Class_|Trait_ $node): ?string

@@ -51,12 +51,12 @@ PHP);
         self::assertCount(6, $result->violations);
         self::assertSame(
             [
-                'Public property::amount must have a multiline PHPDoc comment',
-                'Public property::closesAt must have a multiline PHPDoc comment',
-                'Public property::currency must have a multiline PHPDoc comment',
-                'Public property::environment must have a multiline PHPDoc comment',
-                'Public property::opensAt must have a multiline PHPDoc comment',
-                'Public property::release must have a multiline PHPDoc comment',
+                'Public property::amount must have a multiline PHPDoc comment with a description before any tags',
+                'Public property::closesAt must have a multiline PHPDoc comment with a description before any tags',
+                'Public property::currency must have a multiline PHPDoc comment with a description before any tags',
+                'Public property::environment must have a multiline PHPDoc comment with a description before any tags',
+                'Public property::opensAt must have a multiline PHPDoc comment with a description before any tags',
+                'Public property::release must have a multiline PHPDoc comment with a description before any tags',
             ],
             $result->violations
                 ->map(static fn (Violation $violation): string => $violation->message)

@@ -12,6 +12,8 @@ use function array_pop;
 final class BooleanMethodInheritanceProbe
 {
     /**
+     * Find a method contract in the type or its ancestors while avoiding inheritance cycles.
+     *
      * @param array<string, array{inherits: list<string>, methods: array<string, true>}> $typeIndex
      */
     public static function hasDeclaredMethod(array $typeIndex, string $typeName, string $methodName): bool

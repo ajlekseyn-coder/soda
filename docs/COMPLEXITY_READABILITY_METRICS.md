@@ -234,14 +234,13 @@ throw, assignment, call or nested try is executable and makes the block nonempty
 
 Both checks inspect the shared AST, including nested functions, traits and
 anonymous classes, report the catch/finally keyword line, and use value 1 with
-threshold 0 per finding. They are discoverable in `list:rules` as **opt-in**.
-`RuleCatalog::standard()`, `RuleCatalog::checks()` and `init` do not enable them.
-Select the named classes explicitly. There are no auto-fixes or suppressions.
+threshold 0 per finding. `NoEmptyFinallyBlocks` runs by default, including in
+`RuleCatalog::checks()` and `init`. `NoRedundantRethrow` requires explicit selection. There are no auto-fixes or suppressions.
 Adaptations and license notices: [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
 ### max_cognitive_complexity
 
-Optional `MaxCognitiveComplexity(15)` measures the documented **Soda PHP cognitive
+Standard `MaxCognitiveComplexity(15)` measures the documented **Soda PHP cognitive
 v1** variant. It reports each contribution and retains independent nested callable
 scopes. It is not a replacement for the existing standard or a claim of identical
 Sonar scores. See [Research Metrics](RESEARCH_METRICS.md) for the exact formula,
@@ -272,3 +271,165 @@ own scope. Repetition within one method counts once. Independent decisions shoul
 not be merged merely because their expressions currently match.
 The [original RFC](rfcs/explicit-behavior-rules.md) records the earlier research scope;
 the behavior above describes the strengthened check.
+
+### no_identical_branches
+
+Enabled by default: `new NoIdenticalBranches()` compares the results of explicit
+`match` arms and the two branches of a full ternary. Identical printed syntax
+ignores formatting and comments; argument order and scalar types remain significant.
+One diagnostic per repeated result points to its second occurrence, lists all
+locations, and reports value = number of extra occurrences with threshold 0.
+
+```php
+// Reported: two explicit arms repeat the result.
+$result = match ($channel) {
+    Channel::Email => send($message),
+    Channel::Sms => send($message),
+};
+
+// Accepted: preserve selection and unmatched-value behavior.
+$result = match ($channel) {
+    Channel::Email, Channel::Sms => send($message),
+};
+```
+
+Default arms, shorthand ternaries, statement branches and `switch` fall-through
+are excluded. Results containing magic constants, closures, arrow functions or
+anonymous classes are excluded because source location or declaration identity can
+matter. Nested expressions are still checked independently. This is a structural
+review signal, not proof that separate cases have the same business meaning.
+There is no automatic fix: retain condition effects, evaluation order, selection
+and exceptions for unmatched values. A warning still fails an enabled quality check.
+
+### no_nested_ternary
+
+Enabled by default: `new NoNestedTernary()` reports a full ternary directly used
+as a result branch of another full ternary. Each outer decision is reported once
+at its starting line with value 1 and threshold 0, even if both branches are nested.
+
+```php
+// Reported.
+$price = $premium ? ($annual ? 100 : 10) : 20;
+
+// Accepted: name the inner decision and retain lazy evaluation.
+$price = $premium ? premiumPrice($annual) : 20;
+```
+
+Single ternaries, shorthand `?:`, `??` chains, nesting in a condition and decisions
+inside call arguments are outside this narrow policy. Callable bodies are checked
+independently; a ternary inside a closure is not a branch of its enclosing expression.
+There is no automatic fix. Do not eagerly compute a previously conditional branch
+when extracting it. Both checks run through the existing catalog, `init`,
+`list:rules` and JSON schema 4 without additional configuration.
+
+
+### max_statements_per_callable
+
+The standard set includes `new MaxStatementsPerCallable(20)`, limiting executable
+statements independently of line breaks and comments. The threshold is inclusive; zero accepts only empty
+bodies, and negative limits are rejected. Methods (including trait and anonymous
+class methods), named functions, closures and arrow functions are checked separately.
+An arrow function counts as one implicit return statement.
+
+Expression statements, returns, throws, loop controls and control structures
+count once each; statements within control bodies count too. For example,
+`if ($ready) { execute(); }` counts as two statements. `else`, `elseif`, `case`,
+`catch` and `finally` are wrapper clauses and do not add a count, but their bodies
+do. Empty statements and comments do not count. Nested class and function
+declarations do not add to their enclosing callable; their methods and functions
+are evaluated independently. File-level code is outside this rule.
+
+```php
+use Cosmira\Soda\Rules\Complexity\MaxStatementsPerCallable;
+
+new MaxStatementsPerCallable(20);
+```
+
+Diagnostics identify the callable declaration line and measured count. This is
+a size signal, not proof of separate responsibilities: extract a step
+when its name clarifies the operation, rather than introducing forwarding helpers
+solely to lower the count.
+
+
+### no_assignment_in_return
+
+The standard set includes `NoAssignmentInReturn`. It reports ordinary, reference
+and compound assignments evaluated within a return expression, including call
+arguments, array elements, ternary branches and match results. Arrow-function
+expressions are implicit returns and follow the same policy. Each return is
+reported once at the return keyword (or arrow-function declaration) line.
+
+```php
+// Rejected: the return also changes state.
+return $this->value = calculate();
+
+// Accepted: the state change is explicit.
+$this->value = calculate();
+return $this->value;
+```
+
+Returning a closure does not attribute its deferred assignments to the outer
+return. Explicit returns and arrow functions within that closure are checked
+independently. Anonymous-class bodies are also separate; constructor arguments
+still belong to the surrounding expression. Bare returns, comparisons and
+increments/decrements are outside this rule. No automatic fix is offered: moving
+assignments out of expressions must preserve conditional evaluation, evaluation
+order and reference semantics.
+
+### no_chained_assignments
+
+The standard set includes `NoChainedAssignments`. It rejects an assignment whose
+immediate right-hand expression is another ordinary, reference or compound
+assignment. Parentheses do not change that syntax boundary. A contiguous chain
+is reported once at the outermost assignment line, including in file-level code,
+methods, functions, closures and arrow functions.
+
+```php
+// Rejected: two assignments in one direct chain.
+$first = $second = calculate();
+
+// Accepted: evaluate once and make both writes explicit.
+$second = calculate();
+$first = $second;
+```
+
+`$first += $second = calculate()` and `$first = $second =& $source` are also
+reported. An assignment nested in a call argument or ternary result is not a
+direct chain: `$first = consume($second = calculate())` is outside this rule.
+Separate assignments and ordinary compound updates remain accepted. There is no
+automatic fix: property/array targets, side-effecting expressions and references
+require preserving PHP's original evaluation and aliasing behavior.
+
+These checks complement `NoAssignmentInCondition`, which covers mutation in
+control-flow conditions. A chain within a return can legitimately trigger both
+new policies, with one finding per rule.
+
+### no_unneeded_ternary
+
+Standard `new NoUnneededTernary()` reports opposite literal boolean branches.
+Use `(bool) $condition` or `! $condition` to preserve the boolean result type and
+single evaluation. Shorthand ternaries and nonliteral results are outside this
+policy. See [boolean ternaries](EXPRESSION_AND_LOCAL_STATE_RULES.md#nounneededternary).
+
+### no_return_in_finally
+
+Standard `new NoReturnInFinally()` reports explicit returns owned by a finally
+block, including its nested control flow. Deferred callables and class bodies
+have independent ownership. See [finally returns](EXPRESSION_AND_LOCAL_STATE_RULES.md#noreturninfinally)
+for exception suppression and safe cleanup examples.
+
+### max_consecutive_local_assignments
+
+Standard `new MaxConsecutiveLocalAssignments(8)` allows eight consecutive first simple
+local assignments in each direct callable body. It reports maximal longer runs
+once, ignores comments/empty statements, and reserves input and previously
+encountered bindings. See [local preparation runs](EXPRESSION_AND_LOCAL_STATE_RULES.md#maxconsecutivelocalassignments)
+for reset conditions and nested-body boundaries.
+
+### no_repeated_string_literals
+
+Standard `new NoRepeatedStringLiterals(3)` reports expression strings occurring at least
+three times in one class-like owner, with a default minimum length of three bytes.
+Defaults, constants and metadata are excluded. Intentional repeated strings can
+be configured with `ignoredStrings`. See [repeated literals](EXPRESSION_AND_LOCAL_STATE_RULES.md#norepeatedstringliterals)
+for exact ownership, counting and threshold semantics.

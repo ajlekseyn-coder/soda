@@ -1,9 +1,9 @@
 # Research measurements: cognitive control flow and cohesion
 
-These measurements are **opt-in**. They do not replace the standard checks, define a general quality score, or prescribe traits/objects by quota.
+`MaxCognitiveComplexity(15)` is included in the standard rules. Cohesion remains measurement only. They do not replace the standard checks, define a general quality score, or prescribe traits/objects by quota.
 They use the existing PHP parse and Check execution path. `list:metrics` exposes
-the expression fields and calculation methods; `list:rules` marks cognitive
-complexity as optional. The disconnected-groups threshold was rejected after
+the expression fields and calculation methods; `list:rules` lists cognitive
+complexity as standard. The disconnected-groups threshold was rejected after
 [corpus review](research/discovery-decision.md) and exists only in
 `docs/research/MaxDisconnectedMethodGroups.php` to reproduce that experiment.
 It is not a built-in rule or a recommended configuration.

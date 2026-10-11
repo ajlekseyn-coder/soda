@@ -35,6 +35,8 @@ final readonly class TrivialDelegatingClassAnalyser
     }
 
     /**
+     * Identify classes whose effective behavior only forwards operations to another object.
+     *
      * @param Node[] $nodes
      *
      * @return list<TrivialDelegatingClassFinding>

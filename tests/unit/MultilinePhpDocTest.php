@@ -7,6 +7,7 @@ namespace Cosmira\Soda\Tests;
 use Cosmira\Soda\Rules\Documentation\MultilineConstantPhpDoc;
 use Cosmira\Soda\Rules\Documentation\MultilineMethodPhpDoc;
 use Cosmira\Soda\Rules\Documentation\MultilinePropertyPhpDoc;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class MultilinePhpDocTest extends TestCase
@@ -294,6 +295,47 @@ PHP);
         } finally {
             unlink($file);
         }
+    }
+
+    #[DataProvider('descriptionBlocks')]
+    public function testAllRulesRequireDescriptionBeforeTags(string $body, bool $valid): void
+    {
+        $comment = "/**\n".$body."\n */";
+        $file = $this->writeFixture("<?php\nfinal class Example {\n"
+            .$comment."\npublic const LIMIT = 3;\n"
+            .$comment."\npublic int $"."limit;\n"
+            .$comment."\npublic function execute(): void {}\n}");
+
+        try {
+            foreach ([new MultilineMethodPhpDoc(), new MultilinePropertyPhpDoc(), new MultilineConstantPhpDoc()] as $rule) {
+                $violations = CheckFixture::collect($file, [$rule])['violations'];
+                self::assertCount($valid ? 0 : 1, $violations, $rule->id());
+                if (! $valid) {
+                    self::assertStringContainsString('description before any tags', $violations[0]->message);
+                }
+            }
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public static function descriptionBlocks(): iterable
+    {
+        yield 'test tag only' => [' * @test', false];
+        yield 'unknown tag only' => [' * @тест', false];
+        yield 'type tags only' => [' * @param int $'."limit\n * @return void\n * @var int", false];
+        yield 'tag description only' => [' * @return int Number of attempts.', false];
+        yield 'tag continuation' => [" * @return int\n * Number of attempts.", false];
+        yield 'blank block' => [" *\n * ", false];
+        yield 'punctuation only' => [' * ... --- !!!', false];
+        yield 'numbers only' => [' * 123', false];
+        yield 'empty summary before tag' => [" * ...\n * @test\n * Verify delivery.", false];
+        yield 'summary' => [' * Limit the number of retry attempts.', true];
+        yield 'summary and tags' => [" * Limit the number of retry attempts.\n *\n * @var int", true];
+        yield 'Russian summary' => [" * Ограничивает число повторных попыток.\n * @var int", true];
+        yield 'Chinese summary' => [' * 限制重试次数。', true];
+        yield 'unstarred summary' => ['Limit the number of retry attempts.', true];
+        yield 'blank lines before summary' => [" *\n * Limit the number of retry attempts.\n * @var int", true];
     }
 
     private function writeFixture(string $contents): string

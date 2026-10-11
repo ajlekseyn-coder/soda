@@ -19,13 +19,20 @@ final class QualityAnalysisBuilder
     private ?string $configPath = null;
 
     /**
+     * Retain source paths for a fluent analysis request.
+     *
      * @param list<non-empty-string> $paths
      */
     public function __construct(
+        /**
+         * Source paths to resolve when the fluent analysis request is executed.
+         */
         private readonly array $paths,
     ) {}
 
     /**
+     * Select the configuration file used when executing this analysis request.
+     *
      * @param non-empty-string|null $path
      */
     public function config(?string $path): self
@@ -36,6 +43,8 @@ final class QualityAnalysisBuilder
     }
 
     /**
+     * Resolve the registered source paths and execute analysis with the selected configuration.
+     *
      * @throws ConfigException
      */
     public function analyse(?Runner $engine = null): QualityResult

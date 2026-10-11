@@ -109,7 +109,11 @@ final class ParameterControlAnalysis
     {
         foreach ($node->getSubNodeNames() as $field) {
             $child = get_object_vars($node)[$field];
-            $children = $child instanceof Node ? [$child] : (is_array($child) ? $child : []);
+            $children = is_array($child) ? $child : [];
+            if ($child instanceof Node) {
+                $children = [$child];
+            }
+
             $branch = $this->scan($children, $origins);
             foreach ($branch as $name => $sources) {
                 $origins[$name] = array_values(array_unique([...($origins[$name] ?? []), ...$sources]));

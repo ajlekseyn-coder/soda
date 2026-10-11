@@ -9,6 +9,7 @@ use Cosmira\Soda\Config\SodaConfig;
 use Cosmira\Soda\Reporting\QualityResult;
 use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Rules\ResearchCheck;
 use PhpParser\Error;
 
 class Runner
@@ -60,14 +61,19 @@ class Runner
             }
         }
 
+        $research = [];
         $project->resolveClasses();
         foreach ($checks as $check) {
+            if ($check instanceof ResearchCheck) {
+                $research[$check->id()] = $check->researchProject($project);
+            }
+
             foreach ($check->checkProject($project) as $violation) {
                 $violations[] = $violation;
             }
         }
 
-        return new QualityResult($violations);
+        return new QualityResult($violations, $research);
     }
 
     /**

@@ -17,15 +17,22 @@ use InvalidArgumentException;
 final class MaxVariableNameWords extends Check
 {
     /**
+     * Variable identifiers excluded from the compound-word limit.
+     *
      * @var array<string, true>
      */
     private array $ignored;
 
     /**
+     * Configure the maximum identifier word count and explicitly ignored names.
+     *
      * @param list<string> $ignore   Exact variable names, with or without the leading `$`.
      * @param int          $maxWords Maximum accepted number of words in a variable name.
      */
     public function __construct(
+        /**
+         * Maximum number of words permitted in a variable identifier.
+         */
         private readonly int $maxWords = 1,
         array $ignore = [],
     ) {

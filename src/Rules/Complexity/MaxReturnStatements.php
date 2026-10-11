@@ -46,6 +46,8 @@ final class MaxReturnStatements extends ExpressionCheck
     }
 
     /**
+     * Report a return statement count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

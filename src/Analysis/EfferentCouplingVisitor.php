@@ -86,6 +86,8 @@ final class EfferentCouplingVisitor extends FactVisitor
     }
 
     /**
+     * Return the number of distinct outgoing dependencies for each class.
+     *
      * @psalm-return array<string, int>
      */
     public function couplingCountsByClass(): array
@@ -94,6 +96,8 @@ final class EfferentCouplingVisitor extends FactVisitor
     }
 
     /**
+     * Return distinct outgoing dependency names grouped by owning class.
+     *
      * @return array<string, list<string>>
      */
     public function dependenciesByClass(): array

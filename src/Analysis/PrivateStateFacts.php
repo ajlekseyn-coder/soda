@@ -16,6 +16,8 @@ use PhpParser\NodeFinder;
 final class PrivateStateFacts
 {
     /**
+     * Collect private state declarations and references from named class-like declarations.
+     *
      * @param list<Node> $nodes
      */
     public static function collect(array $nodes): array

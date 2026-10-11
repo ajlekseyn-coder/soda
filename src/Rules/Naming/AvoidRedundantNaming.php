@@ -70,6 +70,8 @@ final class AvoidRedundantNaming extends Check
     }
 
     /**
+     * Convert a redundant-name suggestion into a diagnostic with its original location.
+     *
      * @param array{type: string, current: string, suggested: string, reason: string, similarity: float, line: int, className?: string} $finding
      */
     private function toViolation(string $file, array $finding, int $threshold): Violation

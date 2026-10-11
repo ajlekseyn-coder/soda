@@ -51,6 +51,8 @@ final readonly class UselessVariableAliasAssignment
     }
 
     /**
+     * Expose the alias assignment location and variable names for reporting.
+     *
      * @return array{line: int, variable: string, source: string}
      */
     public function toViolationRow(): array

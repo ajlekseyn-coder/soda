@@ -26,7 +26,7 @@ final class MethodBehaviorFacts
     {
         return [
             'name'        => $method->name->toString(), 'line' => $method->getStartLine(),
-            'visibility'  => $method->isPrivate() ? 'private' : ($method->isProtected() ? 'protected' : 'public'),
+            'visibility'  => self::visibility($method),
             'scope'       => $scope,
             'origin'      => strtolower($owner).'::'.$method->name->toLowerString(),
             'delegate'    => (new TrivialDelegatingMethodProbe)->delegatedProperty($method),
@@ -35,6 +35,18 @@ final class MethodBehaviorFacts
             'dispatches'  => (new TypeDispatchAnalysis)->decisions($method),
             'conditions'  => self::conditions($method),
         ];
+    }
+
+    /**
+     * Resolve visibility without nesting decisions in the returned data shape.
+     */
+    private static function visibility(Stmt\ClassMethod $method): string
+    {
+        return match (true) {
+            $method->isPrivate()   => 'private',
+            $method->isProtected() => 'protected',
+            default                => 'public',
+        };
     }
 
     /**

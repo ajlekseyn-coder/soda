@@ -12,11 +12,19 @@ namespace Cosmira\Soda\Config;
 final readonly class FnmatchPathExclusion
 {
     /**
+     * Configure normalized path prefixes and glob patterns excluded from analysis.
+     *
      * @param list<string> $patterns     fnmatch patterns (full path and basename checked per pattern)
      * @param list<string> $pathPrefixes file path must be under one of these when resolved
      */
     public function __construct(
+        /**
+         * Glob patterns identifying paths exempted from the configured rule.
+         */
         private array $patterns,
+        /**
+         * Normalized directory prefixes identifying exempted source boundaries.
+         */
         private array $pathPrefixes,
     ) {}
 

@@ -26,6 +26,8 @@ final class NoTrivialDelegatingClasses extends Check
     public function __construct(private readonly array $contracts = []) {}
 
     /**
+     * Request effective class behavior facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]

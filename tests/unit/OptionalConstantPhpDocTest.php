@@ -51,9 +51,9 @@ PHP);
         self::assertCount(3, $result->violations);
         self::assertSame(
             [
-                'Public constant::DECIMALS must have a multiline PHPDoc comment',
-                'Public constant::EMAIL must have a multiline PHPDoc comment',
-                'Public constant::PAID must have a multiline PHPDoc comment',
+                'Public constant::DECIMALS must have a multiline PHPDoc comment with a description before any tags',
+                'Public constant::EMAIL must have a multiline PHPDoc comment with a description before any tags',
+                'Public constant::PAID must have a multiline PHPDoc comment with a description before any tags',
             ],
             $result->violations
                 ->map(static fn (Violation $violation): string => $violation->message)

@@ -16,6 +16,8 @@ use Cosmira\Soda\Rules\Check;
 final class NoElseBranches extends Check
 {
     /**
+     * Request else-branch locations before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]

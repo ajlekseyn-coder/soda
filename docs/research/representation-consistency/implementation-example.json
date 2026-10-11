@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "research": {
+    "representation_churn": {
+      "candidates": [
+        {
+          "status": "structural",
+          "representation": "SodaRepresentationFixture\\Text\\Str",
+          "data_dependency": "confirmed",
+          "concept_preservation": "unknown",
+          "compatibility": "confirmed",
+          "effects": "known",
+          "path": [
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Producer.php",
+              "line": 11,
+              "callable": "SodaRepresentationFixture\\Text\\Producer::load",
+              "operation": "call SodaRepresentationFixture\\Text\\Str::__construct"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Producer.php",
+              "line": 11,
+              "callable": "SodaRepresentationFixture\\Text\\Producer::load",
+              "operation": "create SodaRepresentationFixture\\Text\\Str"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Producer.php",
+              "line": 11,
+              "callable": "SodaRepresentationFixture\\Text\\Producer::load",
+              "operation": "return"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Pipeline.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Pipeline::handle",
+              "operation": "call SodaRepresentationFixture\\Text\\Producer::load"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Str.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Str::value",
+              "operation": "extract SodaRepresentationFixture\\Text\\Str::$text"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Str.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Str::value",
+              "operation": "return"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Normalizer.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Normalizer::normalize",
+              "operation": "call SodaRepresentationFixture\\Text\\Str::value"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Normalizer.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Normalizer::normalize",
+              "operation": "profile php-core-v1:trim"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Normalizer.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Normalizer::normalize",
+              "operation": "return"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Pipeline.php",
+              "line": 14,
+              "callable": "SodaRepresentationFixture\\Text\\Pipeline::handle",
+              "operation": "call SodaRepresentationFixture\\Text\\Normalizer::normalize"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Cleaner.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Cleaner::clean",
+              "operation": "profile php-core-v1:str_replace"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Cleaner.php",
+              "line": 13,
+              "callable": "SodaRepresentationFixture\\Text\\Cleaner::clean",
+              "operation": "return"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Pipeline.php",
+              "line": 15,
+              "callable": "SodaRepresentationFixture\\Text\\Pipeline::handle",
+              "operation": "call SodaRepresentationFixture\\Text\\Cleaner::clean"
+            },
+            {
+              "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Formatter.php",
+              "line": 11,
+              "callable": "SodaRepresentationFixture\\Text\\Formatter::rebuild",
+              "operation": "reconstruct sodarepresentationfixture\\text\\str"
+            }
+          ],
+          "extraction": {
+            "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Str.php",
+            "line": 13,
+            "callable": "SodaRepresentationFixture\\Text\\Str::value",
+            "operation": "extract SodaRepresentationFixture\\Text\\Str::$text"
+          },
+          "reconstruction": {
+            "file": "/Users/tabuna/GitHub/quality-tools/soda/tests/fixtures/representation/text/Formatter.php",
+            "line": 11,
+            "callable": "SodaRepresentationFixture\\Text\\Formatter::rebuild",
+            "operation": "reconstruct sodarepresentationfixture\\text\\str"
+          },
+          "message": "Extraction and reconstruction of SodaRepresentationFixture\\Text\\Str are connected through processing contracts. Meaning and boundary purpose remain unknown; inspect the operations before considering representation changes."
+        }
+      ],
+      "partial": [],
+      "excluded": [],
+      "coverage": {
+        "callables": 8,
+        "roots": 8,
+        "operations": 114,
+        "resolved_calls": 10,
+        "raw_signals": 1,
+        "retained_signals": 1,
+        "incomplete": false,
+        "truncated": false,
+        "limitations": [
+          "straight-line bodies",
+          "exact dispatch",
+          "native scalar slots",
+          "unqualified namespaced core calls need proven global resolution",
+          "generic contracts and architectural purpose require review"
+        ]
+      },
+      "limits": {
+        "maxDepth": 12,
+        "maxSteps": 2000,
+        "maxCandidates": 100
+      },
+      "profiles": [
+        "php-core-v1:trim,ltrim,rtrim,str_replace,strtolower,strtoupper",
+        "php-core-v1:strlen,md5,sha1,hash",
+        "php-core-v1:array_reverse,array_values,array_filter"
+      ]
+    }
+  }
+}

@@ -38,6 +38,8 @@ abstract class ExpressionCheck extends Check
     }
 
     /**
+     * Request the fact collectors required by the configured expression.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -47,6 +49,8 @@ abstract class ExpressionCheck extends Check
     }
 
     /**
+     * Evaluate the configured expression against collected file, class, or method rows.
+     *
      * @return iterable<Violation>
      */
     #[\Override]
@@ -101,6 +105,8 @@ abstract class ExpressionCheck extends Check
     }
 
     /**
+     * Select fact rows matching the compiled predicate within its configured scope.
+     *
      * @return iterable<Violation>
      */
     private function matchingRows(FileFacts $file): iterable

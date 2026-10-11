@@ -29,6 +29,8 @@ use SebastianBergmann\Complexity\CyclomaticComplexityCalculatingVisitor;
 final class ComplexityVisitor extends FactVisitor
 {
     /**
+     * Cyclomatic complexity scores indexed by callable name.
+     *
      * @var array<string, positive-int>
      */
     private array $result = [];
@@ -73,6 +75,8 @@ final class ComplexityVisitor extends FactVisitor
     }
 
     /**
+     * Identify the declaring class and method, retaining anonymous-class ownership.
+     *
      * @return non-empty-string
      */
     private function methodName(ClassMethod $node): string
@@ -92,6 +96,8 @@ final class ComplexityVisitor extends FactVisitor
     }
 
     /**
+     * Return the resolved qualified name of a named function.
+     *
      * @return non-empty-string
      */
     private function functionName(Function_ $node): string
@@ -107,6 +113,8 @@ final class ComplexityVisitor extends FactVisitor
     }
 
     /**
+     * Measure cyclomatic complexity without counting branches in nested callables.
+     *
      * @param Stmt[] $statements
      *
      * @return positive-int

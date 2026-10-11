@@ -54,6 +54,8 @@ final class MaxPropertiesPerClass extends ExpressionCheck
     }
 
     /**
+     * Report a declared property count exceeding the configured limit at its source location.
+     *
      * @param array<string, mixed> $row
      */
     #[\Override]

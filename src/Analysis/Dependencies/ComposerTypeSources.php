@@ -113,6 +113,8 @@ final readonly class ComposerTypeSources
     }
 
     /**
+     * Find PHP entries in configured archives matching the requested class basename.
+     *
      * @return list<string>
      */
     private function archiveCandidates(string $class): array
@@ -139,6 +141,8 @@ final readonly class ComposerTypeSources
     }
 
     /**
+     * Iterate archive contents through Phar or PharData when the archive can be opened.
+     *
      * @return iterable<\PharFileInfo>
      */
     private function archiveFiles(string $path): iterable

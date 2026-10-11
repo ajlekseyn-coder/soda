@@ -19,6 +19,8 @@ use PhpParser\Node\Stmt\ElseIf_;
 final class ElseBranchVisitor extends FactVisitor
 {
     /**
+     * Source locations of else branches found during traversal.
+     *
      * @var list<ElseBranch>
      */
     private array $occurrences = [];
@@ -41,6 +43,8 @@ final class ElseBranchVisitor extends FactVisitor
     }
 
     /**
+     * Return recorded else branches with their source locations.
+     *
      * @return list<ElseBranch>
      */
     public function occurrences(): array

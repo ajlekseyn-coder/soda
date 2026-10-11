@@ -87,7 +87,9 @@ final class QualityPipelinePerformanceTest extends TestCase
         for ($index = 0; $index < $count; $index++) {
             $file = $project.'/Example'.$index.'.php';
             file_put_contents($file, sprintf(
-                "<?php\nfinal class Example%d { public function value(int \$input): int { return \$input + %d; } }\n",
+                "<?php\nfinal class Example%d {\n"
+                ."    /**\n     * Add the fixed fixture offset to the input.\n     */\n"
+                ."    public function value(int \$input): int { return \$input + %d; }\n}\n",
                 $index,
                 $index,
             ));

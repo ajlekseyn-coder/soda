@@ -12,6 +12,8 @@ use PhpParser\Node\Stmt\Trait_;
 final class PropertyMetrics
 {
     /**
+     * Build property identities that distinguish private declarations from shared inherited names.
+     *
      * @return list<string>
      */
     public static function keys(Class_|Trait_ $node): array

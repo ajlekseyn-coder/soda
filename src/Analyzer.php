@@ -13,6 +13,8 @@ use Cosmira\Soda\Reporting\QualityResult;
 final class Analyzer
 {
     /**
+     * Analyze one PHP source file using the selected configuration.
+     *
      * @param non-empty-string $path
      */
     public static function file(string $path): QualityAnalysisBuilder
@@ -21,6 +23,8 @@ final class Analyzer
     }
 
     /**
+     * Prepare a fluent analysis builder for the supplied source paths.
+     *
      * @param list<non-empty-string> $paths
      */
     public static function paths(array $paths): QualityAnalysisBuilder
@@ -29,6 +33,8 @@ final class Analyzer
     }
 
     /**
+     * Run analysis over the supplied files with an optional configuration file.
+     *
      * @param list<non-empty-string> $paths
      * @param non-empty-string|null  $configPath
      *

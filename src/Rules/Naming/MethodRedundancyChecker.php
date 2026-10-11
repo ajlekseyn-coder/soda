@@ -39,6 +39,8 @@ final readonly class MethodRedundancyChecker
     ) {}
 
     /**
+     * Find method-name words that repeat the parameter, return type, or class context.
+     *
      * @return array{type: 'method', current: string, suggested: string, reason: string, similarity: float, line: int, className?: string}|null
      */
     public function check(array $methodData): ?array
@@ -61,6 +63,8 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
+     * Measure redundant entity naming in an add-style method against its parameter type.
+     *
      * @param list<string> $words
      */
     private function addLikeSimilarity(array $words, ?string $paramShortName): ?float
@@ -197,10 +201,16 @@ final readonly class MethodRedundancyChecker
         $pos = $hasType ? strrpos($type, '\\') : false;
         $hasNoType = $type === null || $type === '';
 
-        return ($hasNoType) ? null : ($pos !== false ? substr($type, $pos + 1) : $type);
+        if ($hasNoType) {
+            return null;
+        }
+
+        return $pos !== false ? substr($type, $pos + 1) : $type;
     }
 
     /**
+     * Split a camel-case identifier into nonempty word segments.
+     *
      * @return list<string>
      */
     private function splitCamelCase(string $name): array
@@ -209,6 +219,8 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
+     * Suggest removing entity words already conveyed by an add-style method parameter.
+     *
      * @param list<string> $words
      */
     private function checkAddLike(array $words, ?string $paramShortName, array $methodData): ?array
@@ -231,6 +243,8 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
+     * Suggest removing entity words already conveyed by the owning class.
+     *
      * @param list<string> $words
      */
     private function checkFromClassContext(array $words, array $methodData): ?array
@@ -254,6 +268,8 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
+     * Suggest removing collection entity words already conveyed by the return type.
+     *
      * @param list<string> $words
      */
     private function checkGetAllLike(array $words, ?string $returnShortName, array $methodData): ?array
@@ -306,6 +322,8 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
+     * Find the first identifier word matching the referenced type above the similarity threshold.
+     *
      * @param list<string> $words
      *
      * @return array{word: string, similarity: float}|null

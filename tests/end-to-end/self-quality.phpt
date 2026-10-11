@@ -19,5 +19,6 @@ echo 'STATUS=' . $status . PHP_EOL;
 %ASoda Quality
 ------------------------------------------------------------
 
-[OK] No issues
+Research (nongating): representation_churn
+%A[OK] No issues
 STATUS=0

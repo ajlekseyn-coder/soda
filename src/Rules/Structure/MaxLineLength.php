@@ -27,6 +27,8 @@ final class MaxLineLength extends Check
     }
 
     /**
+     * Request physical source line lengths before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]

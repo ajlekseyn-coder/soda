@@ -27,6 +27,8 @@ use Cosmira\Soda\Rules\Check;
 final class UselessVariableRule extends Check
 {
     /**
+     * Use the parsed syntax tree directly without requesting additional metric collectors.
+     *
      * @return list<string>
      */
     #[\Override]

@@ -15,9 +15,16 @@ use Cosmira\Soda\Rules\Check;
 final class NoDependencyCycles extends Check
 {
     /**
+     * Configure the namespace prefixes that define dependency module boundaries.
+     *
      * @param list<string> $modules Namespace prefixes; without them each exact namespace is a module.
      */
-    public function __construct(private readonly array $modules = []) {}
+    public function __construct(
+        /**
+         * Namespace prefixes used to group class dependencies into modules.
+         */
+        private readonly array $modules = [],
+    ) {}
 
     /**
      * Report mutually dependent modules using resolved local type dependencies.

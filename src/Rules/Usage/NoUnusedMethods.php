@@ -23,6 +23,8 @@ use Cosmira\Soda\Rules\Check;
 final class NoUnusedMethods extends Check
 {
     /**
+     * Request method usage facts before this rule runs.
+     *
      * @return list<string>
      */
     #[\Override]
@@ -41,11 +43,15 @@ final class NoUnusedMethods extends Check
     ];
 
     /**
+     * Normalized private method names exempted from unused-method diagnostics.
+     *
      * @var list<string>
      */
     private readonly array $ignore;
 
     /**
+     * Merge explicit ignored private method names with the standard lifecycle exceptions.
+     *
      * @param string[] $ignore Extra private method names to never flag.
      */
     public function __construct(

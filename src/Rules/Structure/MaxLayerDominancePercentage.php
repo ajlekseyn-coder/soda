@@ -48,6 +48,8 @@ final class MaxLayerDominancePercentage extends Check
     }
 
     /**
+     * Report unexpected architectural-role dominance in a sufficiently large directory.
+     *
      * @param array{file: string, fileCount: int, roleCounts: array<string, int>} $summary
      */
     private function violationForDirectory(string $directory, array $summary): ?Violation
@@ -84,6 +86,8 @@ final class MaxLayerDominancePercentage extends Check
     }
 
     /**
+     * Check that the directory has enough files for a meaningful dominance measurement.
+     *
      * @param array{file: string, fileCount: int, roleCounts: array<string, int>} $summary
      */
     private function shouldReportDirectory(array $summary): bool
@@ -95,6 +99,8 @@ final class MaxLayerDominancePercentage extends Check
     }
 
     /**
+     * Select the most frequent architectural role and its file count.
+     *
      * @param array<string, int> $roleCounts
      *
      * @return array{0: string, 1: int}
@@ -124,6 +130,8 @@ final class MaxLayerDominancePercentage extends Check
     }
 
     /**
+     * List the non-dominant roles to explain the directory composition.
+     *
      * @param array<string, int> $roleCounts
      */
     private function otherRoles(array $roleCounts): string

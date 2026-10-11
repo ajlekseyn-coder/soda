@@ -589,6 +589,29 @@ return ['all' => $servers, 'selected' => $selected];
 
 ## PHPDoc Contracts
 
+All three rules require a description of the member's purpose or contract before
+any block tags. A block containing only `@test`, `@param`, `@return`, `@var`, or
+other tags does not qualify, even if a tag has a description on a following line.
+Blank lines, punctuation, and numbers alone do not count as a description.
+Descriptions may use any language. The check verifies the presence of text;
+it cannot judge whether that text accurately explains the member.
+
+```php
+// Rejected: tags alone do not explain the method's purpose.
+/**
+ * @test
+ */
+public function verifiesDelivery(): void {}
+
+// Accepted: the description precedes the tags.
+/**
+ * Verify that a paid order is scheduled for delivery.
+ *
+ * @test
+ */
+public function verifiesDelivery(): void {}
+```
+
 ### multiline_method_phpdoc
 
 Requires a multiline PHPDoc block for methods with configured visibilities.
@@ -642,7 +665,8 @@ Requires a multiline PHPDoc block for declared properties with configured
 visibilities. Interfaces are ignored for properties; classes, traits, and enums
 are checked. Constructor-promoted properties follow the same visibility policy.
 They may use either a multiline PHPDoc immediately before the parameter or a
-matching `@param` tag in the constructor's multiline PHPDoc. A constructor summary
+matching `@param` tag in the constructor's multiline PHPDoc, which must also
+contain a description before its tags. A constructor summary
 alone does not document its promoted properties. Parameter names must match
 exactly; ordinary constructor parameters are not properties. Findings point to
 the promoted parameter declaration and retain `multiline_property_phpdoc`.
@@ -825,7 +849,7 @@ public function __construct(
 
 ### max_efferent_coupling (Ce)
 
-Opt-in policy. Dependency count alone does not justify another service layer.
+Standard policy. Dependency count alone does not justify another service layer.
 
 **Efferent coupling:** number of **distinct** external classes/types the class or trait depends on (same type counted once).
 
@@ -1587,7 +1611,7 @@ String-based framework conventions require an explicit contract entry.
 
 ### no_dependency_cycles
 
-Opt-in architecture policy. Configure actual module prefixes; namespace folders need not be independent modules.
+Standard architecture policy. Configure actual module prefixes; namespace folders need not be independent modules.
 
 `new NoDependencyCycles()` rejects strongly connected groups of namespace modules using
 resolved type-dependency edges. By default each exact namespace is a module. Configure
@@ -1673,3 +1697,156 @@ Good:
  */
 private array $pendingAuditChanges = [];
 ```
+
+## Owner behavior recommendations (standard)
+
+These checks suggest concerns, behavior on its owner, and fluent scenarios using
+concrete structural evidence. See [definitions, examples, and boundaries](OWNER_BEHAVIOR_RULES.md).
+
+### fragmented_owner_behavior
+
+`new FragmentedOwnerBehavior(minClasses: 3)` finds used stateless operation classes
+implementing substantive behavior over one local owner. Suggest owner methods and
+a concern, preserving independent policy contracts and context.
+
+### repeated_owner_concern
+
+`new RepeatedOwnerConcern(minMethods: 3, minOwners: 2)` finds a copied group of
+state-changing behavior and decisions across owners. Suggest a shared concern if
+the copies express one contract; list the required owner fields.
+
+### scattered_owner_concern
+
+`new ScatteredOwnerConcern(minMethods: 3)` finds a substantive owner group
+interleaved with unrelated methods. Suggest grouping locally, then a concern if it
+improves navigation. Multiple groups alone are not a violation.
+
+### repeated_configuration_sequence
+
+`new RepeatedConfigurationSequence(minOccurrences: 3, minConfigurationCalls: 2)`
+finds repeated fresh-object setup followed by execution. Suggest a fluent object
+or named construction, preserving argument order and an explicit execution boundary.
+
+### repeated_foreign_state_decision
+
+`new RepeatedForeignStateDecision(minConsumers: 3)` finds the same compound question
+about one local owner's state in independent consumers. Suggest a named owner
+predicate if the occurrences express one domain decision.
+
+### repeated_foreign_state_update
+
+`new RepeatedForeignStateUpdate(minConsumers: 3)` finds repeated arithmetic passed
+from a direct numeric getter to a direct setter of the same owner field in distinct
+consumers. The owner or both accessors must be final. Diagnostics show the field,
+expression, and locations; suggest a named owner operation when the repetitions
+express one domain rule. Deliberate record APIs remain a valid counterexample;
+no atomicity is inferred. See the detailed boundaries in [Owner behavior rules](OWNER_BEHAVIOR_RULES.md#repeatedforeignstateupdate).
+
+All six classes live in `Cosmira\Soda\Rules\Design`, are discoverable through
+`list:rules`, and run by default. No automatic transformations or
+corpus accuracy claims are made.
+
+
+### forbidden_dependencies (opt-in)
+
+`ForbiddenDependencies` enforces directed namespace boundaries, even when the
+dependency graph has no cycle. Configure source namespace prefixes mapped to
+lists of forbidden target namespace prefixes:
+
+```php
+use Cosmira\Soda\Rules\Architecture\ForbiddenDependencies;
+
+new ForbiddenDependencies([
+    'App\Analysis' => ['App\Commands', 'App\Reporting'],
+    'App\Domain' => ['App\Infrastructure'],
+]);
+```
+
+Prefixes match case-insensitively at namespace boundaries, including descendant
+namespaces. `App\Domain` does not match `App\DomainExtra`. Leading/trailing
+namespace separators are accepted; empty prefixes are rejected. All matching
+restrictions apply, and overlapping restrictions do not duplicate a finding.
+An empty mapping imposes no restrictions. Reverse dependencies remain allowed
+unless separately configured.
+
+The rule reuses resolved class/trait type dependencies collected by the coupling
+analysis, including aliases and references to types outside the analyzed paths.
+Unused imports are not dependencies. It does not check top-level functions,
+interface declarations, function/constant imports, dynamically constructed class
+names or string-based container identifiers. It follows direct recorded references,
+not transitive dependencies. A forbidden edge is reported once for its owner and
+target, at the owning class/trait declaration line, with both type names in the
+message. It complements `NoDependencyCycles`, which detects mutually dependent
+modules rather than configured forbidden directions.
+
+### no_reassigned_parameters
+
+Standard `new NoReassignedParameters()` reports direct rebinding of by-value
+parameters. Intentional output references, object property writes and array-offset
+writes are accepted. Explicit reference captures preserve their parameter owner;
+independent callable parameters are checked in their own scope. Use
+`new NoReassignedParameters(ignoredParameters: ['cursor'])` for exact exceptions.
+See [parameter binding rules](EXPRESSION_AND_LOCAL_STATE_RULES.md#noreassignedparameters)
+for supported write forms and the alias-analysis boundary.
+
+
+### representation_churn
+
+Research of connected data paths that change representation, included in the standard bundle. This check
+produces candidates, partial paths, exclusions, coverage and resource limits for
+manual review. It emits no quality violations and never changes the quality gate.
+It is included in `RuleCatalog::standard()` and configs generated by `soda init`.
+Existing explicit configs run only their listed checks; add the instance below
+to enable this research in those configs.
+
+```php
+use Cosmira\Soda\Config\Soda;
+use Cosmira\Soda\Rules\Design\RepresentationChurn;
+
+return Soda::configure()
+    ->withPaths(['src/'])
+    ->with([new RepresentationChurn()]);
+```
+
+```bash
+php soda quality --research-json=build/soda-research.json
+```
+
+Inspect the actual path and its source locations, contract guarantees, boundary
+purpose and distributed interpretation before deciding whether to change it.
+`unknown` and `truncated` evidence is retained; no candidates does not prove that
+all paths were covered. A candidate alone does not justify a wrapper, fluent API,
+or any other refactoring. This research mode has not been admitted as a quality
+rule on an independently reviewed application corpus. See the
+[representation consistency RFC](rfcs/representation-consistency.md).
+
+The initial interpreter follows straight-line local callable bodies with proven
+receivers and a separate argument environment for each invocation. It recognizes
+transparent local constructors/getters and a small, versioned PHP core profile.
+It does not infer architectural boundaries or that two values mean the same thing.
+For example, a connected `Str → string → string → Str` path may have confirmed
+data dependency and compatibility while `concept_preservation` remains `unknown`.
+
+Branches, references, unresolved effects, ambiguous dispatch, unsupported generic
+contracts and unknown array element guarantees stop that proof and produce partial
+evidence. Namespaced unqualified core calls require proven resolution; use an
+explicit import or fully qualified call for the current profile. Declared local
+functions are analyzed from their bodies. Profiles require known input types. Argument and return contracts must both be
+proved. Unknown effects or an invalid return discard provisional witnesses from
+that invocation. Direct field extraction outside the declaring class currently
+remains unresolved; integer arithmetic without range proofs is also unresolved.
+
+Default limits are `maxDepth: 12`, `maxSteps: 2000`, `maxCandidates: 100`:
+
+```php
+new RepresentationChurn(maxDepth: 12, maxSteps: 2000, maxCandidates: 100)
+```
+
+`maxSteps` bounds interpretation across all roots, including symbolic seeding;
+collection separately caps each callable at 512 facts. `coverage.incomplete` and
+`coverage.truncated` disclose stopped work, including when no witness is retained.
+`raw_signals` counts observations before deduplication, `retained_signals` the
+stored distinct candidates. These are coverage counters, not a defect rate.
+
+An executable cross-file text example and its full source path are retained in
+[example research JSON](research/representation-consistency/implementation-example.json).

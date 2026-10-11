@@ -18,16 +18,22 @@ final class CallableMetricsVisitor extends FactVisitor
     use CallableScopes;
 
     /**
+     * Return statement counts indexed by callable name.
+     *
      * @var array<string, int>
      */
     private array $returns = [];
 
     /**
+     * Try block counts indexed by callable name.
+     *
      * @var array<string, int>
      */
     private array $tryCatch = [];
 
     /**
+     * Empty catch locations retained for diagnostics.
+     *
      * @var list<array{line: int, method: string|null, class: string|null}>
      */
     private array $empty = [];
@@ -155,6 +161,8 @@ final class CallableMetricsVisitor extends FactVisitor
     }
 
     /**
+     * Return the deepest control-flow nesting recorded for each callable.
+     *
      * @return array<string, array{depth: int, line: int}>
      */
     public function nestingByMethod(): array
@@ -163,6 +171,8 @@ final class CallableMetricsVisitor extends FactVisitor
     }
 
     /**
+     * Return the number of return statements recorded for each callable.
+     *
      * @return array<string, int>
      */
     public function returnsByMethod(): array
@@ -171,6 +181,8 @@ final class CallableMetricsVisitor extends FactVisitor
     }
 
     /**
+     * Return the number of try blocks recorded for each callable.
+     *
      * @return array<string, int>
      */
     public function tryCatchCountsByMethod(): array
@@ -179,6 +191,8 @@ final class CallableMetricsVisitor extends FactVisitor
     }
 
     /**
+     * Return boolean-condition measurements grouped by callable.
+     *
      * @return array<string, list<array{line: int, count: int}>>
      */
     public function booleanConditionsByMethod(): array
@@ -187,6 +201,8 @@ final class CallableMetricsVisitor extends FactVisitor
     }
 
     /**
+     * Return empty catch locations with their enclosing class and method.
+     *
      * @return list<array{line: int, method: string|null, class: string|null}>
      */
     public function emptyCatches(): array

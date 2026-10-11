@@ -80,15 +80,17 @@ final class ExceptionChecksTest extends TestCase
         }
     }
 
-    public function testNewRulesAreDiscoverableButNeverEnabledByExistingBundles(): void
+    public function testEmptyFinallyIsStandardAndRedundantRethrowRemainsOptional(): void
     {
         $ids = array_map(fn ($rule): string => $rule->id(), RuleCatalog::standard());
         $section = array_map(fn ($rule): string => $rule->id(), RuleCatalog::checks('complexity'));
-        foreach (['no_redundant_rethrow', 'no_empty_finally_blocks'] as $id) {
+        foreach (['no_redundant_rethrow'] as $id) {
             self::assertArrayHasKey($id, RuleCatalog::definitions());
             self::assertNotContains($id, $ids);
             self::assertNotContains($id, $section);
         }
-        self::assertCount(77, $ids);
+        self::assertContains('no_empty_finally_blocks', $ids);
+        self::assertContains('no_empty_finally_blocks', $section);
+        self::assertCount(98, $ids);
     }
 }

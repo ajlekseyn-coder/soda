@@ -40,6 +40,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Find unnecessary variable aliases within concrete functions and methods.
+     *
      * @param Node[] $nodes Top-level AST nodes from a parsed file.
      *
      * @return list<array{line: int, variable: string, source: string}>
@@ -56,6 +58,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Select functions and methods with bodies for independent alias analysis.
+     *
      * @return list<Function_|ClassMethod>
      */
     private function collectScopes(array $nodes): array
@@ -67,6 +71,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Inspect alias assignments against subsequent uses and mutations in one callable.
+     *
      * @return list<array{line: int, variable: string, source: string}>
      */
     private function analyseScope(Function_|ClassMethod $scope): array
@@ -104,6 +110,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Recognize a used alias whose value and source stay unchanged and do not escape.
+     *
      * @param Node[] $after Statements that follow the assignment.
      */
     private function isUseless(string $var, string $source, array $after): bool
@@ -115,6 +123,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Find references to a variable without crossing nested callable boundaries.
+     *
      * @param Node[] $nodes
      */
     private function isUsed(string $var, array $nodes): bool
@@ -126,6 +136,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Find writes that may change a variable within the current callable scope.
+     *
      * @param Node[] $nodes
      */
     private function isMutated(string $var, array $nodes): bool
@@ -134,6 +146,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Check whether reference passing, closure capture, or object writes invalidate alias removal.
+     *
      * @param Node[] $after
      */
     private function isEscaped(string $var, array $after): bool
@@ -144,6 +158,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Detect explicit reference arguments that may mutate the aliased variable.
+     *
      * @param Node[] $nodes
      */
     private function isPassedByRef(string $var, array $nodes): bool
@@ -155,6 +171,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Detect a variable referenced or captured by nested closures.
+     *
      * @param Node[] $nodes
      */
     private function isInClosure(string $var, array $nodes): bool
@@ -167,6 +185,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Detect writes to properties of the object held in a variable.
+     *
      * @param Node[] $nodes
      */
     private function isObjectMutated(string $var, array $nodes): bool
@@ -241,6 +261,8 @@ final readonly class UselessVariableAnalyser
     }
 
     /**
+     * Collect matching child nodes while respecting callable scope boundaries.
+     *
      * @return Node[]
      */
     private function walkSubNodes(Node $node, Closure $predicate): array
