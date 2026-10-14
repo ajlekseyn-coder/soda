@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.1.0 — 2026-10-15
+
+- Detect mandatory constructor dependency cycles within a module, with concrete
+  type edges and source locations, while preserving optional construction breaks.
+- Recognize repeated object setup returned from factories and suggest expressive
+  construction or a fluent API on the owner, with evidence across consumers.
+- Add five standard checks: `no_redundant_boolean_comparisons`,
+  `no_redundant_boolean_returns`, `no_useless_return`, `no_useless_concat`, and
+  `prefer_combined_conditions`. The standard configuration now contains 109 checks.
+- Extend `no_unneeded_ternary` to partial boolean branches while preserving
+  boolean conversion, short-circuiting and branch evaluation order.
+- Support per-rule `exclude([...])` paths and masks, file masks in command
+  exclusions, and masked package configuration boundaries.
+- Preserve declared cleanup exception contracts and stable owner cache writes.
+- Keep bodyless interface and abstract methods out of statement-list checks.
+- Remove five single-use implementation classes without adding dependencies or
+  increasing the project's class budget.
+- Document rule boundaries, upstream tools and research references, with parsed
+  snippet tests and cross-file architectural scenarios.
+
+The standard configuration can report new findings after upgrading. Existing
+explicit rule lists continue to run only the selected checks. PHP 8.2 remains
+the minimum supported version.
+
 ## 1.0.1 — 2026-10-14
 
 - Add fluent `exclude([...])` configuration for the `quality` command, combined
