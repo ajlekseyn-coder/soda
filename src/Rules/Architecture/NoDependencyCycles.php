@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Architecture;
 
+use Cosmira\Soda\Analysis\Design\DesignEvidence;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Analysis\StronglyConnectedComponents;
 use Cosmira\Soda\Contracts\Check;
@@ -38,6 +39,91 @@ final class NoDependencyCycles extends Check
                 yield $this->cycleViolation($component, $dependencies);
             }
         }
+
+        yield from $this->constructorCycles($project);
+    }
+
+    /**
+     * Required constructor dependencies can make ordinary construction cyclic within one module.
+     *
+     * @return iterable<Violation>
+     */
+    private function constructorCycles(ProjectFacts $project): iterable
+    {
+        $types = array_filter(DesignEvidence::types($project->files), fn (array $type): bool => ($type['construction'] ?? null) !== null && $this->module($type['name']) !== null);
+        $dependencies = $this->constructorDependencies($types);
+        $graph = $dependencies['graph'];
+        foreach ((new StronglyConnectedComponents)->collect($graph) as $component) {
+            $modules = array_unique(array_map(function (string $name) use ($types): ?string {
+                $type = $types[$name];
+
+                return $this->module($type['name']);
+            }, $component));
+            if (count($modules) !== 1) {
+                continue;
+            }
+
+            $first = $component[0];
+            if (count($component) === 1 && ! in_array($first, $graph[$first], true)) {
+                continue;
+            }
+
+            yield $this->constructorViolation($component, $dependencies, $types);
+        }
+    }
+
+    /**
+     * Only targets with their own exact construction facts become graph vertices and edges.
+     */
+    private function constructorDependencies(array $types): array
+    {
+        $graph = [];
+        $edges = [];
+        foreach ($types as $name => $type) {
+            $targets = [];
+            $proofs = [];
+            foreach ($type['construction'] as $dependency) {
+                $target = $dependency['target'];
+                if (! isset($types[$target])) {
+                    continue;
+                }
+
+                $targets[] = $target;
+                $proofs[$target] ??= $dependency + ['file' => $type['file'], 'source' => $type['name']];
+            }
+
+            $graph[$name] = array_values(array_unique($targets));
+            $edges[$name] = $proofs;
+        }
+
+        return ['graph' => $graph, 'edges' => $edges];
+    }
+
+    /**
+     * Explain the parameter forcing each participant to be constructed before its predecessor.
+     */
+    private function constructorViolation(array $component, array $dependencies, array $types): Violation
+    {
+        $cycle = StronglyConnectedComponents::cyclePath($dependencies['graph'], $component);
+        $edges = $dependencies['edges'];
+        $proofs = $edges[$cycle[0]];
+        $first = $proofs[$cycle[1]];
+        $evidence = [];
+        foreach (array_slice($cycle, 1) as $index => $target) {
+            $proofs = $edges[$cycle[$index]];
+            $edge = $proofs[$target];
+            $type = $types[$target];
+            $evidence[] = $edge['source'].'::__construct($'.$edge['parameter'].') -> '.$type['name'].' ('.$edge['file'].':'.$edge['line'].')';
+        }
+
+        return new Violation(
+            rule: $this->id(), file: $first['file'], line: $first['line'],
+            value: count($component), threshold: 0,
+            message: 'Constructor dependency cycle: '.implode('; ', $evidence)
+                .'. Each exact type requires an existing instance of the next; ordinary construction has no starting point.'
+                .' Review whether these collaborators should be one object or whether the reverse dependency is unnecessary.'
+                .' Do not add a service locator, nullable test seam or an interface solely to hide the cycle.',
+        );
     }
 
     /**
@@ -151,6 +237,6 @@ final class NoDependencyCycles extends Check
      */
     public function requiredAnalyses(): array
     {
-        return ['structure', 'coupling'];
+        return ['structure', 'coupling', 'ownerDesign'];
     }
 }

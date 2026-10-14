@@ -6,6 +6,7 @@ namespace Cosmira\Soda\Analysis\Design;
 
 use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
+use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 
 /**
@@ -44,8 +45,51 @@ trait OwnerStateEvidence
         return [
             'name'             => $name, 'line' => $class->getStartLine(), 'eligible' => $eligible && $state['eligible'], 'final' => $class->isFinal(),
             'numericFields'    => $state['numericFields'],
+            'construction'     => $this->construction($class, $name),
             'constructorEmpty' => $empty, 'properties' => $state['properties'], 'propertyContracts' => $state['contracts'], 'methods' => $methods,
         ];
+    }
+
+    /**
+     * Exact local construction excludes substitution, inherited signatures and composed constructors.
+     */
+    private function construction(Stmt\Class_ $class, string $name): ?array
+    {
+        $constructor = $class->getMethod(self::CONSTRUCTOR);
+        $isDirect = $class->isFinal() && $class->extends === null && $class->getTraitUses() === [];
+        $isPublic = $constructor !== null && $constructor->isPublic();
+        if (! $isDirect || ! $isPublic || $constructor === null) {
+            return null;
+        }
+
+        $dependencies = [];
+        foreach ($constructor->params as $parameter) {
+            $dependency = $this->constructionParameter($parameter, $name);
+            if ($dependency !== null) {
+                $dependencies[] = $dependency;
+            }
+        }
+
+        return $dependencies;
+    }
+
+    /**
+     * Optional, polymorphic and reference inputs do not force one concrete object to exist first.
+     */
+    private function constructionParameter(Param $parameter, string $owner): ?array
+    {
+        $isRequired = $parameter->default === null && ! $parameter->variadic && ! $parameter->byRef;
+        if (! $isRequired || ! $parameter->type instanceof Name) {
+            return null;
+        }
+
+        if (! $parameter->var instanceof Expr\Variable || ! is_string($parameter->var->name)) {
+            return null;
+        }
+
+        $target = $parameter->type->isSpecialClassName() ? strtolower($owner) : $parameter->type->toLowerString();
+
+        return ['target' => $target, 'parameter' => $parameter->var->name, 'line' => $parameter->getStartLine()];
     }
 
     /**

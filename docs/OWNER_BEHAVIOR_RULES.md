@@ -98,7 +98,8 @@ return $report->download();
 
 The default requires the same ordered method sequence in three distinct consumers,
 with at least two configuration calls and a final public non-configuration,
-non-getter operation. Each setup method must have a complete `void` body of direct
+non-getter operation or a direct return of the configured object. Each setup
+method must have a complete `void` body of direct
 assignments from its inputs or simple literals to declared owner fields. Literal
 steps such as `includeTotals()` need no parameters. Argument values may differ;
 method order and receiver type must match. Arguments must be simple literals or
@@ -109,6 +110,12 @@ intervening operations, computed/reference/unpacked/named arguments, escaping
 receivers, unknown methods, and calls across branch boundaries do not qualify.
 The final call may be an expression statement or a return. Existing fluent chains
 are accepted. Getters are not treated as execution.
+
+Direct object returns also reveal repeated setup spread among factory classes.
+The diagnostic identifies the owner and all consumer callables with source
+locations. Returning and executing scenarios form separate groups. When the
+factories only repeat this setup, put expressive construction on the owner;
+retain independent validation, lifecycle and orchestration responsibilities.
 
 **Advice:** consider a fluent object or named construction:
 

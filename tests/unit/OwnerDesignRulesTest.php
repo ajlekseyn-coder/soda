@@ -230,6 +230,73 @@ PHP]));
     {
         $report = str_replace('$this->period = $value;', 'notify($value); $this->period = $value;', $this->report());
         $this->assertSame([], $this->findings(new RepeatedConfigurationSequence, [$report, $this->reportScenario('first'), $this->reportScenario('second'), $this->reportScenario('third')]));
+        $sources = [$report];
+        foreach (['first', 'second', 'third'] as $name) {
+            $sources[] = str_replace([': void', '$r->download();'], ['', 'return $r;'], $this->reportScenario($name));
+        }
+
+        $this->assertSame([], $this->findings(new RepeatedConfigurationSequence, $sources));
+    }
+
+    public function testSetupOnlyFactoriesSuggestConstructionOnTheOwnerAcrossFiles(): void
+    {
+        $sources = [$this->report()];
+        foreach (['Daily', 'Monthly', 'Annual'] as $name) {
+            $sources[] = '<?php namespace Factories; use Domain\\Report as Document; final class '.$name.' {
+                public function make(string $period): Document {
+                    $r = new Document; $r->setPeriod($period); $r->setFormat("csv"); return $r;
+                }
+            }';
+        }
+
+        $rule = new RepeatedConfigurationSequence;
+        $findings = $this->findings($rule, $sources);
+        $this->assertCount(1, $findings);
+        $this->assertSame(3, $findings[0]->value);
+        $message = (string) $findings[0]->message;
+        $this->assertStringContainsString('setPeriod() -> setFormat() -> return object', $message);
+        $this->assertStringContainsString('setup-only factory classes', $message);
+        foreach (['Daily', 'Monthly', 'Annual'] as $name) {
+            $this->assertStringContainsString('Factories\\'.$name.'::make at ', $message);
+        }
+
+        $this->assertSame([], $this->findings($rule, array_slice($sources, 0, 3)));
+        $this->assertSame([], $this->findings(new RepeatedConfigurationSequence(minConfigurationCalls: 3), $sources));
+        $sources[3] = str_replace('$r->setPeriod($period); $r->setFormat("csv");', '$r->setFormat("csv"); $r->setPeriod($period);', $sources[3]);
+        $this->assertSame([], $this->findings($rule, $sources));
+    }
+
+    public function testReturnedSetupDoesNotMergeWithExecutedSetup(): void
+    {
+        $sources = [$this->report(), $this->reportScenario('first'), $this->reportScenario('second')];
+        $sources[] = str_replace([': void', '$r->download();'], ['', 'return $r;'], $this->reportScenario('third'));
+        $this->assertSame([], $this->findings(new RepeatedConfigurationSequence, $sources));
+    }
+
+    #[DataProvider('returnedConfigurationBoundaries')]
+    public function testReturnedConfigurationBoundaries(string $ending): void
+    {
+        $sources = [$this->report()];
+        foreach (['first', 'second', 'third'] as $name) {
+            $sources[] = '<?php function '.$name.'(string $period) {
+                $r = new \\Domain\\Report; $r->setPeriod($period); '.$ending.'
+            }';
+        }
+
+        $this->assertSame([], $this->findings(new RepeatedConfigurationSequence, $sources));
+    }
+
+    public static function returnedConfigurationBoundaries(): \Iterator
+    {
+        yield 'one setup step' => ['return $r;'];
+        yield 'no returned object' => ['$r->setFormat("csv");'];
+        yield 'returned alias' => ['$r->setFormat("csv"); $alias = $r; return $alias;'];
+        yield 'escaped receiver' => ['consume($r); $r->setFormat("csv"); return $r;'];
+        yield 'computed argument' => ['$r->setFormat(read()); return $r;'];
+        yield 'different returned object' => ['$r->setFormat("csv"); return new \\Domain\\Report;'];
+        yield 'getter before return' => ['$r->download(); return $r;'];
+        yield 'branch boundary' => ['if ($period) { $r->setFormat("csv"); } return $r;'];
+        yield 'unreachable setup' => ['return $r; $r->setFormat("csv"); return $r;'];
     }
 
     public function testCopiedMethodsOverDifferentStateContractsStaySeparate(): void

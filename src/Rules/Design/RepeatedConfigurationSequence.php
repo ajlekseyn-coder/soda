@@ -48,7 +48,7 @@ final class RepeatedConfigurationSequence extends Check
     }
 
     /**
-     * Group complete configuration and execution sequences across independent consumers.
+     * Group complete setup scenarios ending in execution or returning the configured object.
      */
     public function checkProject(ProjectFacts $project): iterable
     {
@@ -58,7 +58,7 @@ final class RepeatedConfigurationSequence extends Check
             $design = $metrics['ownerDesign'] ?? [];
             foreach ($design['sequences'] ?? [] as $sequence) {
                 $type = $types[$sequence['type']] ?? null;
-                $steps = $type === null ? null : $this->steps($type, $sequence['calls']);
+                $steps = $type === null ? null : $this->steps($type, $sequence['calls'], $sequence['returnsObject']);
                 if ($steps === null) {
                     continue;
                 }
@@ -82,17 +82,18 @@ final class RepeatedConfigurationSequence extends Check
                 line: $first['line'],
                 message: 'Fresh '.$first['owner'].' setup repeats '.implode(' -> ', $first['steps']).' in '.count($rows).' consumers: '.DesignEvidence::locations($rows).'.'
                         .' Consider a fluent object or named construction that expresses this scenario.'
+                        .($first['returnsObject'] ? ' Keep construction on the owner instead of multiplying setup-only factory classes.' : '')
                         .' Preserve argument evaluation order and make the execution boundary explicit.',
             );
         }
     }
 
     /**
-     * Require complete state-only configuration followed by one known non-getter operation.
+     * Require state-only setup ending in a known operation or the configured object itself.
      */
-    private function steps(array $type, array $calls): ?array
+    private function steps(array $type, array $calls, bool $returnsObject): ?array
     {
-        $short = count($calls) < $this->minConfigurationCalls + 1;
+        $short = count($calls) < $this->minConfigurationCalls + ($returnsObject ? 0 : 1);
         if (! $type['eligible'] || $short) {
             return null;
         }
@@ -102,7 +103,7 @@ final class RepeatedConfigurationSequence extends Check
         $last = count($calls) - 1;
         foreach ($calls as $index => $call) {
             $method = $methods[$call['method']] ?? null;
-            $terminal = $index === $last;
+            $terminal = ! $returnsObject && $index === $last;
             if (! $this->isScenarioStep($method, $call, $terminal)) {
                 return null;
             }
@@ -110,7 +111,7 @@ final class RepeatedConfigurationSequence extends Check
             $steps[] = $method['name'].'()';
         }
 
-        return $steps;
+        return $returnsObject ? [...$steps, 'return object'] : $steps;
     }
 
     /**

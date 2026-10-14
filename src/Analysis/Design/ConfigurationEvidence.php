@@ -17,6 +17,11 @@ use PhpParser\Node\Stmt;
 trait ConfigurationEvidence
 {
     /**
+     * Parser kind shared by sequence termination and supported direct calls.
+     */
+    private const RETURN_STATEMENT = 'Stmt_Return';
+
+    /**
      * Inspect statement lists independently without stitching branches together.
      */
     private function sequences(Stmt\ClassMethod|Stmt\Function_ $callable, string $identity): array
@@ -54,23 +59,53 @@ trait ConfigurationEvidence
             return null;
         }
 
+        $sequence = $this->configurationCalls(array_slice($statements, $index + 1), $instance['receiver']);
+        $minimum = $sequence['returnsObject'] ? 2 : 3;
+        if (count($sequence['calls']) < $minimum) {
+            return null;
+        }
+
+        return ['name' => $identity, 'line' => $statements[$index]->getStartLine(), 'type' => $instance['type'], ...$sequence];
+    }
+
+    /**
+     * Bound receiver calls by the first escape, intervening statement or return.
+     */
+    private function configurationCalls(array $statements, string $receiver): array
+    {
         $calls = [];
-        foreach (array_slice($statements, $index + 1) as $next) {
+        $returnsObject = false;
+        foreach ($statements as $next) {
+            if ($this->isReturnedReceiver($next, $receiver)) {
+                $returnsObject = true;
+                break;
+            }
+
             $call = $this->directCall($next);
-            $same = $call !== null && $call['receiver'] === $instance['receiver'];
-            if (! $same || ! $this->hasConfigurationArguments($call['call'], $instance['receiver'])) {
+            $same = $call !== null && $call['receiver'] === $receiver;
+            if (! $same || ! $this->hasConfigurationArguments($call['call'], $receiver)) {
                 break;
             }
 
             $syntax = $call['call'];
             $calls[] = ['method' => $call['name'], 'line' => $syntax->getStartLine(), 'arguments' => count($syntax->args)];
+            if ($next->getType() === self::RETURN_STATEMENT) {
+                break;
+            }
         }
 
-        if (count($calls) < 3) {
-            return null;
-        }
+        return ['calls' => $calls, 'returnsObject' => $returnsObject];
+    }
 
-        return ['name' => $identity, 'line' => $statements[$index]->getStartLine(), 'type' => $instance['type'], 'calls' => $calls];
+    /**
+     * A direct return completes construction without inventing an execution method.
+     */
+    private function isReturnedReceiver(Stmt $statement, string $receiver): bool
+    {
+        $parts = get_object_vars($statement);
+        $value = $parts['expr'] ?? null;
+
+        return $statement->getType() === self::RETURN_STATEMENT && $value instanceof Expr\Variable && $value->name === $receiver;
     }
 
     /**
@@ -113,7 +148,7 @@ trait ConfigurationEvidence
     {
         $parts = get_object_vars($statement);
         $call = $parts['expr'] ?? null;
-        $supported = in_array($statement->getType(), ['Stmt_Expression', 'Stmt_Return'], true);
+        $supported = in_array($statement->getType(), ['Stmt_Expression', self::RETURN_STATEMENT], true);
         if (! $supported || ! $call instanceof Expr\MethodCall) {
             return null;
         }

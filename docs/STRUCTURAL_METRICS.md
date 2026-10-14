@@ -1638,9 +1638,17 @@ Standard architecture policy. Configure actual module prefixes; namespace folder
 `new NoDependencyCycles()` rejects strongly connected groups of namespace modules using
 resolved type-dependency edges. By default each exact namespace is a module. Configure
 `modules: ['App\\Sales', 'App\\Billing']` to establish broader boundaries; the longest
-matching prefix wins. Dependencies inside one module are allowed. Only analyzed types
+matching prefix wins. Ordinary type dependencies inside one module are allowed. Only analyzed types
 participate; external code does not create speculative edges. Each diagnostic names the
 mutually dependent modules and a contributing source location.
+
+The rule also checks required constructor dependencies inside each module. A
+cycle among local final classes with direct public constructors has no first
+ordinary construction step. Each edge names the required parameter and its source
+location. Defaults, nullable/union inputs, reference inputs, inheritance, traits
+and unresolved types do not create speculative construction edges. Grouping
+namespaces does not hide a constructor cycle; cross-module cycles keep a single
+module diagnostic. See [construction examples and limitations](rules/no_dependency_cycles.md).
 
 
 ### Laravel audit corrections
@@ -1746,8 +1754,10 @@ improves navigation. Multiple groups alone are not a violation.
 ### repeated_configuration_sequence
 
 `new RepeatedConfigurationSequence(minOccurrences: 3, minConfigurationCalls: 2)`
-finds repeated fresh-object setup followed by execution. Suggest a fluent object
-or named construction, preserving argument order and an explicit execution boundary.
+finds repeated fresh-object setup followed by execution or returning the configured
+object. This also identifies repeated setup hidden in separate factory classes.
+Suggest a fluent API or named construction on the owner, preserving argument order
+and an explicit execution boundary, rather than introducing another builder class.
 
 ### repeated_foreign_state_decision
 

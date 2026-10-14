@@ -52,6 +52,137 @@ final class NoDependencyCyclesTest extends TestCase
         self::assertSame([['x']], $finder->collect(['x' => []]));
     }
 
+    public function testRequiredConstructorCycleWithinOneNamespace(): void
+    {
+        $sources = [
+            '<?php namespace App; final class Checkout { public function __construct(Stock $stock) {} }',
+            '<?php namespace App; final class Stock { public function __construct(Checkout $checkout) {} }',
+        ];
+        $findings = $this->findings($sources);
+        self::assertCount(1, $findings);
+        self::assertSame('no_dependency_cycles', $findings[0]->rule);
+        self::assertSame(2, $findings[0]->value);
+        self::assertSame(0, $findings[0]->threshold);
+        self::assertStringContainsString('Constructor dependency cycle', $findings[0]->message);
+        self::assertStringContainsString('App\\Checkout::__construct($stock)', $findings[0]->message);
+        self::assertStringContainsString('App\\Stock::__construct($checkout)', $findings[0]->message);
+        self::assertSame(1, $findings[0]->line);
+        self::assertCount(1, $this->findings(array_reverse($sources)));
+        self::assertCount(1, $this->findings($sources, ['App']));
+        self::assertSame([], $this->findings($sources, ['Other']));
+    }
+
+    public function testConstructorCycleThroughThreeFilesAndAliases(): void
+    {
+        $findings = $this->findings([
+            '<?php namespace App; use App\\Second as Peer; final class First { public function __construct(Peer $peer) {} }',
+            '<?php namespace App; final class Second { public function __construct(Third $next) {} }',
+            '<?php namespace App; final class Third { public function __construct(First $first) {} }',
+        ]);
+        self::assertCount(1, $findings);
+        self::assertSame(3, $findings[0]->value);
+        foreach (['App\\First', 'App\\Second', 'App\\Third'] as $type) {
+            self::assertStringContainsString($type, $findings[0]->message);
+        }
+    }
+
+    public function testConstructorSelfCycleIsReported(): void
+    {
+        $findings = $this->findings(['<?php namespace App; final class Chain { public function __construct(self $previous) {} }']);
+        self::assertCount(1, $findings);
+        self::assertSame(1, $findings[0]->value);
+        self::assertStringContainsString('App\\Chain::__construct($previous)', $findings[0]->message);
+    }
+
+    public function testConstructorCyclesDoNotDuplicateModuleFindings(): void
+    {
+        $findings = $this->findings([
+            '<?php namespace First; final class A { public function __construct(\\Second\\B $b) {} }',
+            '<?php namespace Second; final class B { public function __construct(\\First\\A $a) {} }',
+        ]);
+        self::assertCount(1, $findings);
+        self::assertStringContainsString('Mutually dependent modules', $findings[0]->message);
+    }
+
+    public function testPossibleConstructionBreaksRemainAccepted(): void
+    {
+        foreach ([
+            '?A $a', 'A $a = new A()', 'A ...$items', 'A|\\stdClass $a', 'A &$a', '\\Closure $factory',
+        ] as $parameter) {
+            self::assertSame([], $this->findings([
+                '<?php namespace App; final class A { public function __construct(B $b) {} }',
+                '<?php namespace App; final class B { public function __construct('.$parameter.') {} }',
+            ]), $parameter);
+        }
+        foreach ([
+            'class B { public function __construct(A $a) {} }',
+            'abstract class B { public function __construct(A $a) {} }',
+            'interface B {}',
+            'final class B { private function __construct(A $a) {} }',
+            'final class B extends Base { public function __construct(A $a) {} }',
+            'final class B { use Concern; public function __construct(A $a) {} }',
+        ] as $declaration) {
+            self::assertSame([], $this->findings([
+                '<?php namespace App; final class A { public function __construct(B $b) {} }',
+                '<?php namespace App; '.$declaration,
+            ]), $declaration);
+        }
+    }
+
+    public function testUnusedImportsMethodParametersAndUnknownClassesDoNotCreateConstructionEdges(): void
+    {
+        self::assertSame([], $this->findings([
+            '<?php namespace App; use App\\B; final class A { public function run(B $b) {} }',
+            '<?php namespace App; final class B { public function __construct(A $a) {} }',
+        ]));
+        self::assertSame([], $this->findings([
+            '<?php namespace App; final class A { public function __construct(External $dependency) {} }',
+        ]));
+    }
+
+    public function testGroupingModulesCannotHideARequiredConstructorCycle(): void
+    {
+        $sources = [
+            '<?php namespace App\\Sales; final class Checkout { public function __construct(\\App\\Sales\\Stock\\Inventory $stock) {} }',
+            '<?php namespace App\\Sales\\Stock; final class Inventory { public function __construct(\\App\\Sales\\Checkout $checkout) {} }',
+        ];
+        $moduleFindings = $this->findings($sources);
+        self::assertCount(1, $moduleFindings);
+        self::assertStringContainsString('Mutually dependent modules', $moduleFindings[0]->message);
+        $constructionFindings = $this->findings($sources, ['App\\Sales']);
+        self::assertCount(1, $constructionFindings);
+        self::assertStringContainsString('Constructor dependency cycle', $constructionFindings[0]->message);
+    }
+
+    public function testIndependentCyclesAndPromotedParametersKeepTheirOwnEvidence(): void
+    {
+        $findings = $this->findings([
+            '<?php namespace App; final class A { public function __construct(public B $b) {} }',
+            '<?php namespace App; final class B { public function __construct(public A $a) {} }',
+            '<?php namespace App; final class C { public function __construct(D $d, External $external) {} }',
+            '<?php namespace App; final class D { public function __construct(C $c) {} }',
+        ]);
+        self::assertCount(2, $findings);
+        self::assertSame([2, 2], array_column($findings, 'value'));
+        self::assertStringContainsString('App\\A::__construct($b)', $findings[0]->message);
+        self::assertStringNotContainsString('App\\C', $findings[0]->message);
+        self::assertStringContainsString('App\\C::__construct($d)', $findings[1]->message);
+        self::assertStringNotContainsString('External', $findings[1]->message);
+    }
+
+    public function testDuplicateClassDeclarationsAcrossFilesDoNotProveConstruction(): void
+    {
+        self::assertSame([], $this->findings([
+            '<?php namespace App; final class A { public function __construct(B $b) {} }',
+            '<?php namespace App; final class A { public function __construct() {} }',
+            '<?php namespace App; final class B { public function __construct(A $a) {} }',
+        ]));
+        self::assertSame([], $this->findings([
+            '<?php namespace App; final class A { public function __construct(B $b) {} }',
+            '<?php namespace App; final class B { public function __construct() {} }',
+        ]));
+    }
+
     private function findings(array $sources, array $modules = []): array
     {
         $rule = new NoDependencyCycles($modules);
