@@ -6,9 +6,11 @@
          requireCoverageMetadata="false"
          beStrictAboutCoverageMetadata="false"
          beStrictAboutOutputDuringTests="false"
-         failOnRisky="true"
-         failOnWarning="true"
-         colors="true">
+          failOnRisky="true"
+          failOnWarning="true"
+          failOnDeprecation="true"
+          displayDetailsOnTestsThatTriggerDeprecations="true"
+          colors="true">
   <php>
     <env name="env" value="testing"/>
   </php>
@@ -23,7 +25,7 @@
       <directory>tests/verification</directory>
     </testsuite>
   </testsuites>
-  <source restrictNotices="true" restrictWarnings="true" ignoreIndirectDeprecations="true">
+  <source restrictNotices="true" restrictWarnings="true" ignoreIndirectDeprecations="false">
     <include>
       <directory>src</directory>
     </include>
