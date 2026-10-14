@@ -16,7 +16,7 @@ final class ClassNameLength extends Check
     /**
      * Superglobal names excluded from the length measurement.
      */
-    private const array SUPERGLOBALS = [
+    private const SUPERGLOBALS = [
         'GLOBALS', '_SERVER', '_GET', '_POST', '_FILES', '_COOKIE',
         '_SESSION', '_REQUEST', '_ENV',
     ];

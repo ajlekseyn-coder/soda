@@ -29,7 +29,7 @@ final class NoAssignmentInCondition extends Check
     /**
      * Diagnostic text reported for every assignment found inside a condition.
      */
-    private const string MESSAGE = 'Assignment inside condition is forbidden. Assign first, then test the value.';
+    private const MESSAGE = 'Assignment inside condition is forbidden. Assign first, then test the value.';
 
     /**
      * Return the stable rule identifier used in configuration and reports.

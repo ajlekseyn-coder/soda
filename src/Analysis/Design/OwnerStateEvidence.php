@@ -18,7 +18,7 @@ trait OwnerStateEvidence
     /**
      * Method name of the PHP constructor protocol hook.
      */
-    private const string CONSTRUCTOR = '__construct';
+    private const CONSTRUCTOR = '__construct';
 
     /**
      * Keep declared state contracts beside the independent method evidence.

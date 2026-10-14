@@ -4,7 +4,7 @@ Soda checks PHP code for oversized methods, complex conditions, naming problems,
 and structural issues. It reports what failed and where, with a non-zero exit
 status when violations are found.
 
-Requires PHP 8.3.19 or higher.
+Requires PHP 8.2 or higher.
 
 ```bash
 composer require --dev cosmira/soda

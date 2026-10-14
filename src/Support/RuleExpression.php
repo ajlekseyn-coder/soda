@@ -22,7 +22,7 @@ final class RuleExpression
     /**
      * Defines glob matching operator used by this policy.
      */
-    private const string MATCHES_OPERATOR = 'matches';
+    private const MATCHES_OPERATOR = 'matches';
 
     /**
      * Selects the file, class or method rows evaluated by this predicate.

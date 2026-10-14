@@ -16,7 +16,7 @@ final class AnonymousClassBoundary
     /**
      * Attribute key under which the parser stores the syntactic parent node.
      */
-    private const string PARENT = 'parent';
+    private const PARENT = 'parent';
 
     /**
      * Determine whether direct member applies to the supplied input.

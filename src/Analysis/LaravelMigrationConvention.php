@@ -14,7 +14,7 @@ final class LaravelMigrationConvention
     /**
      * Normalized name of the class every Laravel migration must extend.
      */
-    private const string BASE_CLASS = 'illuminate\\database\\migrations\\migration';
+    private const BASE_CLASS = 'illuminate\\database\\migrations\\migration';
 
     /**
      * Recognize the framework-prescribed Laravel migration contract.

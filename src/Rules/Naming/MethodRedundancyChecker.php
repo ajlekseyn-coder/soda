@@ -20,22 +20,22 @@ final readonly class MethodRedundancyChecker
     /**
      * Verbs whose suffix should name the parameter or return type.
      */
-    private const array METHOD_PREFIX_ADD = ['add', 'has', 'remove', 'append', 'prepend', 'push', 'attach'];
+    private const METHOD_PREFIX_ADD = ['add', 'has', 'remove', 'append', 'prepend', 'push', 'attach'];
 
     /**
      * Read verbs whose suffix may repeat the collection return type.
      */
-    private const array METHOD_PREFIX_GET = ['get', 'find', 'list', 'all', 'fetch', 'load'];
+    private const METHOD_PREFIX_GET = ['get', 'find', 'list', 'all', 'fetch', 'load'];
 
     /**
      * Defines collection marker word used by this policy.
      */
-    private const string COLLECTION_MARKER = 'all';
+    private const COLLECTION_MARKER = 'all';
 
     /**
      * Finding discriminator marking suggestions scoped to a single method.
      */
-    private const string FINDING_TYPE_METHOD = 'method';
+    private const FINDING_TYPE_METHOD = 'method';
 
     /**
      * Freeze the sensitivity of the repeated-naming comparison.
@@ -145,7 +145,7 @@ final readonly class MethodRedundancyChecker
     /**
      * Role suffixes stripped before comparing a method name with its owner.
      */
-    private const array CLASS_ENTITY_SUFFIXES = [
+    private const CLASS_ENTITY_SUFFIXES = [
         'Collection', 'Service', 'Repository', 'Manager', 'Controller', 'Handler',
         'Provider', 'Factory', 'Gateway', 'Store',
     ];
@@ -153,7 +153,7 @@ final readonly class MethodRedundancyChecker
     /**
      * Owner words that add no meaning once the role suffix is removed.
      */
-    private const array CLASS_CONTEXT_FILLERS = ['Item', 'Items', 'Entity', 'Entities', 'Model', 'Models'];
+    private const CLASS_CONTEXT_FILLERS = ['Item', 'Items', 'Entity', 'Entities', 'Model', 'Models'];
 
     /**
      * Measure overlap between a collection method name and its return type.

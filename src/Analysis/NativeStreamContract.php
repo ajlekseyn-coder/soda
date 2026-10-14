@@ -17,7 +17,7 @@ final readonly class NativeStreamContract
     /**
      * Attribute key under which the parser stores the syntactic parent node.
      */
-    private const string PARENT = 'parent';
+    private const PARENT = 'parent';
 
     /**
      * Index proven native hook signatures for metric checks in the same file.

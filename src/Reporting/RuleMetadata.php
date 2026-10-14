@@ -12,22 +12,22 @@ final readonly class RuleMetadata
     /**
      * Severity label for rules whose violation fails the quality gate.
      */
-    public const string SEVERITY_ERROR = 'error';
+    public const SEVERITY_ERROR = 'error';
 
     /**
      * Severity label for findings reported without failing the run.
      */
-    public const string SEVERITY_WARNING = 'warning';
+    public const SEVERITY_WARNING = 'warning';
 
     /**
      * Comparison mode where the measured value must not exceed the threshold.
      */
-    public const string COMPARISON_MAX = 'max';
+    public const COMPARISON_MAX = 'max';
 
     /**
      * Comparison mode where the measured value must reach the threshold.
      */
-    public const string COMPARISON_MIN = 'min';
+    public const COMPARISON_MIN = 'min';
 
     /**
      * Retain presentation metadata indexed by stable rule identifiers.

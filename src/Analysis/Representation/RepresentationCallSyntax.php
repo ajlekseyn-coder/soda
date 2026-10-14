@@ -24,7 +24,7 @@ trait RepresentationCallSyntax
     /**
      * Operation name marking resolved call syntax in the scalar IR.
      */
-    private const string CALL = 'call';
+    private const CALL = 'call';
 
     /**
      * Retain exact method names and receiver expressions; dynamic invocation remains unknown.

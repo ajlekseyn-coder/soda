@@ -14,7 +14,7 @@ final class CommentedCodeDetector
     /**
      * Regex fragments that can only match PHP declarations, never prose.
      */
-    private const array EXPLICIT_CODE_PATTERNS = [
+    private const EXPLICIT_CODE_PATTERNS = [
         '/\b(?:final\s+|abstract\s+)?(?:class|interface|trait|enum)\s+[A-Za-z_\\\\]/',
         '/\bfunction\s+[A-Za-z_]/',
         '/\bfn\s*\(/',

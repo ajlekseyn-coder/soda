@@ -27,7 +27,7 @@ final class CompoundVariableNameVisitor extends FactVisitor
     /**
      * Superglobal names whose entries never originate from local declarations.
      */
-    private const array SUPERGLOBALS = [
+    private const SUPERGLOBALS = [
         'GLOBALS', '_SERVER', '_GET', '_POST', '_FILES', '_COOKIE',
         '_SESSION', '_REQUEST', '_ENV',
     ];

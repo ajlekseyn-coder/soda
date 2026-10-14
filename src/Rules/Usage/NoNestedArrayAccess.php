@@ -31,7 +31,7 @@ final class NoNestedArrayAccess extends Check
     /**
      * Diagnostic text reported for every access deeper than the limit.
      */
-    private const string MESSAGE = 'Nested array access is forbidden. Use flat structures or DTO/objects instead.';
+    private const MESSAGE = 'Nested array access is forbidden. Use flat structures or DTO/objects instead.';
 
     /**
      * Freeze the nesting depth a chained array access may reach.

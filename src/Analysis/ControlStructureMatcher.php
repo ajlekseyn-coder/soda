@@ -14,7 +14,7 @@ final class ControlStructureMatcher
     /**
      * PhpParser node kinds counted as control structures for nesting depth.
      */
-    private const array CONTROL_STRUCTURE_NODE_KINDS = [
+    private const CONTROL_STRUCTURE_NODE_KINDS = [
         'Stmt_If'       => true,
         'Stmt_For'      => true,
         'Stmt_Foreach'  => true,

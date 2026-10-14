@@ -32,7 +32,7 @@ final class NoVacuousDocblocks extends Check
     /**
      * Words that never make a description informative on their own, merged with extraFiller.
      */
-    private const array FILLER = [
+    private const FILLER = [
         // Filler verbs opening generated prose.
         'stores', 'store', 'retain', 'retains', 'holds', 'hold', 'defines', 'define',
         'initialize', 'initializes', 'initialised', 'marks', 'mark', 'describes', 'describe',

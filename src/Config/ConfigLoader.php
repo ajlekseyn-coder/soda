@@ -11,7 +11,7 @@ final class ConfigLoader
     /**
      * Limit implicit configuration lookup to ten ancestor directories.
      */
-    private const int MAX_DEPTH = 10;
+    private const MAX_DEPTH = 10;
 
     /**
      * Find and load one configuration, or use the standard rules when none exists.

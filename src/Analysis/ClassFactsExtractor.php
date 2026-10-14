@@ -22,7 +22,7 @@ final class ClassFactsExtractor
     /**
      * Attribute key carrying the name resolver's fully qualified name.
      */
-    private const string RESOLVED_NAME = 'resolvedName';
+    private const RESOLVED_NAME = 'resolvedName';
 
     /**
      * Build structural facts for a class or trait from its declaration.

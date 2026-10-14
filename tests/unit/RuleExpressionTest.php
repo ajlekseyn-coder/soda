@@ -7,6 +7,7 @@ namespace Cosmira\Soda\Tests;
 use Cosmira\Soda\Support\ConfigException;
 use Cosmira\Soda\Support\RuleExpression;
 use Phplrt\Compiler\Compiler;
+use Phplrt\Compiler\Generator\TargetPhpVersion;
 use Phplrt\Source\FileSource;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -85,7 +86,7 @@ final class RuleExpressionTest extends TestCase
         $compiler = (new Compiler)->load(
             FileSource::createFromPathname($root.'/resources/rules.pp3'),
         );
-        $generated = $compiler->generate();
+        $generated = $compiler->generate()->withTargetPhpVersion(TargetPhpVersion::Php82);
         $committed = str_replace("\r\n", "\n", (string) file_get_contents($root.'/resources/rules.php'));
         $this->assertSame($committed, (string) $generated);
     }

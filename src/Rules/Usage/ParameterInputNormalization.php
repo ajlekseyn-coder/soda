@@ -18,7 +18,7 @@ final readonly class ParameterInputNormalization
     /**
      * Accepted builtin arities; optional output arguments are deliberately excluded.
      */
-    private const array NORMALIZERS = [
+    private const NORMALIZERS = [
         'strtolower'  => [1, 1],
         'strtoupper'  => [1, 1],
         'trim'        => [1, 2],

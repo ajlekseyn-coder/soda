@@ -23,17 +23,17 @@ final readonly class ReportFormatter
     /**
      * Character width of the horizontal rules framing report sections.
      */
-    private const int SEPARATOR_WIDTH = 60;
+    private const SEPARATOR_WIDTH = 60;
 
     /**
      * Defines the closing console markup tag used by this formatter.
      */
-    private const string TAG_CLOSE = '</>';
+    private const TAG_CLOSE = '</>';
 
     /**
      * Defines the research status assigned to paths whose contract could not be resolved.
      */
-    private const string UNKNOWN_STATUS = 'unknown';
+    private const UNKNOWN_STATUS = 'unknown';
 
     /**
      * Bind the metadata used to resolve rule labels, advice and severity.

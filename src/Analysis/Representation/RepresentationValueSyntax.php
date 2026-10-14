@@ -21,7 +21,7 @@ trait RepresentationValueSyntax
     /**
      * Canonical native name of PHP's null literal value.
      */
-    private const string NATIVE_NULL = 'null';
+    private const NATIVE_NULL = 'null';
 
     /**
      * Normalize native contracts after name resolution; leave late static binding unknown.

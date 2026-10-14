@@ -7,7 +7,6 @@ use Rector\EarlyReturn\Rector\Return_\ReturnBinaryOrToEarlyReturnRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
 use Rector\Php80\Rector\FuncCall\ClassOnObjectRector;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\MethodCall\PrivatizeLocalGetterToPropertyRector;
 use Rector\TypeDeclaration\Rector\ArrowFunction\AddArrowFunctionReturnTypeRector;
@@ -48,7 +47,6 @@ return RectorConfig::configure()
     ])
     ->withSkip([
         AddArrowFunctionReturnTypeRector::class,
-        AddOverrideAttributeToOverriddenMethodsRector::class,
         PrivatizeLocalGetterToPropertyRector::class,
         ClosureReturnTypeRector::class,
         ClosureToArrowFunctionRector::class,
@@ -71,4 +69,4 @@ return RectorConfig::configure()
         ],
     ])
     ->withMemoryLimit('3G')
-    ->withPhpSets(php83: true);
+    ->withPhpSets(php82: true);

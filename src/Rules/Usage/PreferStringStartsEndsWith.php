@@ -23,7 +23,7 @@ final class PreferStringStartsEndsWith extends Check
     /**
      * Map each forbidden substr call to its prefix and suffix question replacements.
      */
-    private const array REPLACEMENTS = [
+    private const REPLACEMENTS = [
         'substr'    => ['starts' => 'str_starts_with', 'ends' => 'str_ends_with'],
         'mb_substr' => ['starts' => 'mb_str_starts_with', 'ends' => 'mb_str_ends_with'],
     ];

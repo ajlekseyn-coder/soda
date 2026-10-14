@@ -12,7 +12,7 @@ final class ResearchEvidence
     /**
      * Gap status marking an exhausted budget instead of an unresolved operation.
      */
-    private const string STATUS_TRUNCATED = 'truncated';
+    private const STATUS_TRUNCATED = 'truncated';
 
     /**
      * Confirmed structural paths keyed by their extraction and reconstruction declarations.

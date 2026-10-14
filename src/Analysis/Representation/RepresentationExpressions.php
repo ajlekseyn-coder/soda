@@ -12,62 +12,62 @@ trait RepresentationExpressions
     /**
      * Native type name of an unresolved value contract.
      */
-    private const string TYPE_UNKNOWN = 'unknown';
+    private const TYPE_UNKNOWN = 'unknown';
 
     /**
      * Native type name of a text value.
      */
-    private const string TYPE_STRING = 'string';
+    private const TYPE_STRING = 'string';
 
     /**
      * Native type name of an integer value.
      */
-    private const string TYPE_INT = 'int';
+    private const TYPE_INT = 'int';
 
     /**
      * Native type name of a floating point value.
      */
-    private const string TYPE_FLOAT = 'float';
+    private const TYPE_FLOAT = 'float';
 
     /**
      * Native type name of a boolean value.
      */
-    private const string TYPE_BOOL = 'bool';
+    private const TYPE_BOOL = 'bool';
 
     /**
      * Native type name of a native container value.
      */
-    private const string TYPE_ARRAY = 'array';
+    private const TYPE_ARRAY = 'array';
 
     /**
      * Native type name of an object value with declared fields.
      */
-    private const string TYPE_OBJECT = 'object';
+    private const TYPE_OBJECT = 'object';
 
     /**
      * Native type name of an absent value.
      */
-    private const string TYPE_NULL = 'null';
+    private const TYPE_NULL = 'null';
 
     /**
      * Budget name of the interpreted operation work limit.
      */
-    private const string LIMIT_STEPS = 'maxSteps';
+    private const LIMIT_STEPS = 'maxSteps';
 
     /**
      * Research gap status marking an exhausted budget.
      */
-    private const string STATUS_TRUNCATED = 'truncated';
+    private const STATUS_TRUNCATED = 'truncated';
 
     /**
      * Core profile kind of a container reversal.
      */
-    private const string PROFILE_REVERSE = 'reverse';
+    private const PROFILE_REVERSE = 'reverse';
 
     /**
      * Core profile kind of a container reindexing.
      */
-    private const string PROFILE_VALUES = 'values';
+    private const PROFILE_VALUES = 'values';
 
     /**
      * Evaluate one scalar IR expression without executing application code.

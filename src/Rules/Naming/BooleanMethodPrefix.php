@@ -13,7 +13,7 @@ final class BooleanMethodPrefix extends Check
     /**
      * Operation verbs that may legitimately return a success flag.
      */
-    private const array DEFAULT_IGNORE = [
+    private const DEFAULT_IGNORE = [
         'create', 'update', 'delete', 'execute', 'run', 'process',
         'handle', 'dispatch', 'send', 'save', 'store', 'generate', 'build', 'check',
     ];
@@ -21,7 +21,7 @@ final class BooleanMethodPrefix extends Check
     /**
      * Predicate prefixes that make a boolean method read as a question.
      */
-    private const array DEFAULT_PREFIX = [
+    private const DEFAULT_PREFIX = [
         'is', 'has', 'can', 'should', 'does', 'was',
         'are', 'do', 'did', 'will', 'try',
     ];

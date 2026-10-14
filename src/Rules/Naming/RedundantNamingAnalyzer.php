@@ -19,29 +19,29 @@ final readonly class RedundantNamingAnalyser
     /**
      * Percentage of shared words above which a name repeats its context.
      */
-    private const float SIMILARITY_THRESHOLD = 80.0;
+    private const SIMILARITY_THRESHOLD = 80.0;
 
     /**
      * Shortest token considered meaningful during word comparison.
      */
-    private const int MIN_WORD_LENGTH = 4;
+    private const MIN_WORD_LENGTH = 4;
 
     /**
      * Declared suffixes owned by the language or test tooling, never by taste.
      */
-    private const array CLASS_SUFFIX_IGNORE = [
+    private const CLASS_SUFFIX_IGNORE = [
         'Exception', 'Interface', 'Trait', 'Abstract', 'Test',
     ];
 
     /**
      * Role words stripped before a class name is compared with its members.
      */
-    private const array GENERIC_SUFFIXES = ['Collection', 'Repository', 'Service', 'Manager', 'Factory', 'Handler', 'Provider'];
+    private const GENERIC_SUFFIXES = ['Collection', 'Repository', 'Service', 'Manager', 'Factory', 'Handler', 'Provider'];
 
     /**
      * Middle words repeating the entity already named by the class.
      */
-    private const array REDUNDANT_MIDDLE = ['Item', 'Items', 'Entity', 'Entities', 'Model', 'Models'];
+    private const REDUNDANT_MIDDLE = ['Item', 'Items', 'Entity', 'Entities', 'Model', 'Models'];
 
     /**
      * Freeze the sensitivity of the repeated-naming comparison.

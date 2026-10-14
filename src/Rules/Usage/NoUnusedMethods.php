@@ -38,7 +38,7 @@ final class NoUnusedMethods extends Check
      *
      * @var list<string>
      */
-    private const array DEFAULT_IGNORE = [
+    private const DEFAULT_IGNORE = [
         'setUp', 'tearDown', 'setUpBeforeClass', 'tearDownAfterClass',
     ];
 

@@ -36,19 +36,19 @@ final class OnlyListArraysAllowed extends Check
     /**
      * Diagnostic text asking the author to review the shape of the data.
      */
-    private const string MESSAGE_PRAGMATIC = 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.';
+    private const MESSAGE_PRAGMATIC = 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.';
 
     /**
      * Diagnostic text used when strict mode forbids every associative array.
      */
-    private const string MESSAGE_STRICT = 'Only list arrays are allowed. Associative arrays are forbidden. Use Value Objects instead.';
+    private const MESSAGE_STRICT = 'Only list arrays are allowed. Associative arrays are forbidden. Use Value Objects instead.';
 
     /**
      * Basename / path fnmatch patterns (merged with the constructor patterns).
      *
      * @var list<string>
      */
-    private const array DEFAULT_IGNORE_PATH_PATTERNS = [
+    private const DEFAULT_IGNORE_PATH_PATTERNS = [
         '*Request.php',
         '*FormRequest.php',
         '*Resource.php',

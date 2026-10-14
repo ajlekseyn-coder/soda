@@ -20,17 +20,17 @@ final class RepresentationFacts
     /**
      * Bound retained syntax facts for each callable independently.
      */
-    private const int MAX_FACTS = 512;
+    private const MAX_FACTS = 512;
 
     /**
      * Collection reason marking a same-file redeclaration of one identity.
      */
-    private const string DUPLICATE_DECLARATION = 'Ambiguous duplicate declaration.';
+    private const DUPLICATE_DECLARATION = 'Ambiguous duplicate declaration.';
 
     /**
      * Collection reason marking a conditional or nested declaration.
      */
-    private const string CONDITIONAL_DECLARATION = 'Conditional or nested declaration.';
+    private const CONDITIONAL_DECLARATION = 'Conditional or nested declaration.';
 
     /**
      * Index scalar declarations and preserve explicit gaps for unsafe declarations.

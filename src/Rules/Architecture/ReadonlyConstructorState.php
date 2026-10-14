@@ -23,7 +23,7 @@ trait ReadonlyConstructorState
     /**
      * Defines the AST attribute key that links a node to its enclosing parent node.
      */
-    private const string PARENT_ATTRIBUTE = 'parent';
+    private const PARENT_ATTRIBUTE = 'parent';
 
     /**
      * Recognize readonly construction state in promoted and explicit property forms.

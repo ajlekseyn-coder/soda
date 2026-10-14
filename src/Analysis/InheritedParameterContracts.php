@@ -19,7 +19,7 @@ final readonly class InheritedParameterContracts
     /**
      * Method name reserved by PHP for object construction contracts.
      */
-    private const string CONSTRUCTOR = '__construct';
+    private const CONSTRUCTOR = '__construct';
 
     /**
      * Store signatures and parent edges without retaining AST nodes.

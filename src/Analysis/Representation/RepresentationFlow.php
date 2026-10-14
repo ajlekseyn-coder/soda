@@ -16,7 +16,7 @@ final class RepresentationFlow
     /**
      * Suffix identifying constructor callables in their declaration identity.
      */
-    private const string CONSTRUCTOR_SUFFIX = '::__construct';
+    private const CONSTRUCTOR_SUFFIX = '::__construct';
 
     /**
      * Indexed declarations, with source paths attached after file collection.

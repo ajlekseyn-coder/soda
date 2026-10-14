@@ -31,7 +31,7 @@ final class ComplexityVisitor extends FactVisitor
     /**
      * Attribute key under which the parser stores the syntactic parent node.
      */
-    private const string PARENT = 'parent';
+    private const PARENT = 'parent';
 
     /**
      * Cyclomatic complexity scores indexed by callable name.

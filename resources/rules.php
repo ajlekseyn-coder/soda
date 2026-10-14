@@ -20,27 +20,27 @@ declare(strict_types=1);
 \interface_exists(\Phplrt\Contracts\Parser\Exception\ParserExceptionInterface::class);
 \interface_exists(\Phplrt\Contracts\Parser\Exception\RuntimeExceptionInterface::class);
 
-return new readonly class implements \Phplrt\Contracts\Parser\ParserInterface {
+return new class implements \Phplrt\Contracts\Parser\ParserInterface {
     /** @var int */
-    public const int T_SPACE = 0;
+    public const T_SPACE = 0;
     /** @var int */
-    public const int T_SCOPE = 1;
+    public const T_SCOPE = 1;
     /** @var int */
-    public const int T_WHERE = 2;
+    public const T_WHERE = 2;
     /** @var int */
-    public const int T_OR = 3;
+    public const T_OR = 3;
     /** @var int */
-    public const int T_AND = 4;
+    public const T_AND = 4;
     /** @var int */
-    public const int T_NOT = 5;
+    public const T_NOT = 5;
     /** @var int */
-    public const int T_OPERATOR = 6;
+    public const T_OPERATOR = 6;
     /** @var int */
-    public const int T_NUMBER = 7;
+    public const T_NUMBER = 7;
     /** @var int */
-    public const int T_STRING = 8;
+    public const T_STRING = 8;
     /** @var int */
-    public const int T_FIELD = 9;
+    public const T_FIELD = 9;
 
     protected readonly \Phplrt\Contracts\Parser\ParserInterface $parser;
 

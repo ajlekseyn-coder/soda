@@ -27,7 +27,7 @@ final class StructureVisitor extends FactVisitor
     /**
      * Attribute key referencing the enclosing syntax node of a declaration.
      */
-    private const string PARENT = 'parent';
+    private const PARENT = 'parent';
 
     /**
      * Accumulated file, namespace, class, and method structural facts.

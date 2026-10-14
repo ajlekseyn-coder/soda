@@ -16,12 +16,12 @@ final class DirectoryRoles
     /**
      * Files without a recognized role still contribute to the directory total.
      */
-    public const string PLAIN_ROLE = 'Plain';
+    public const PLAIN_ROLE = 'Plain';
 
     /**
      * Files declaring several recognized roles form a separate category.
      */
-    private const string MIXED_ROLE = 'Mixed';
+    private const MIXED_ROLE = 'Mixed';
 
     /**
      * Count file roles within each directory while retaining unclassified files in its total.
@@ -57,7 +57,7 @@ final class DirectoryRoles
     /**
      * Conventional architectural roles; arbitrary base classes are not layers.
      */
-    private const array ROLES = [
+    private const ROLES = [
         'Controller', 'Service', 'Repository', 'Model', 'Job', 'Command',
         'Event', 'Listener', 'Policy', 'Middleware', 'Resource', 'Request',
     ];

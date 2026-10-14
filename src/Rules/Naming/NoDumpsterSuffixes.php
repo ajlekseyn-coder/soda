@@ -24,7 +24,7 @@ final class NoDumpsterSuffixes extends Check
     /**
      * Generic role suffixes rejected by default, merged with extraSuffixes.
      */
-    private const array SUFFIXES = [
+    private const SUFFIXES = [
         'Manager', 'Helper', 'Util', 'Utils', 'Processor', 'Service', 'Handler', 'Wrapper',
     ];
 

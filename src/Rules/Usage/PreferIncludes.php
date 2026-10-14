@@ -22,7 +22,7 @@ final class PreferIncludes extends Check
     /**
      * Map each forbidden position call to the substring-question replacement.
      */
-    private const array REPLACEMENTS = [
+    private const REPLACEMENTS = [
         'strpos'    => 'str_contains',
         'mb_strpos' => 'mb_str_contains',
     ];

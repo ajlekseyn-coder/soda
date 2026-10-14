@@ -25,7 +25,7 @@ final readonly class GuardExitKey
     /**
      * Placeholder for exits that carry no value.
      */
-    private const string NO_VALUE = '(none)';
+    private const NO_VALUE = '(none)';
 
     /**
      * Initialize the pretty printer used to compare exit values.
