@@ -76,7 +76,7 @@ final class AstFacts
             'compoundNames'  => self::isRequired($required, 'naming') ? new CompoundVariableNameVisitor() : null,
         ];
 
-        $traverser = new NodeTraverser(new NameResolver(), new ParentConnectingVisitor(), ...array_filter($scans));
+        $traverser = new NodeTraverser(new NameResolver(), new ParentConnectingVisitor(), ...array_values(array_filter($scans)));
         $traverser->traverse($nodes);
 
         return $scans;
