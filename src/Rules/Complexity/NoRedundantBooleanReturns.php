@@ -99,7 +99,7 @@ final class NoRedundantBooleanReturns extends Check
      */
     private function fallback(Stmt\If_ $branch, FileFacts $file): ?Stmt\Return_
     {
-        if ($branch->else !== null) {
+        if ($branch->else instanceof Stmt\Else_) {
             return $this->singleReturn($branch->else->stmts);
         }
 

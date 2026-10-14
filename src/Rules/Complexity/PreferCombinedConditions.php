@@ -72,7 +72,7 @@ final class PreferCombinedConditions extends Check
      */
     private function isUnbranched(Stmt\If_ $branch): bool
     {
-        return $branch->else === null && $branch->elseifs === [];
+        return ! $branch->else instanceof Stmt\Else_ && $branch->elseifs === [];
     }
 
     /**

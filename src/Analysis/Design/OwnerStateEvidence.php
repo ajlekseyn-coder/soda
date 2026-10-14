@@ -56,9 +56,9 @@ trait OwnerStateEvidence
     private function construction(Stmt\Class_ $class, string $name): ?array
     {
         $constructor = $class->getMethod(self::CONSTRUCTOR);
-        $isDirect = $class->isFinal() && $class->extends === null && $class->getTraitUses() === [];
-        $isPublic = $constructor !== null && $constructor->isPublic();
-        if (! $isDirect || ! $isPublic || $constructor === null) {
+        $isDirect = $class->isFinal() && ! $class->extends instanceof Name && $class->getTraitUses() === [];
+        $isPublic = $constructor instanceof Stmt\ClassMethod && $constructor->isPublic();
+        if (! $isDirect || ! $isPublic || ! $constructor instanceof Stmt\ClassMethod) {
             return null;
         }
 
@@ -78,7 +78,7 @@ trait OwnerStateEvidence
      */
     private function constructionParameter(Param $parameter, string $owner): ?array
     {
-        $isRequired = $parameter->default === null && ! $parameter->variadic && ! $parameter->byRef;
+        $isRequired = ! $parameter->default instanceof Expr && ! $parameter->variadic && ! $parameter->byRef;
         if (! $isRequired || ! $parameter->type instanceof Name) {
             return null;
         }

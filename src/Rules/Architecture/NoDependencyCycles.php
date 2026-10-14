@@ -117,8 +117,8 @@ final class NoDependencyCycles extends Check
         }
 
         return new Violation(
-            rule: $this->id(), file: $first['file'], line: $first['line'],
-            value: count($component), threshold: 0,
+            rule: $this->id(), file: $first['file'],
+            value: count($component), threshold: 0, line: $first['line'],
             message: 'Constructor dependency cycle: '.implode('; ', $evidence)
                 .'. Each exact type requires an existing instance of the next; ordinary construction has no starting point.'
                 .' Review whether these collaborators should be one object or whether the reverse dependency is unnecessary.'

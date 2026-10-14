@@ -57,7 +57,7 @@ final class NoUnneededTernary extends Check
      */
     private function replacement(Expr\Ternary $node): ?string
     {
-        if ($node->if === null) {
+        if (! $node->if instanceof Expr) {
             return null;
         }
 
@@ -83,7 +83,7 @@ final class NoUnneededTernary extends Check
             return $positive ? '(condition) || (else expression)' : '! (condition) && (else expression)';
         }
 
-        if ($negative !== null && $node->if !== null && $this->isBooleanExpression($node->if)) {
+        if ($negative !== null && $node->if instanceof Expr && $this->isBooleanExpression($node->if)) {
             return $negative ? '! (condition) || (then expression)' : '(condition) && (then expression)';
         }
 

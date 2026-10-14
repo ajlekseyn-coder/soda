@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt\Return_;
@@ -33,7 +34,7 @@ final class NoUselessReturn extends Check
             }
 
             $last = $statements[array_key_last($statements)];
-            if (! $last instanceof Return_ || $last->expr !== null) {
+            if (! $last instanceof Return_ || $last->expr instanceof Expr) {
                 continue;
             }
 
