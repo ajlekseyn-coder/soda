@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
-use Cosmira\Soda\Rules\Usage\UselessVariableAnalyser;
+use Cosmira\Soda\Rules\Usage\UselessVariableAnalyzer;
 use PHPUnit\Framework\TestCase;
 
 final class UselessVariableRuleTest extends TestCase
 {
     use ParsesPhpSnippets;
 
-    private UselessVariableAnalyser $analyzer;
+    private UselessVariableAnalyzer $analyzer;
 
     protected function setUp(): void
     {
-        $this->analyzer = new UselessVariableAnalyser;
+        $this->analyzer = new UselessVariableAnalyzer;
     }
 
     /** @return list<array{line: int, variable: string, source: string}> */

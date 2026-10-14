@@ -69,7 +69,7 @@
         "phpstan": "phpstan analyse src --no-progress --memory-limit=512M",
         "rector": "rector process src --no-progress-bar",
         "ci": [
-            "composer dump-autoload --optimize",
+            "composer dump-autoload --optimize --strict-psr",
             "@pint:test",
             "@phpstan",
             "@rector:check",
@@ -82,9 +82,9 @@
         "rector:check": "rector process src --dry-run --no-progress-bar"
     },
     "autoload": {
-        "classmap": [
-            "src/"
-        ]
+        "psr-4": {
+            "Cosmira\\Soda\\": "src/"
+        }
     },
     "autoload-dev": {
         "classmap": [

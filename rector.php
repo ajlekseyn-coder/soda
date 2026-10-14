@@ -52,20 +52,20 @@ return RectorConfig::configure()
         ClosureToArrowFunctionRector::class,
         EnvVariableToEnvHelperRector::class,
         // SodaInitFileEmitter uses string FQCNs intentionally (::class would add Ce=33)
-        // UselessVariableAnalyser uses strings intentionally (::class would add Ce)
+        // UselessVariableAnalyzer uses strings intentionally (::class would add Ce)
         StringClassNameToClassConstantRector::class => [
             'src/Config/SodaInitFileEmitter.php',
-            'src/Rules/Usage/UselessVariableAnalyser.php',
+            'src/Rules/Usage/UselessVariableAnalyzer.php',
         ],
-        // UselessVariableAnalyser: early-return conversion raises LCF; FQN ::class adds Ce
+        // UselessVariableAnalyzer: early-return conversion raises LCF; FQN ::class adds Ce
         ReturnBinaryOrToEarlyReturnRector::class => [
-            'src/Rules/Usage/UselessVariableAnalyser.php',
+            'src/Rules/Usage/UselessVariableAnalyzer.php',
         ],
         ClassOnObjectRector::class => [
-            'src/Rules/Usage/UselessVariableAnalyser.php',
+            'src/Rules/Usage/UselessVariableAnalyzer.php',
         ],
         AddArrayFunctionClosureParamTypeRector::class => [
-            'src/Rules/Usage/UselessVariableAnalyser.php',
+            'src/Rules/Usage/UselessVariableAnalyzer.php',
         ],
     ])
     ->withMemoryLimit('3G')

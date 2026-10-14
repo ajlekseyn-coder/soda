@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\Naming\NamingVisitor;
-use Cosmira\Soda\Rules\Naming\RedundantNamingAnalyser;
+use Cosmira\Soda\Rules\Naming\RedundantNamingAnalyzer;
 use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +15,7 @@ final class RedundantNamingTest extends TestCase
 
     private function parseAndAnalyse(string $code): array
     {
-        $analyzer = new RedundantNamingAnalyser(80.0, 4);
+        $analyzer = new RedundantNamingAnalyzer(80.0, 4);
 
         return $analyzer->analyze($this->parseNaming($code));
     }

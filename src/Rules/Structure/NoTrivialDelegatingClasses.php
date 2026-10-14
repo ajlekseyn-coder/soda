@@ -9,7 +9,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Structure\Delegation\TrivialDelegatingClassAnalyser;
+use Cosmira\Soda\Rules\Structure\Delegation\TrivialDelegatingClassAnalyzer;
 
 /**
  * Reports behavior-free classes that only pass their operations through to one dependency.
@@ -88,7 +88,7 @@ final class NoTrivialDelegatingClasses extends Check
     public function checkFile(FileFacts $facts): iterable
     {
         $file = $facts->path;
-        $findings = (new TrivialDelegatingClassAnalyser)->analyze($facts->nodes);
+        $findings = (new TrivialDelegatingClassAnalyzer)->analyze($facts->nodes);
         $violations = [];
 
         foreach ($findings as $finding) {

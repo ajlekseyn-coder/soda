@@ -15,7 +15,7 @@ use PhpParser\NodeFinder;
  *
  * @internal
  */
-final readonly class TrivialDelegatingClassAnalyser
+final readonly class TrivialDelegatingClassAnalyzer
 {
     /**
      * Locates method declarations inside candidate class bodies.

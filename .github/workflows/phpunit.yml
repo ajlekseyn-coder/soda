@@ -49,6 +49,9 @@ jobs:
       - name: Install matrix dependencies
         run: composer update --${{ matrix.dependencies }} --prefer-dist --no-interaction --no-progress
 
+      - name: Validate PSR-4 autoloading
+        run: composer dump-autoload --optimize --strict-psr
+
       - name: Run PHPUnit
         run: composer test -- --no-coverage --order-by=random --random-order-seed=1788957854 --display-warnings --fail-on-warning --log-junit build/phpunit.xml
 
@@ -88,6 +91,9 @@ jobs:
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Validate PSR-4 autoloading
+        run: composer dump-autoload --optimize --strict-psr
 
       - name: Run PHPUnit
         run: composer test -- --no-coverage --order-by=random --random-order-seed=1788957854 --display-warnings --fail-on-warning --log-junit build/phpunit.xml

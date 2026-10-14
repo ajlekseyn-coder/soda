@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * - Порог схожести: similar_text ≥ 80%
  * - Минимальная длина слова: 4 (игнор коротких: add, get, has)
  */
-final readonly class RedundantNamingAnalyser
+final readonly class RedundantNamingAnalyzer
 {
     /**
      * Percentage of shared words above which a name repeats its context.

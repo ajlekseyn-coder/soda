@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
-use Cosmira\Soda\Rules\Usage\UselessVariableAnalyser;
+use Cosmira\Soda\Rules\Usage\UselessVariableAnalyzer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +16,7 @@ final class UselessVariableEscapeTest extends TestCase
     public function testEscapePolicyThroughAliasAnalysis(string $after, int $expected): void
     {
         $nodes = $this->parsePhpFile('<?php function example($source) { $alias = $source; '.$after.' return $alias; }');
-        $findings = (new UselessVariableAnalyser)->analyze($nodes);
+        $findings = (new UselessVariableAnalyzer)->analyze($nodes);
 
         self::assertCount($expected, $findings);
     }

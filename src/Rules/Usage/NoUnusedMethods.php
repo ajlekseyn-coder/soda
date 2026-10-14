@@ -11,7 +11,7 @@ use Cosmira\Soda\Reporting\Violation;
 /**
  * Flags **private** and **protected** methods that are never called within configured project files,
  * including inherited and trait-composed callers — except protected methods that
- * clearly belong to a supertype contract (see {@see UnusedMethodAnalyser}).
+ * clearly belong to a supertype contract (see {@see UnusedMethodAnalyzer}).
  *
  * Magic methods are never flagged. {@see self::DEFAULT_IGNORE} is merged with {@see $ignore}
  * for extra private names to skip (same idea as {@see BooleanMethodPrefix}).
@@ -75,7 +75,7 @@ final class NoUnusedMethods extends Check
     #[\Override]
     public function checkProject(ProjectFacts $facts): iterable
     {
-        foreach ((new UnusedMethodAnalyser)->analyze($facts) as $finding) {
+        foreach ((new UnusedMethodAnalyzer)->analyze($facts) as $finding) {
             $method = strtolower($finding['method']);
             if (in_array($method, $this->ignore, true)) {
                 continue;

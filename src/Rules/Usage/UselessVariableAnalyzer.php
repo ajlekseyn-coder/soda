@@ -24,7 +24,7 @@ use PhpParser\NodeFinder;
  *
  * Analysis scope: function / method bodies only (not top-level code).
  */
-final readonly class UselessVariableAnalyser
+final readonly class UselessVariableAnalyzer
 {
     /**
      * Locates assignments and their usages across the syntax tree.

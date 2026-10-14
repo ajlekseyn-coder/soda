@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FileFacts;
-use Cosmira\Soda\Rules\Usage\UselessVariableAnalyser;
+use Cosmira\Soda\Rules\Usage\UselessVariableAnalyzer;
 use Cosmira\Soda\Rules\Usage\UselessVariableRule;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -34,7 +34,7 @@ class Handler {
     }
 }
 PHP);
-        $findings = (new UselessVariableAnalyser)->analyze($nodes);
+        $findings = (new UselessVariableAnalyzer)->analyze($nodes);
         self::assertSame([['line' => 6, 'variable' => '$selected', 'source' => '$servers']], $findings);
         $violations = iterator_to_array((new UselessVariableRule)->checkFile(new FileFacts('/handler.php', '', $nodes, [])));
         self::assertCount(1, $violations);
@@ -77,6 +77,6 @@ PHP);
 
     private function findings(string $source): array
     {
-        return (new UselessVariableAnalyser)->analyze($this->parseSnippet($source));
+        return (new UselessVariableAnalyzer)->analyze($this->parseSnippet($source));
     }
 }

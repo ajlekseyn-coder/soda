@@ -10,7 +10,7 @@ use Cosmira\Soda\Analysis\ProjectFacts;
  * Resolve usage across configured files using compact, receiver-aware declarations.
  * No reachability analysis or dependency autoloading is performed.
  */
-final class UnusedMethodAnalyser
+final class UnusedMethodAnalyzer
 {
     use UnusedMethodComposition;
     use UnusedMethodResolution;

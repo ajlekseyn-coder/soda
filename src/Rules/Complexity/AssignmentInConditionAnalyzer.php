@@ -22,7 +22,7 @@ use PhpParser\NodeFinder;
  *
  * @internal
  */
-final readonly class AssignmentInConditionAnalyser
+final readonly class AssignmentInConditionAnalyzer
 {
     /**
      * Locates assignments embedded in condition expressions across the tree.

@@ -8,7 +8,7 @@ use Cosmira\Soda\Analysis\AstFacts;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\LogicalLineMap;
 use Cosmira\Soda\Analysis\ProjectFacts;
-use Cosmira\Soda\Rules\Usage\UnusedMethodAnalyser;
+use Cosmira\Soda\Rules\Usage\UnusedMethodAnalyzer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -16,11 +16,11 @@ final class UnusedMethodsTest extends TestCase
 {
     use ParsesPhpSnippets;
 
-    private UnusedMethodAnalyser $analyzer;
+    private UnusedMethodAnalyzer $analyzer;
 
     protected function setUp(): void
     {
-        $this->analyzer = new UnusedMethodAnalyser;
+        $this->analyzer = new UnusedMethodAnalyzer;
     }
 
     private function analyze(array $nodes): array
