@@ -236,7 +236,7 @@ Both checks inspect the shared AST, including nested functions, traits and
 anonymous classes, report the catch/finally keyword line, and use value 1 with
 threshold 0 per finding. `NoEmptyFinallyBlocks` runs by default, including in
 `RuleCatalog::checks()` and `init`. `NoRedundantRethrow` requires explicit selection. There are no auto-fixes or suppressions.
-Adaptations and license notices: [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+Adaptations and license notices: [Third-party material](#third-party-material).
 
 ### max_cognitive_complexity
 
@@ -531,3 +531,72 @@ $this->scope ??= 'web';
 
 Targets evaluated through calls stay outside the comparison, because the merged
 operator would evaluate them once instead of twice.
+
+## Third-party material
+
+Soda's own code remains BSD-3-Clause. Adapted third-party material retains the
+notice and terms below; no Java or Python runtime dependency is introduced.
+
+### Aibolit test scenarios
+
+Source: [cqfn/aibolit](https://github.com/cqfn/aibolit/tree/1de37051b74fc61ce9313f350487d5807db732db),
+commit `1de37051b74fc61ce9313f350487d5807db732db`.
+Copyright (c) 2019–2026 Aibolit. [Full MIT license](#aibolit-license).
+
+Destination: `tests/unit/ExceptionChecksTest.php`. Its file notice covers the
+adapted scenarios. Source files inspected and adapted:
+
+- `test/patterns/empty_rethrow/Simple.java`: direct bound-variable rethrow.
+- `test/patterns/empty_rethrow/CatchWithFunctions.java`: statements before throw.
+- `test/patterns/empty_finally/Empty.java`: finally with no statements.
+- `test/patterns/empty_finally/NoFinally.java`: catch without finally.
+- `test/patterns/empty_finally/NotEmpty.java`: an actual cleanup statement.
+
+Java declarations and IO calls were replaced with minimal PHP syntax. Logging or
+other work before rethrow is deliberately **negative** in Soda, unlike Aibolit's
+broader EmptyRethrow pattern. Additional sibling catch, union, scope, comment,
+trait, anonymous-class and nested-block cases specify Soda's PHP contract.
+Production detectors are independently implemented against nikic's AST.
+
+No third-party application fixture (including DBeaver's Apache-licensed files)
+was copied. The donors' full test suites were not used as an oracle or executed
+as part of Soda's tests.
+
+#### Aibolit license
+
+```text
+(The MIT License)
+
+Copyright (c) 2019-2026 Aibolit
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the 'Software'), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### Research definitions and source inspection
+
+The cognitive and cohesion calculators and their PHP tests are independently
+implemented. Sonar's specification, Aibolit and jPeek informed the comparison and
+boundary cases; no Sonar implementation or donor graph code was copied. Pinned
+links, formula differences and limitations are recorded in
+[Research Metrics](RESEARCH_METRICS.md).
+
+The [corpus manifest](research/corpus.json) pins read-only source snapshots.
+Review records contain measurements, original commentary and source links, not
+copies of upstream application files. No external corpus dependency is loaded
+into Soda's runtime or distributed as an application fixture.

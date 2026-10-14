@@ -2,7 +2,7 @@
 
 // SPDX-FileCopyrightText: Copyright (c) 2019-2026 Aibolit
 // SPDX-License-Identifier: MIT
-// Selected Java fixture scenarios adapted to PHP; see THIRD_PARTY_NOTICES.md.
+// Selected Java fixture scenarios adapted to PHP; see docs/COMPLEXITY_READABILITY_METRICS.md#third-party-material.
 
 declare(strict_types=1);
 
