@@ -1430,7 +1430,7 @@ new NoStaticMutableProperties()
 new NoBlockingSleep()
 ```
 
-The executable red-team fixtures and their evolving rationale live in `demo-app/ITERATIONS.md`.
+See the [demo fixtures](../demo-app/README.md) for executable examples of these checks.
 
 ### max_return_statements
 

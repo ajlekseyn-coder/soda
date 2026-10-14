@@ -3,9 +3,8 @@
 `MaxCognitiveComplexity(15)` is included in the standard rules. Cohesion remains measurement only. They do not replace the standard checks, define a general quality score, or prescribe traits/objects by quota.
 They use the existing PHP parse and Check execution path. `list:metrics` exposes
 the expression fields and calculation methods; `list:rules` lists cognitive
-complexity as standard. The disconnected-groups threshold was rejected after
-[corpus review](research/discovery-decision.md) and exists only in
-`docs/research/MaxDisconnectedMethodGroups.php` to reproduce that experiment.
+complexity as standard. The disconnected-groups threshold exists only in
+`docs/research/MaxDisconnectedMethodGroups.php` to reproduce the pinned experiment.
 It is not a built-in rule or a recommended configuration.
 
 ```php
@@ -106,9 +105,6 @@ constructor exclusion, unknown relationships and the declared/composed distincti
 
 ## Reproduction and acceptance
 
-See the [100-finding / 25-non-finding review](research/CORPUS_REVIEW.md) for
-the final decision, pinned sources and limitations.
-
 The fixed [corpus manifest](research/corpus.json) separates discovery from held-out
 projects and records candidate limits before inspection. Obtain the indicated
 commits under `/tmp/soda-corpus/<name>` without installing/running the projects,
@@ -118,6 +114,6 @@ is a normal Check run by the existing Runner, not a parallel analysis engine.
 
 Unit tests cover source formatting and local-variable renaming, positive cases,
 legitimate counterexamples, actual contributions, scalar project data and parity
-between full/requested analyses. The corpus review records actual sample sizes
-and uncertainty. Measurements and automated tests alone are not evidence that
+between full/requested analyses. The saved corpus records contain sample sizes and review judgments; those
+judgments apply to the pinned sources and detector versions. Measurements and automated tests alone are not evidence that
 users find the recommended changes easier to understand.

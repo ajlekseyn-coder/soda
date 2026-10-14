@@ -1,127 +1,31 @@
-# Реестр аудита Laravel
+# Laravel corpus fixtures
 
-Статус: **повторный разбор 73 вызовов завершён**. Снято ещё 23 false positive;
-остальные 50 подтверждены как точные нарушения действующей синтаксической политики.
-Актуальный остаток шести пакетов: **2 156 проверенных сообщений, 0 pending**.
-Ещё три сообщения о clone сняты при изменении стандартной политики; они сохранены
-в `policy-changes.json` отдельно от исправленных FP.
-Это результат проверки зафиксированных исходников, а не гарантия для любого PHP-кода.
+The JSON files pin six Laravel packages and the diagnostics reviewed for their
+recorded versions. They support `LaravelAuditCorpusTest` and the standalone
+regression tests; they are not a report on current upstream branches.
 
-## Источники и результаты
+- `packages.json`: source versions, commits, file paths and SHA-256 hashes.
+- `findings.json`: diagnostic records and source evidence.
+- `resolved.json`: corrected false positives and their regression coverage.
+- `policy-changes.json`: findings removed by a change of standard policy.
+- `sandbox-recheck.json`: additional Sandbox review records.
 
-- `packages.json`: версии, source commit и SHA-256 всех 179 PHP-файлов шести пакетов;
-  дополнительно зафиксирован исходник Laravel Pipeline, подтверждающий его контракт.
-- `findings.json`: каждое актуальное сообщение, исходные поля диагностики,
-  основание проверки и хеш исходника. Предыдущие оценки сохранены для истории.
-- `resolved.json`: 88 снятых false positive и 9 исправленных измерений вложенности
-  со стадий остаточного аудита. Более ранние этапы описаны в соседних отчётах.
-- `sandbox-recheck.json`: отдельная повторная проверка регистрации middleware Sandbox.
+## Reproduce
 
-| Пакет | Перед повторным разбором | После разбора | После изменения clone |
-|---|---:|---:|---:|
-| laravel/prompts v0.3.21 | 878 | 864 | 864 |
-| laravel/sanctum v4.3.3 | 152 | 145 | 145 |
-| laravel/scout v11.5.0 | 611 | 609 | 608 |
-| laravel/pail v1.2.7 | 72 | 72 | 72 |
-| laravel/sail v1.66.0 | 64 | 64 | 64 |
-| laravel/serializable-closure v2.0.15 | 405 | 405 | 403 |
+Prepare a JSON object mapping each package name in `packages.json` to its local
+source root. Use the exact recorded versions; tests verify source hashes before
+comparing diagnostic results. External source code is read, not executed.
 
-Используется `demo-app/soda.php` со стандартным набором правил:
+From the repository root:
 
 ```sh
-php soda quality /path/to/package/src --config=demo-app/soda.php --report-json=/tmp/package.json
+SODA_LARAVEL_CORPUS=/absolute/corpus-roots.json \
+  vendor/bin/phpunit --filter LaravelAuditCorpusTest
 ```
 
-`FAIL` ожидаем при наличии строгих нарушений. Пути в реестре приведены к `src/...`;
-повторяющиеся сообщения сохраняются отдельно и сопоставляются с учётом кратности.
+Without the mapping, the external-corpus comparison is explicitly skipped.
+Record-integrity checks and standalone regression tests still run normally.
+Nonzero quality results are expected for fixtures that violate enabled policies.
 
-## Результат повторного разбора
-
-23 снятых сообщения были ложными срабатываниями на прямые callback-вызовы.
-Их контракты проверены при разборе исходников. После уточнения общего принципа
-правило проверяет только запрещённый синтаксис: отсутствие разрешённого контракта
-само по себе не порождает нарушение. Это устраняет необходимость в особых
-исключениях для PHPDoc, guards, коллекций и Laravel Pipeline.
-
-Оставшиеся 50 сообщений проверены отдельным обходом AST и по исходным выражениям:
-
-| Механизм | Количество | Что проверено |
-|---|---:|---|
-| Вычисляемое имя метода | 18 | Имя является выражением вместо literal Identifier. |
-| Выбор класса во время выполнения | 15 | Конструктор получает выражение вместо именованного или анонимного класса. |
-| Косвенный helper вызова | 17 | В исходнике действительно вызывается запрещённый `call_user_func*`. |
-
-Сообщения теперь называют конкретный запрет. Они не утверждают, что контракт
-каждого callback скрыт. Например, `call_user_func($knownClosure)` остаётся нарушением
-этой политики, но рекомендация — прямой вызов, а не создание ненужного интерфейса.
-Сам `is_callable()` по-прежнему может нарушать отдельную строгую политику runtime
-probes; это не делает проверенный им callback неизвестной целью.
-
-## Что означает подтверждение
-
-`confirmed_policy_violation` подтверждает запрещённую конструкцию или превышение
-порога, а не дефект поведения Laravel. Запреты `else` и числовых индексов сохранены; безусловный запрет `clone` исключён из стандартного набора. У каждой записи есть наблюдение и SHA-256 исходника; при изменении кода
-основание требует повторной проверки.
-
-Сохранены результаты предыдущего разбора типов, имён, длины строк, сигнатур,
-порядка вызовов, классовых метрик с наследованием и traits, условий, зависимостей
-и циклов. Для вывода об интерфейсах учитывается ограниченная область анализа:
-отсутствие локального потребителя не доказывает отсутствие внешнего API.
-
-## Защита тестами
-
-- `LaravelFalsePositiveRegressionTest`: 27 пар через стандартный Runner.
-- `CallableContractRegressionTest`: известные и неизвестные прямые callbacks не
-  считаются нарушением; вычисляемые методы, классы и helpers остаются запрещены.
-- `LaravelMiddlewareContractsTest`: регистрация через ServiceProvider, два обязательных
-  входа `terminate`, обратный порядок файлов, лишние параметры и посторонние классы.
-- `NoDynamicInvocationTest`: отдельные строгие механизмы, включая nullsafe-вызов
-  с вычисляемым именем метода.
-
-Подробные границы и остальные тесты перечислены в `tests/LARAVEL_REGRESSIONS.md`.
-Тесты входят в существующий CI и не требуют сети или установки Laravel.
-
-## Sandbox: предыдущая проверка
-
-После повторного запуска осталось **173 сообщения вместо 175**. Ещё два false
-positive относились к пустому `terminate($request, $response)` зарегистрированного
-middleware: оба аргумента передаются Laravel Kernel. Сигнатуры посторонних методов,
-protected/static-методов и дополнительные входы не освобождаются от проверки.
-Исходники Sandbox не менялись.
-
-## Воспроизводимая проверка
-
-Создайте вне репозитория JSON с отображением всех шести имён пакетов на корни их
-установок (каталог, содержащий `src`), например `"laravel/prompts": "/vendor/laravel/prompts"`.
-Запустите:
-
-```sh
-SODA_LARAVEL_CORPUS=/path/to/roots.json php vendor/bin/phpunit --filter LaravelAuditCorpusTest
-```
-
-Тест сверяет полный список PHP-файлов, SHA-256 и мультимножество всех полей
-диагностик. Изменение строки, сообщения, порога или количества одинаковых записей
-ломает проверку. Никакого автоматического принятия нового baseline нет.
-Без переменной окружения проверка установленного корпуса пропускается явно;
-проверка целостности реестра и автономные регрессии выполняются в обычном CI.
-
-Общий стандарт разработки правил: [Доказательства](../../ANALYSIS_EVIDENCE.md).
-
-## Проверка итогового состояния
-
-- Полный PHPUnit с подключёнными шестью пакетами: **1 074 теста / 16 235 assertions**.
-- Отдельная проверка корпуса: **2 теста / 6 502 assertions**.
-- Performance: **3 теста / 9 assertions**.
-- PHPStan, Rector dry-run, Pint, Soda self-check и `git diff --check` прошли.
-- Sandbox: **173** сообщения; исходники проекта не менялись.
-
-Полный последующий аудит Sandbox: [169 текущих сообщений, 1 FP исправлен и 3 сняты при изменении clone](../sandbox-audit/README.md).
-
-Актуальная проверка после изменения clone: **2 156** диагностик в шести пакетах.
-
-## Проверка после изменения clone
-
-Полный PHPUnit с Sandbox и шестью Laravel-пакетами: **1 082 теста / 16 921 assertions**.
-Performance: **3 теста / 9 assertions**. PHPStan, Rector dry-run, Pint, Soda self-check
-и проверка diff прошли. Точные результаты: Sandbox **169**, шесть Laravel-пакетов
-**2 156**. Прежние оценки clone сохранены отдельно как история изменения политики.
+See [Analysis evidence](../../ANALYSIS_EVIDENCE.md) for evidence requirements and
+[Sandbox corpus fixtures](../sandbox-audit/README.md) for the other source set.

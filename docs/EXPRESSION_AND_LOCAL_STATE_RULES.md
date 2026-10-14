@@ -158,26 +158,5 @@ configuration examples. Runtime cases verify boolean conversion with 16 differen
 PHP values and demonstrate how finally returns replace results and suppress
 exceptions.
 
-On PHP 8.5.4 with PCOV 1.0.12, all 200 executable statements across the five rules
-and their five helpers are covered. This is line coverage, not branch coverage or
-proof of universal applicability.
-
-Infection 0.32.7 with its default mutators generated 327 mutations in those ten
-files. Tests killed 314 (96% raw covered MSI). The remaining 13 were reviewed:
-
-- Two private-list reindexing changes leave consumers' foreach behavior unchanged.
-- Two private string-key prefix changes preserve grouping of decoded string values.
-- Six set-marker changes replace `true` with `false`; only key presence is used.
-- Two early-return removals inspect declaration nodes that have no write targets.
-- One defensive parameter guard changes behavior only for malformed parameter ASTs,
-  which valid parsed PHP cannot produce.
-
-No mutants were excluded to raise the score. The first mutation pass exposed
-missing cases for two reference captures, minimum literal length one, later
-qualifying literal groups and expression literals inside interpolation; those
-cases were added before the final pass. Findings' actionable advice and evidence
-ordering are tested too.
-
-The standard-rule demo corpus has 392 reviewed diagnostics after formatting the adversarial challenge list. The policies are exercised with legitimate stateful/fluent code; thresholds and
-exceptions remain project choices. Dynamic aliases, runtime dispatch and shared string meaning are
-outside these syntax checks; review the scope descriptions before adoption.
+Dynamic aliases, runtime dispatch and shared string meaning are outside these
+syntax checks; review the scope descriptions before adoption.
