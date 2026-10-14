@@ -51,8 +51,8 @@ First stable release of Soda under `cosmira/soda`.
   against decorative metadata, local aliases and supported composition disguises.
 - Add eleven standard checks for unused inputs/state, interface contracts and consumers,
   mode parameters, repeated type dispatch, delegation depth, module cycles, native parameter
-  types and effective class size. See the [rule matrix](docs/STRICT_RULES_IMPLEMENTATION.md)
-  for exact boundaries and validation.
+  types and effective class size. See the [rule reference](docs/STRUCTURAL_METRICS.md#strict-composition-and-behavior-checks)
+  for exact boundaries.
 
 Requires PHP 8.3.19 or later. PHP parsing uses nikic/php-parser.
 The standard set contains 82 checks; three additional checks are opt-in.

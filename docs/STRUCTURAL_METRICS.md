@@ -1507,8 +1507,7 @@ transforms data or supplies domain values, such as a fixed currency, is allowed.
 A name alone does not justify a factory; relative self/static construction is treated separately.
 Exact published entry points can be preserved with
 `contracts: ['App\\ReceiptFactory::create']`. The default contract list is empty.
-There is no automatic fix. The [original RFC](rfcs/explicit-behavior-rules.md) records
-the earlier, narrower research criteria; the behavior above describes the current check.
+There is no automatic fix.
 
 ## Strict composition and behavior checks
 
@@ -1646,7 +1645,7 @@ mutually dependent modules and a contributing source location.
 
 ### Laravel audit corrections
 
-See [round two](research/LARAVEL_FALSE_POSITIVES_ROUND_2.md) for verified examples.
+See the [Laravel audit](research/laravel-audit/README.md) for verified examples.
 Ask-then-tell checks exclude consumed ternary results and decisions about the
 receiver's own state (`$this`, `self`, `static`). Inline Markdown code examples
 are not treated as commented-out PHP; surrounding disabled code remains checked.
@@ -1841,7 +1840,7 @@ purpose and distributed interpretation before deciding whether to change it.
 all paths were covered. A candidate alone does not justify a wrapper, fluent API,
 or any other refactoring. This research mode has not been admitted as a quality
 rule on an independently reviewed application corpus. See the
-[representation consistency RFC](rfcs/representation-consistency.md).
+[representation consistency guide](REPRESENTATION_CONSISTENCY.md).
 
 The initial interpreter follows straight-line local callable bodies with proven
 receivers and a separate argument environment for each invocation. It recognizes

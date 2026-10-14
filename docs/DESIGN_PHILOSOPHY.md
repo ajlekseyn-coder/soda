@@ -10,7 +10,7 @@ Fluent APIs work well when their call sequence describes a task. A mutable build
 
 Value objects express a concept and its operations or invariants. Related amounts and units, or a date interval, can deserve a value object. A one-off array, transport payload, simple readonly record or primitive does not automatically deserve a wrapper, factory and service. Prefer an object when it removes repeated interpretation or keeps a rule about the data in one place.
 
-Follow the data across application components. Within a connected processing region, keep a consistent representation of a concept and adapt where another contract requires it. Distributed extraction and rebuilding, including object/primitive transitions, can make individually clear APIs difficult to change together. Review the purpose of boundaries and the guarantees they preserve. See the proposed [representation consistency standard](rfcs/representation-consistency.md).
+Follow the data across application components. Within a connected processing region, keep a consistent representation of a concept and adapt where another contract requires it. Distributed extraction and rebuilding, including object/primitive transitions, can make individually clear APIs difficult to change together. Review the purpose of boundaries and the guarantees they preserve. See [representation consistency](REPRESENTATION_CONSISTENCY.md).
 
 Use functions and private helpers for small local work. Preserve adapters that convert data or implement a required external contract, decorators with behavior, framework contracts and named public rule classes. An interface added only to silence a detector is not evidence that a boundary became useful.
 
@@ -28,4 +28,21 @@ Distinguish an AST fact, a correct metric and a useful recommendation. Test equi
 
 Heuristic rules enter as opt-in checks until PHP examples and corpus review justify broader use. This is rule selection, not a budget of tolerated violations: enabled checks still require zero violations. Do not reward a quota of traits, value objects, interfaces or files. Compare the code and the calling scenario before and after the proposed change.
 
-See [Policy Compatibility](POLICY_COMPATIBILITY.md) for the deliberate decisions on clone, guards, directory names and array access.
+## Selecting policies
+
+Object cloning is opt-in through `NoObjectCloning`; the standard selection allows
+copying. An enabled clone check reports every `clone`, including named copy
+methods. It does not prove whether a copy preserves invariants or shared state.
+
+`NoElseBranches` accepts guards, while `MaxReturnStatements` still counts their
+returns. Choose thresholds for the calling scenario; a count alone does not
+justify extracting forwarding classes.
+
+Layer dominance classifies directory and class-name conventions. Renaming a
+folder changes that measurement without changing dependencies. Use
+`ForbiddenDependencies` or `NoDependencyCycles` for dependency restrictions.
+
+Array-access policies describe syntax, not the value of a data model. Use a value
+object when it centralizes repeated interpretation or invariants; introducing a
+temporary variable does not establish a better model. See the
+[structural rule reference](STRUCTURAL_METRICS.md) for configuration and limits.

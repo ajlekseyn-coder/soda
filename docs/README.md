@@ -1,6 +1,7 @@
 # Soda Documentation
 
-Install and check a directory without creating a config first:
+Requires PHP 8.2 or higher. Install and check a directory without creating a
+configuration first:
 
 ```bash
 composer require --dev cosmira/soda
@@ -9,46 +10,47 @@ vendor/bin/soda quality src/
 
 For daily use, put paths and named rules in `soda.php`, then run `vendor/bin/soda`.
 `vendor/bin/soda init` optionally generates an expanded starting configuration.
-Use `vendor/bin/soda list:rules` when you want to inspect rules and their defaults.
+Use `vendor/bin/soda list:rules` to inspect rules and their defaults.
 Inside this repository, use `php soda` instead of `vendor/bin/soda`.
 
-## Start Here
+## Getting started
 
-| Page | What It Covers |
+| Page | What it covers |
 |------|----------------|
-| [Migration](MIGRATION.md) | Namespace changes, custom contracts and preserved policies. |
-| [Config](SODA_PHP_CONFIG.md) | Root `soda.php`, paths, rules, and custom rules. |
-| [Project Flow](PROJECT_FLOW.md) | Execution path and responsibilities. |
-| [Adding A Quality Rule](ADDING_A_QUALITY_RULE.md) | How to add project rules and built-in Soda rules. |
-| [Rule Expressions](RULE_EXPRESSIONS.md) | Compound conditions and architecture constraints using phplrt. |
-| [Custom Rules](PLUGINS.md) | Named PHP checks and reusable arrays of rules. |
-| [Quality Report JSON](QUALITY_REPORT_JSON.md) | Machine-readable report output. |
+| [Configuration](SODA_PHP_CONFIG.md) | Paths, named checks and the root `soda.php`. |
+| [Rule catalog](rules/README.md) | Individual rules, examples and options. |
+| [JSON reports](QUALITY_REPORT_JSON.md) | Machine-readable findings and exit status. |
+| [Migration](MIGRATION.md) | Previous package names, namespaces and extension contracts. |
 
-## Rule References
+## Rule references
 
-| Page | What It Covers |
+| Page | What it covers |
 |------|----------------|
-| [Structural Metrics](STRUCTURAL_METRICS.md) | Size, coupling, namespace, and structural smell checks. |
-| [Complexity](COMPLEXITY_READABILITY_METRICS.md) | Branches, nesting, returns and exception-handling thresholds. |
-| [Expressions and Local State](EXPRESSION_AND_LOCAL_STATE_RULES.md) | Boolean ternaries, finally returns, parameter rebinding, local assignment runs and repeated strings. |
-| [Owner Behavior](OWNER_BEHAVIOR_RULES.md) | Standard concern, owner-method, and fluent API recommendations. |
-| [Naming Rules](NAMING_RULES.md) | Redundant names and boolean method naming. |
+| [Structural metrics](STRUCTURAL_METRICS.md) | Size, coupling, namespace and structural checks. |
+| [Complexity](COMPLEXITY_READABILITY_METRICS.md) | Branches, nesting, returns and exception handling. |
+| [Expressions and local state](EXPRESSION_AND_LOCAL_STATE_RULES.md) | Ternaries, assignments, parameter rebinding and repeated strings. |
+| [Owner behavior](OWNER_BEHAVIOR_RULES.md) | Concerns, owner methods and fluent API recommendations. |
+| [Naming](NAMING_RULES.md) | Identifier lengths, redundant names and boolean method naming. |
 
-## Design Notes
+## Extending Soda
 
-| Page | What It Covers |
+| Page | What it covers |
 |------|----------------|
-| [Laravel Style Architecture](LARAVEL_STYLE_ARCHITECTURE.md) | Architecture direction and public API taste. |
-| [Practical Design](DESIGN_PHILOSOPHY.md) | Concerns, fluent APIs, value objects and evidence before enforcement. |
-| [Practical Rules Plan](PRAGMATIC_RULES_PLAN.md) | Research, compatibility decisions and implementation scope. |
-| [Simplification Review](SIMPLIFICATION_REVIEW.md) | Ten sourced review perspectives, evidence and remaining costs. |
-| [Expert Rule Proposals](EXPERT_RULE_PROPOSALS.md) | Historical review notes and proposed rule contracts. |
+| [Custom checks and rule sets](PLUGINS.md) | Named PHP checks and reusable arrays of checks. |
+| [Rule expressions](RULE_EXPRESSIONS.md) | Compound conditions compiled by phplrt. |
+| [Adding a quality rule](ADDING_A_QUALITY_RULE.md) | Implementation, catalog metadata and verification. |
+| [Project flow](PROJECT_FLOW.md) | Parsing, fact collection, checks and reporting. |
+| [Laravel-style architecture](LARAVEL_STYLE_ARCHITECTURE.md) | Public API and module boundaries. |
 
-There is no `soda.json`, no secondary `config/soda.php`, and no separate
-configurator DSL. Expression syntax lives inside named PHP check classes. Keep examples copy-pasteable and object-based.
+## Design and evidence
 
-## Research RFCs
+| Page | What it covers |
+|------|----------------|
+| [Practical design](DESIGN_PHILOSOPHY.md) | Concerns, fluent APIs, value objects and executable examples. |
+| [Analysis evidence](ANALYSIS_EVIDENCE.md) | What supports a finding and how uncertainty is handled. |
+| [Representation consistency](REPRESENTATION_CONSISTENCY.md) | Conversion boundaries and review of connected data flows. |
+| [Research metrics](RESEARCH_METRICS.md) | Cognitive complexity, cohesion and their limits. |
 
-- [Explicit behavior rules](rfcs/explicit-behavior-rules.md): factory and repeated-condition candidates, principle matrix, examples and corpus admission results. Both checks now run by default; the original corpus admission result remains documented.
-- [Representation consistency](rfcs/representation-consistency.md): application-wide design standard, legitimate conversion boundaries, and an interprocedural `representation_churn` research check included in the standard bundle. Structural evidence is reported separately from quality violations.
-- [Representation consistency review](rfcs/representation-consistency-review.md): independent attack/defense panel of six agents, revision decisions and the readiness matrix for the manual standard and future detector.
+The `research/` directory contains pinned corpus data, frozen detector snapshots
+and reproduction tools used by tests. Its historical measurements describe the
+recorded versions; current behavior is documented in the rule references above.

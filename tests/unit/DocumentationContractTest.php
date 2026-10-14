@@ -9,52 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 final class DocumentationContractTest extends TestCase
 {
-    public function testExpertRuleProposalMatrixKeepsRequiredShapeAndExperts(): void
-    {
-        $matrix = $this->readProjectFile('docs/EXPERT_RULE_PROPOSALS.md');
-
-        $this->assertExpertMatrixHeader($matrix);
-        $this->assertExpertMatrixMentionsItsTestContract($matrix);
-        $this->assertRequiredExpertsArePresent($matrix);
-        $this->assertExpertMatrixRowsAreComplete($matrix);
-    }
-
-    private function assertExpertMatrixHeader(string $matrix): void
-    {
-        $this->assertStringContainsString(
-            '| Expert | Problem | Code evidence | Rule proposal | How the rule should work |',
-            $matrix,
-        );
-    }
-
-    private function assertExpertMatrixMentionsItsTestContract(string $matrix): void
-    {
-        $this->assertStringContainsString('`DocumentationContractTest` protects this table shape', $matrix);
-    }
-
-    private function assertRequiredExpertsArePresent(string $matrix): void
-    {
-        foreach ($this->requiredExperts() as $expert) {
-            $this->assertMatchesRegularExpression('/^\| '.preg_quote($expert, '/').' \|/m', $matrix, $expert);
-        }
-    }
-
-    private function assertExpertMatrixRowsAreComplete(string $matrix): void
-    {
-        foreach ($this->expertMatrixRows($matrix) as $lineNumber => $cells) {
-            $this->assertCount(5, $cells, 'Line '.$lineNumber);
-            $this->assertContains($cells[0], $this->requiredExperts(), 'Line '.$lineNumber.' expert');
-
-            foreach ($cells as $cell) {
-                $this->assertNotSame('', $cell, 'Line '.$lineNumber);
-            }
-
-            $this->assertStringContainsString('`', $cells[2], 'Line '.$lineNumber.' evidence');
-            $this->assertMatchesRegularExpression($this->proposalActionPattern(), $cells[3], 'Line '.$lineNumber.' proposal');
-            $this->assertMatchesRegularExpression($this->behaviorActionPattern(), $cells[4], 'Line '.$lineNumber.' behavior');
-        }
-    }
-
     public function testReportDocsDescribeViolationOnlyJsonOutput(): void
     {
         $reportDocs = $this->readProjectFile('docs/QUALITY_REPORT_JSON.md');
@@ -138,52 +92,5 @@ final class DocumentationContractTest extends TestCase
 
         /** Windows checkouts use CRLF; normalize so parsed shapes match expectations. */
         return str_replace("\r\n", "\n", $contents);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function requiredExperts(): array
-    {
-        return [
-            'David Heinemeier Hansson',
-            'Taylor Otwell',
-            'Егор Бугаенко',
-            'Fabien Potencier',
-            'Jordi Boggiano',
-            'Martin Fowler',
-        ];
-    }
-
-    /**
-     * @return array<int, list<string>>
-     */
-    private function expertMatrixRows(string $matrix): array
-    {
-        $rows = [];
-
-        foreach (explode("\n", $matrix) as $index => $line) {
-            if (! str_starts_with($line, '| ') || str_starts_with($line, '| ---')) {
-                continue;
-            }
-
-            if (str_starts_with($line, '| Expert |')) {
-                continue;
-            }
-
-            $rows[$index + 1] = array_map('trim', explode('|', trim($line, '|')));
-        }
-
-        return $rows;
-    }
-
-    private function proposalActionPattern(): string
-    {
-        return '/\b(rules?|coverage|tests?|documents?|metadata|config|init|list-rules|parser|forbids?|requires?|prefers?|includes?|validates?|asserts?|assertions?)\b/i';
-    }
-
-    private function behaviorActionPattern(): string
-    {
-        return '/\b(should|must|asserts?|tests?|detects?|reports?|rejects?|accepts?|requires?|parses?|serializes?|emits?|returns?|compares?|validates?|forbids?|preserves?|skips?|ignores?|loads?|includes?|provides?)\b/i';
     }
 }

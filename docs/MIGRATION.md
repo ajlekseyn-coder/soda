@@ -7,16 +7,15 @@ The 1.0 package is `cosmira/soda`, hosted at
 Replace the previous `bunnivo/soda` Composer requirement and change the PHP
 namespace prefix from `Bunnivo\Soda\` to `Cosmira\Soda\` in configuration,
 custom rules and application imports. Old namespace aliases are not provided.
-Then apply the internal namespace changes below where relevant.
+Apply the namespace changes below when importing rules or extending Soda.
 
 ## Configuration and reports
 
 The configuration remains a PHP file returning `Soda::configure()->withPaths(...)->with(...)`.
 Keep rule class names, constructor settings and rule IDs; update their imports.
 `Analyzer::file()`, `Analyzer::paths()`, `Analyzer::analyze()` and the fluent
-`config(...)->analyze()` entry remain available. JSON output remains schema 4.
-This refactor changes extension contracts and namespaces; it does not provide
-compatibility aliases for the removed internal runtime.
+`config(...)->analyze()` entry remain available. JSON output uses schema 4.
+See [Report JSON](QUALITY_REPORT_JSON.md) for its fields and command exit status.
 
 ## Namespace changes
 
@@ -38,9 +37,10 @@ All names below are relative to `Cosmira\Soda\`.
 | `Quality\Analyzer` | `Analysis\Runner` |
 | `Quality\QualityResult` | `Reporting\QualityResult` |
 | `Quality\Report\Violation` and report formatters | `Reporting\` |
-| `Quality\Config\*`, `Quality\ConfigException` | `Config\` |
+| `Quality\Config\*` | `Config\` |
+| `Quality\ConfigException` | `Support\ConfigException` |
 | `Quality\RuleCatalog\RuleCatalog` | `Config\RuleCatalog` |
-| `Quality\Rules\RuleExpression` | `Config\RuleExpression` |
+| `Quality\Rules\RuleExpression` | `Support\RuleExpression` |
 | Shared collectors under `Quality\Ast`, `Quality\Visitor`, `Quality\Flow` | `Analysis\` |
 | Rule-specific scanners and algorithms | Beside their rule in `Rules\<category>\` |
 
@@ -113,24 +113,27 @@ Plugin wrappers and `Config\SodaPlugin` have been removed. Rule sets are arrays:
 Import `Cosmira\Soda\Config\RuleCatalog` for catalog selection. Explicit named
 rules in `with([new MaxCyclomaticComplexity(10), ...])` remain unchanged.
 
-There is no `QualityEngine`, `QualityRuleAdapter`, `EvaluationContext`, or shared
-active threshold table. Use `Analysis\Analyzer::check($files, $config)` for an
-already constructed config. `resources/catalog.php` contains flat entries with
-`class`, `arguments` and discovery metadata. Adding a normal built-in rule needs
-its class, catalogue entry and behavioral test; the executor does not change.
+## Rule selection and policies
 
-## Preserved policies
+Use `RuleCatalog::standard()` for the current standard selection. An explicit
+`with([...])` list runs only those checks; additions to the standard do not
+silently change an existing explicit configuration. Run `list:rules` to inspect
+current rules, constructor defaults and opt-in checks.
 
-The 69 remaining standard catalogue entries retain their IDs, settings and opt-in status.
-PHPDoc checks remain explicitly enabled. Existing metric boundary behavior,
-including non-positive disabling where previously supported, is unchanged.
-Numeric violation allowances are absent; docblock suppression is outside this work.
+`NoObjectCloning` and `NoRedundantRethrow` are opt-in. Cognitive complexity and
+empty-finally checks are included in the standard selection. See
+[Practical Design](DESIGN_PHILOSOPHY.md) for policy tradeoffs and
+[Research Metrics](RESEARCH_METRICS.md) for measurement limits.
 
-The standard bundle already treats final readonly data constructors according to
-the property limit. A standalone `MaxArguments(5)` remains strict. To apply the
-same data policy explicitly, share the configured property rule:
+The standard bundle shares its property limit with `MaxArguments` to recognize
+final readonly data constructors with public promoted fields. Standalone
+`MaxArguments(5)` remains strict. To select the data policy explicitly:
 
 ```php
+use Cosmira\Soda\Config\Soda;
+use Cosmira\Soda\Rules\Structure\MaxArguments;
+use Cosmira\Soda\Rules\Structure\MaxPropertiesPerClass;
+
 $properties = new MaxPropertiesPerClass(10);
 
 return Soda::configure()->with([
@@ -139,400 +142,8 @@ return Soda::configure()->with([
 ]);
 ```
 
-The policy applies to the existing recognized data shape (final readonly class,
-public promoted fields), not arbitrary constructors. The
-project's self-quality configuration now explicitly uses this policy. The
-standard bundle also retains its historical boolean-method prefix vocabulary;
-standalone `BooleanMethodPrefix` retains its own defaults and constructor options.
-
-Run `php soda list:metrics [scope]` to discover expression fields, units, semantics
-and calculation methods. PHP parsing stays with `nikic/php-parser`; phplrt handles
-the expression language. `sebastian/complexity` still supplies the established
-complexity calculation and `phpunit/php-file-iterator` preserves path expansion.
-The unused direct runtime dependencies `sebastian/lines-of-code` and
-`sebastian/version` are removed; test tooling can still depend on them transitively.
-
-## Breathing removed
-
-Breathing has been removed by product decision, with no replacement metric yet.
-Delete `BreathingPlugin` and these six classes from existing configuration files:
-`MinCodeBreathingScore`, `MinVisualBreathingIndex`, `MinIdentifierReadabilityScore`,
-`MinCodeOxygenLevel`, `MaxWeightedCognitiveDensity`, `MaxLogicalComplexityFactor`.
-The `Rules\Readability` and `Analysis\Breathing` namespaces no longer exist.
-
-Their rule IDs and the expression fields `cbs`, `vbi`, `irs`, `col`, `wcd`, and
-`lcf` are no longer registered. Expressions using those fields fail with an
-unknown-field configuration error. There is no silent alias or substitution.
-Other rules, including cyclomatic complexity, nesting and naming, remain.
-
-The standard bundle now constructs every rule once with its final settings.
-PHPDoc checks inspect declarations and produce violations directly; the internal
-`MultilinePhpDocNodeScanner`, `MultilinePhpDocOccurrence` and
-`MultilinePhpDocLocation` are removed. Name-length checks likewise use their
-visitor directly, without `NameLengthNodeScanner`.
-
-## Layer dominance: explicit roles
-
-`MaxLayerDominancePercentage` keeps its constructor, ID and numeric thresholds,
-but its classification has been revised separately. It recognizes the documented
-architectural suffixes on declared class names, requires multiple roles, and
-ignores arbitrary inheritance as layer evidence. A family of rules with helper
-classes is therefore not a violation. This intentional behavior change is covered
-by dedicated tests; see [structural metrics](STRUCTURAL_METRICS.md).
-
-## Configuration loading and daily CLI
-
-`vendor/bin/soda` now runs `quality` by default. Use `vendor/bin/soda list` for
-all commands, or retain the explicit `quality` subcommand in existing scripts.
-`ConfigLoader::resolve($files, $explicitPath)` replaces
-`ConfigResolver::resolveConfig(...)`; `ConfigLocator` and `ConfigResolver` are
-removed. `load($path)` and `loadDefault()` remain available.
-
-The CLI executes the selected config once and uses the same object for paths
-and rules. With no CLI paths, discovery starts at the current directory; with
-explicit paths, it starts at the discovered files. Conflicting implicit configs
-still require `--config`. A selected config is not replaced by a second lookup.
-Public `Analyzer` and `QualityAnalysisBuilder` entry points remain available.
-
-## File collection
-
-`FactCollector::collect($path, $required)` returns source, AST and collected
-metrics in one `FileFacts`. `AstFacts::collect($nodes, $lineMap, $required)`
-collects resolved AST facts. The intermediate `ParsedPhpFile` and public visitor
-container `QualityAstPipeline` are removed, along with `ThrowingPhpFileParser`
-and the unused tolerant `PhpFileParser` utility. Missing or invalid files still
-produce the same `ParserException` and CLI diagnostics.
-
-To instrument parsing, supply a `PhpParser\Parser` to `FactCollector`'s constructor.
-No separate Soda parser interface or visitor-registration framework is needed.
-
-## Declaration facts
-
-Class and trait metadata now lives on `FileFacts::$metrics['classes'][$name]`,
-alongside the metrics for that declaration. `ProjectFacts` uses the same rows.
-
-| Removed top-level map | Field on the declaration row |
-| --- | --- |
-| `publicMethodNames` | `public_method_names` |
-| `propertyKeys` | `property_keys` |
-| `parentTypes` | `parent` (absent when no parent is declared) |
-| `traitUses` | `trait_names` |
-| `implementedInterfaces` | `interface_names` (present on classes) |
-| `publicTraitAliases` | `public_trait_aliases` |
-| `nonPublicTraitMethods` | `hidden_trait_methods` |
-
-`classTypes` and `MetricsExtractor::resolveClassType()` are removed. Use the class
-row's key for its name and `kind` to distinguish `class` from `trait`. The layer
-rule still derives roles from class-name suffixes, never from a parent/interface.
-The interface-parent graph remains in `interfaceParents`. This changes internal
-fact access for custom checks; the expression fields, named rules, measurements
-and JSON schema remain unchanged.
-
-## Generated configuration
-
-New `soda init` files now match `RuleCatalog::standard()` exactly. The previous
-separate starting limits are removed: arguments 16 → 3, cyclomatic complexity
-26 → 8, methods per class 21 → 40, control nesting 4 → 3. The generated config
-shares `MaxPropertiesPerClass(5)` with `MaxArguments` for the readonly-data policy
-and uses `BooleanMethodPrefix::standard()` for the standard prefix policy.
-Existing `soda.php` files are not rewritten. All 69 standard rules retain their
-catalog order; optional PHPDoc rules remain opt-in.
-
-## Usage internals
-
-`OnlyListArraysAllowed` runs `ListOnlyArrayCollectingVisitor` on the existing AST
-and creates violations from its sorted, unique `lines()`. The intermediate
-`ListOnlyArrayAnalyser`, `ListOnlyArrayFinding`, and `ListOnlyArrayIssue` are removed.
-Strict/pragmatic behavior, messages and source positions remain unchanged.
-The three single-predicate helpers `UselessVariableReferenceEscape`,
-`UselessVariableSourceUnset`, and `UselessVariableClosureCapture` are also removed;
-their conditions now live in `UselessVariableAnalyser` at the scope checks that
-use them.
-
-## Rule implementations
-
-Built-in rules now directly extend `Check` or `ExpressionCheck`. The intermediate
-`ArchitectureEscapeRule`, `NameLength`, and `MultilinePhpDoc` bases are removed.
-Their named rules retain constructor arguments, IDs, thresholds and diagnostics.
-
-Architecture checks inspect the resolved AST directly. The shared classification
-classes `ArchitectureEscapeVisitor` and `ArchitectureDeclarationProbe`, the
-`architectureEscapes` metric, and the `architecture` collector requirement are
-removed. Custom checks using that internal category map should inspect
-`FileFacts::$nodes` and return `[]` from `requiredAnalyses()`. No DSL fields changed.
-
-The name-length checks now select their own AST nodes and compare their own
-constructor bounds. `NameLengthCollectingVisitor` and `NameLengthOccurrence`
-are removed. Variable variables, anonymous classes, namespace segments and
-Laravel migration method exceptions retain their previous behavior.
-
-## Catalog projections and Usage helpers
-
-Use `RuleCatalog::definitions()` for metadata and section fields. `RuleSections`,
-`sectionsOrdered()`, `defaultThresholds()`, `metadataMap()`, `metadataForRules()`
-and `SodaInitFileEmitter::ruleIdentifiers()` are removed. These projections had
-no production consumers after the init refactoring. `RuleCatalog::standard()`
-and `checks($section)` retain their respective configured-standard and standalone
-constructor policies.
-
-`NumericArrayIndexAnalyser` and `NestedArrayAccessAnalyser` are removed; their named
-checks inspect AST nodes directly. `UnusedMethodInFileInheritance` is folded into
-`UnusedMethodProtectedContract`, whose ancestor walk now terminates on cyclic
-inheritance. `UnusedMethodCalls` collects recognized calls in one traversal.
-The `UselessVariableArrowCapture` and `UselessVariableObjectMutation` predicates
-now live where their results are used in `UselessVariableAnalyser`. Rule options,
-ordinary findings and diagnostic positions remain unchanged.
-
-
-## Internal names and fact shapes
-
-These renames follow the namespace move above; all paths in the table are relative
-to `Cosmira\Soda\`. Public `Analyzer` and `QualityAnalysisBuilder` entry points are
-unchanged. Update custom code that injected the internal executor or used collectors.
-
-| Previous internal name | Current name |
-| --- | --- |
-| `Analysis\Analyzer` | `Analysis\Runner` |
-| `Analysis\QualityMetricsVisitor` | `Analysis\StructureVisitor` |
-| `Analysis\MetricsExtractor` | `Analysis\ClassFactsExtractor` |
-| `Analysis\NullableReturnVisitor` | `Analysis\FactVisitor` |
-| `Analysis\MethodVisitorTrait` | `Analysis\CallableScopes` |
-| `Analysis\EfferentCouplingTypeSink` | `Analysis\EfferentCouplingReferences` |
-| `Rules\Naming\RedundantNamingVisitor` | `Rules\Naming\NamingVisitor` |
-| `Rules\Naming\RedundantNamingMethodResultFactory` | `Rules\Naming\NamingMethodFacts` |
-| `Rules\Naming\RedundantNamingPhpTypeLabel` | `Rules\Naming\PhpTypeName` |
-| `Rules\Structure\TellDontAskAliasRegistry` | `Rules\Structure\TellDontAskScopes` |
-
-`StructureVisitor::metrics()` replaces `metricsByFile()`;
-`NamingVisitor::facts()` replaces `namingReferences()`.
-`EfferentCouplingReferences` uses `recordType()`, `recordName()` and
-`recordClassOperand()` in place of `ingestParsedTypeHint()`,
-`registerReferencedClassName()` and `registerClassOperandFromExpression()`.
-`className()` replaces `publicFqcnFromName()`; identifier handling is private.
-`EfferentCouplingGraph::currentParent()` replaces `currentExtends()`.
-`EfferentCouplingParsedTypeIngestor` is removed: recursive type handling belongs
-to `EfferentCouplingReferences` itself.
-
-The empty `Analysis\Exception` marker interface is removed. Catch the existing
-`Analysis\ParserException` or `Config\ConfigException` as appropriate; both still
-extend `RuntimeException`. Error messages and diagnostic handling are unchanged.
-
-`FileFacts` now declares the internal PHPStan array aliases imported by producers
-and project aggregation. This adds static checking without changing runtime
-values, metric keys or JSON. Optional fields describe collection stages; the
-expression adapter uses a value-type map and the compiler's fact catalog.
-
-
-## Complexity and naming facts
-
-`Analysis\ComplexityVisitor` replaces `EnumAwareComplexityVisitor`,
-`EnumAwareComplexityQualifiedNameBuilder` and `EnumAwareComplexityCyclomaticRunner`.
-It has no constructor options and always visits nested declarations, scoring each
-callable independently. `complexity()` returns `array<string, positive-int>`;
-there is no intermediate `ComplexityCollection` or `Complexity` record. The
-Sebastian cyclomatic visitor still computes each score. Enum compatibility tests
-remain permanent language coverage rather than instructions to delete coverage
-when an upstream implementation changes.
-
-`Rules\Naming\CompoundVariableNameOccurrence` exposes readonly `name`, `words`,
-`line`, `class` and `method` properties instead of getters. `wordCount()` remains
-the derived measurement. `MaxVariableNameWords` consumes the typed occurrence
-list directly; custom fact producers must respect the `FileMetrics` shape.
-
-`Rules\Structure\DirectoryRoles` replaces `LayerMixingDirectoryAggregator`.
-Its summary field is `roleCounts`; `PLAIN_ROLE` replaces `PLAIN_TYPE`. These are
-architectural roles inferred from name suffixes, not PHP types or parent classes.
-The rule ID, settings, heuristic and existing diagnostic text are unchanged.
-
-## Practical rule contracts
-
-`NoTrivialDelegatingClasses` now checks all non-constructor operations. A class
-whose methods transparently forward to the same dependency produces one finding,
-including the method names. A single-method report retains its `method` field;
-a multi-method report uses `method: null` and identifies the class and its line.
-Existing contract, trait, attribute, adapter and behavior exclusions remain.
-The internal `TrivialDelegatingClassFinding::$method` becomes `$methods`, a
-non-empty list. The message no longer suggests adding an interface as a remedy.
-
-`NoBooleanParameters` treats direct readonly state consistently across promoted
-parameters and explicit property assignments. Every constructor-body reference
-to the parameter must be a direct top-level assignment to a declared readonly
-property on `$this`. Promoted parameters with no body references remain allowed.
-Direct uses in conditions, transformations, calls, closures or references are
-reported, including on promoted parameters previously exempted unconditionally.
-This is deliberately a local syntax policy: it does not prove the absence of
-behavior through property reads, dynamic access or aliases.
-
-Both changes affect findings explicitly; IDs, constructor settings and the
-standard selection remain unchanged. See [Practical Design](DESIGN_PHILOSOPHY.md)
-for executable positive examples and counterexamples.
-
-## Recommendation wording
-
-Catalog advice now presents local helpers, traits and value objects according to
-their purpose. Boolean, clone, nested-array and directory diagnostics state the
-criterion and its limitations. The directory message begins `Directory naming
-convention:`. These wording changes affect JSON messages and console text; IDs,
-measurements, thresholds, locations and selection are unchanged. See
-[Policy Compatibility](POLICY_COMPATIBILITY.md) for the preserved semantics.
-
-## Discoverable opt-in checks
-
-`RuleCatalog::definitions()` now also describes opt-in checks, marked with
-`standard: false`. Use `standardDefinitions()` when expanding the existing
-standard selection. `standard()`, `checks()` and generated `init` configuration
-retain the same 69 checks. `list:rules` adds a Selection column. Explicitly
-construct `NoRedundantRethrow` or `NoEmptyFinallyBlocks` to enable them.
-
-## Readable control conditions
-
-`NoComplexControlConditions()` keeps its ID and constructor. Its diagnostics now
-distinguish mixed logical operators from nested computation, replacing the old
-“more than one operation” criterion. Simple comparisons and homogeneous chains
-are accepted, including negated predicates. Every expression in a `for` condition
-is checked. Existing numerical limits, all 69 standard rules, and JSON schema 4
-are unchanged. See [the rule semantics](STRUCTURAL_METRICS.md#no_complex_control_conditions).
-
-## Project method usage
-
-`NoUnusedMethods` now requests `methodUsage` and implements `checkProject()`.
-The existing runner already performs this stage; ordinary configuration needs
-no changes. Integrations that called `checkFile()` directly must collect all
-configured files into `ProjectFacts` and run the project stage. Declarations and
-calls are collected once alongside the existing AST facts.
-
-Reports keep rule ID `unused_methods`, value 1, threshold 0, schema 4 and original
-source positions. Named classes now use qualified names in diagnostics. Methods
-and ignored names are compared case-insensitively. Calls on unrelated receivers
-no longer hide local unused methods; cross-file concerns and inheritance can
-remove former findings. Missing relationships and dynamic receivers are
-conservative within affected types. No vendor autoload or reachability scan is
-introduced.
-
-The internal `UnusedMethodAnalyser::analyze()` consumes `ProjectFacts` instead of
-AST nodes. Its former same-file candidate/contract helpers were replaced by
-declaration collection and project resolution; their behavioral cases are now
-covered through the actual rule pipeline.
-
-The separate concern, mutable fluent draft, immutable value operation and value
-invariant in `tests/fixtures/design` run under the specific reviewed rules.
-These examples do not claim compatibility with every historical policy (for
-example, the existing clone ban still applies when explicitly selected).
-
-## New standard checks: factories and repeated conditions
-
-`NoTrivialFactories` and `NoRepeatedCompoundConditions` now belong to
-`RuleCatalog::standard()` and the no-configuration default. `soda init` includes
-both. Existing explicit `with([...])` lists continue to run only their listed
-checks. New findings fail CI with exit status 1.
-
-A repeated condition is reported at three distinct methods by default;
-`new NoRepeatedCompoundConditions(minMethods: 4)` raises that minimum. The
-reported threshold is the maximum allowed count (2 for the default minimum 3).
-To omit either rule, use an explicit rule list without it. Do not remove useful
-contracts or combine independently evolving decisions just to silence a finding.
-
-Promotion is a project policy decision, not a successful corpus admission:
-the frozen 550-file corpus yielded zero findings and precision remains unknown.
-See [the RFC](rfcs/explicit-behavior-rules.md) for exact scope and counterexamples.
-
-
-## Strict behavior and composition checks
-
-The standard catalog now contains **81 checks**, including eleven new checks listed in
-[the strict rule matrix](STRICT_RULES_IMPLEMENTATION.md). Standard configuration and newly
-generated `init` files enable them. Existing explicit `with([...])` selections keep their
-chosen checks; add the desired classes or switch to `RuleCatalog::standard()`.
-
-`NoTrivialFactories`, `NoTrivialDelegatingClasses`, `NoRepeatedCompoundConditions` and
-`NoBooleanParameters` retain their IDs but reject additional structural disguises. Existing
-code can therefore produce new diagnostics. Interfaces and attributes alone no longer exempt
-transparent wrappers. Exact external contracts can be supplied through the documented
-constructor options; the default contract lists are empty.
-
-Project composition checks require the runner's project stage and all relevant source paths.
-Direct `checkFile()` integrations must also collect the requested facts and invoke
-`checkProject()` to include inherited methods, selected trait bodies and cross-file consumers.
-The normal runner already does this. JSON remains schema 4, with the same violation fields.
-
-The unconditional `NoObjectCloning` policy is no longer enabled by default. Existing
-explicit rule selections remain effective; remove that check to allow copying.
-
-
-## Practical API defaults
-
-The standard selection now has 78 checks. `max_arguments`, `max_efferent_coupling`
-and `no_boolean_parameters` remain available but require explicit selection.
-Their counts and syntax do not establish that an API needs wrapper objects,
-service layers or an enum. Existing explicitly configured instances retain their
-thresholds and behavior. Remove them from an existing generated configuration to
-adopt the new selection, or use `RuleCatalog::standard()`.
-
-`MethodNameLength` now defaults to `min: 1, max: 32`, including the standard catalog.
-Names such as `me()`, `id()` and `to()` need no padding. An explicitly configured
-`min: 3` still enforces that project policy.
-
-`NoDynamicInvocation` no longer reports `new $class()`. Moving the same construction
-into a factory or a fresh container does not improve it. Computed method names and
-indirect callable helpers remain checked. Use PHPStan to verify class-string
-contracts; Soda does not establish that runtime construction is safe.
-
-These changes address specific sources of needless indirection, not every possible
-false positive. Review behavior, clarity and public compatibility before applying
-any structural recommendation. Earlier audit reports describe their original policy.
-
-
-## Preserve framework conventions and existing APIs
-
-The standard selection now has 72 checks. Six more architecture and naming
-policies require explicit selection: `no_service_locator_calls`,
-`no_runtime_contract_probes`, `no_static_mutable_properties`,
-`no_dependency_cycles`, `max_properties_per_class`, and `boolean_methods_without_prefix`.
-
-A container lookup can preserve an optional constructor dependency. Capability
-checks can support existing trait-based integrations without mandatory interfaces.
-A static declaration can configure a model rather than store request state.
-A property quota does not establish that those settings need wrapper objects.
-Namespace directories are not necessarily independent modules, and a boolean
-return type does not establish that a public method should be renamed.
-
-The strict checkers retain their behavior when explicitly constructed. Configure
-`NoDependencyCycles(modules: [...])` with actual module boundaries when selecting
-that policy. Existing expanded `soda.php` files retain their explicit policies;
-remove the corresponding instances to adopt these defaults. No findings are
-silenced in explicitly selected checks.
-
-
-## Evidence-based tuple and helper-order diagnostics
-
-`no_numeric_array_index` now reviews repeated fields of explicit scalar PHPDoc
-tuples instead of banning list offsets. Unknown shapes, mutation, references,
-escapes and ambiguous scopes are skipped. The supported subset and one-finding
-location policy are documented in STRUCTURAL_METRICS.md.
-
-`methods_follow_call_order` now only constrains private helpers with one direct
-local caller. Shared helpers, public methods, protected hooks and indirect or
-conditional calls are excluded. `$this` and `self` calls are case-insensitive.
-
-Both IDs, zero-argument constructors, standard membership and JSON schema stay
-unchanged. Explicitly selected instances also adopt the narrower semantics.
-Messages change to describe readability evidence, not universal syntax bans.
-The standard selection remains 72 checks; earlier opt-in decisions remain intact.
-
-## PHPDoc for constructor-promoted properties
-
-`multiline_property_phpdoc` now checks constructor-promoted properties as well as
-ordinary property declarations. It retains its ID, JSON shape, opt-in status, and
-visibility settings (public only unless configured otherwise).
-
-A promoted property needs a multiline PHPDoc on the parameter or a matching
-`@param` tag in the constructor's multiline PHPDoc. A constructor summary or a tag
-for another parameter is insufficient. Existing configurations that enable this
-rule may therefore report previously missed properties. Document the property
-in either location; there is no need to undo constructor promotion or duplicate
-the description. Ordinary constructor parameters remain outside this rule.
-
-`VariableNameLength` now defaults to `min: 2, max: 16`, including the standard
-catalog and generated configuration. Two-character names such as `$id`, `$db`
-and declared properties named `$id` are accepted. An explicit `min: 3` retains
-the stricter policy; one-character names are still reported by default.
+Breathing metrics and their rules have been removed. Remove those checks and
+expression fields from old configurations; no replacement metric is provided.
+Layer-dominance rules classify explicit directory roles rather than inferred
+business responsibilities. See [Structural Metrics](STRUCTURAL_METRICS.md) for
+current configuration and boundaries.

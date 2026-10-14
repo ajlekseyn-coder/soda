@@ -1,10 +1,14 @@
 # Explicit behavior candidates
 
-See the [RFC](../../rfcs/explicit-behavior-rules.md) for the specification,
-principle matrix, examples and admission decision. These are frozen research snapshots of checks now enabled by default. The original admission result was:
-550 production files yielded zero findings, so neither met the minimum of 20
-reviewed findings. Precision is unknown. The owner subsequently requested standard inclusion;
-production classes live under `src/Rules`, while these snapshots remain unchanged.
+This directory contains frozen detector snapshots and corpus records used by
+`ExplicitBehaviorCandidatesTest`. The production checks are enabled by default;
+use [NoTrivialFactories](../../rules/no_trivial_factories.md) and
+[NoRepeatedCompoundConditions](../../rules/no_repeated_compound_conditions.md)
+for current configuration, examples and boundaries.
+
+The snapshots are outside production autoload and discovery. Their hashes are
+pinned in `manifest.json` so corpus measurements remain reproducible. Historical
+counts describe those snapshots and do not establish precision of today's checks.
 
 ## Run the tests
 
@@ -58,15 +62,3 @@ synthetic examples cover detector behavior only. Many selected nonfindings are
 broad lookalikes rather than near misses. More application code is needed before
 considering admission, and the original frozen run must remain distinguishable
 from any later algorithm revision.
-
-## Validation of the original research revision
-
-- `composer test`: 814 tests, 8,416 assertions passed (including 56 new candidate tests).
-- `composer test:performance`: 2 tests, 6 assertions passed.
-- `composer pint:test`, `composer rector:check`, `composer quality`: passed.
-- PHPStan checked `src` and both research detector files with no errors.
-  `--debug` was used because this sandbox disallows PHPStan's parallel TCP listener.
-- Frozen detector hashes and the 20 + 20 review-record counts were verified.
-
-The existing Rector configuration emits deprecation notices for skipped rules;
-its check still passes. No configuration changes were made to hide them.

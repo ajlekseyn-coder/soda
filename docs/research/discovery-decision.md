@@ -1,5 +1,8 @@
 # Decision frozen before held-out inspection
 
+Historical decision for the pinned experiment, not the current standard rule
+selection. See [Research Metrics](../RESEARCH_METRICS.md) for current behavior.
+
 Discovery inspection: 70 selected findings and 15 non-findings, recorded in JSON alongside this file. One assistant inspected source; no independent reviewer panel or comprehension experiment took place.
 
 - Keep cognitive complexity as an explicitly optional review signal (15). Several findings suggest local simplification, but option tables, guards and language formulas can be legitimate. Do not add it to the 69-rule standard set.

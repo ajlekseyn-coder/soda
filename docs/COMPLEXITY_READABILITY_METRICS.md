@@ -269,8 +269,6 @@ ordinary declared properties of the class.
 A property with its own hook remains outside the recognized read vocabulary. Conditions inside nested callables belong to their
 own scope. Repetition within one method counts once. Independent decisions should
 not be merged merely because their expressions currently match.
-The [original RFC](rfcs/explicit-behavior-rules.md) records the earlier research scope;
-the behavior above describes the strengthened check.
 
 ### no_identical_branches
 

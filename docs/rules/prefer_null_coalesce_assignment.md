@@ -43,5 +43,5 @@ return Soda::configure()
 ## Related rules
 
 - [no_chained_assignments](no_chained_assignments.md) — keeps one write per statement.
-- [no_consecutive_local_assignments](no_consecutive_local_assignments.md) — caps the preparation runs these fallbacks often pad.
+- [max_consecutive_local_assignments](max_consecutive_local_assignments.md) — caps the preparation runs these fallbacks often pad.
 - [useless_variable](useless_variable.md) — removes variables whose fallback is never read.

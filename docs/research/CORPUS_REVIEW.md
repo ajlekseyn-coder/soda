@@ -1,5 +1,10 @@
 # Practical-rule corpus review
 
+This report records the original frozen experiment. Current selection includes
+`MaxCognitiveComplexity` and `NoEmptyFinallyBlocks` by default;
+`NoRedundantRethrow` remains opt-in. See [Research Metrics](../RESEARCH_METRICS.md)
+for current behavior. The decisions below belong to the recorded experiment.
+
 The decision is to keep **Cognitive Complexity optional**, retain cohesion as
 an inspectable research measurement, and **not ship a disconnected-method-groups
 rule**. No candidate joins the 69-rule standard set. Neither a trait quota nor a

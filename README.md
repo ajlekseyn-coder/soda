@@ -92,7 +92,8 @@ The standard set also reports internal factories that only forward construction
 arguments (`NoTrivialFactories`) and compound own-state conditions repeated in
 three or more methods (`NoRepeatedCompoundConditions`). These are opinionated
 structural checks: they do not prove an abstraction is useless or two decisions
-have the same meaning. See the [examples and policy decision](docs/rfcs/explicit-behavior-rules.md).
+have the same meaning. See the [factory examples](docs/rules/no_trivial_factories.md) and
+[repeated-condition examples](docs/rules/no_repeated_compound_conditions.md).
 
 The standard set also includes `NoIdenticalBranches` (repeated explicit `match`
 results and identical full ternary branches) and `NoNestedTernary` (a full ternary
