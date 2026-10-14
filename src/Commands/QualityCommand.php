@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Commands;
 
 use Cosmira\Soda\Analysis\Runner;
-use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Config\ConfigLoader;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
 use Cosmira\Soda\Reporting\QualityResult;
 use Cosmira\Soda\Reporting\ReportFormatter;
 use Cosmira\Soda\Reporting\ResearchJsonReportFormatter;
 use Cosmira\Soda\Reporting\RuleMetadata;
+use Cosmira\Soda\Support\ConfigException;
 
 use function file_put_contents;
 use function getcwd;
@@ -67,11 +68,11 @@ final class QualityCommand extends Command
         $root = ($root !== false && $root !== '') ? $root : '/';
 
         $result = $this->analyse($directories, $root);
-        if ($result === null) {
+        if (! $result instanceof QualityResult) {
             return self::FAILURE;
         }
 
-        (new ReportFormatter(RuleMetadata::default()))->write($this->output, $result, $root);
+        (new ReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->write($this->output, $result, $root);
         $this->writeReportJson($result);
         $this->writeResearchJson($result);
 
@@ -86,6 +87,7 @@ final class QualityCommand extends Command
     private function analyse(array $requested, string $root): ?QualityResult
     {
         $directories = $requested;
+
         try {
             $configPath = $this->resolveConfigPath();
             $loader = new ConfigLoader;
@@ -206,7 +208,7 @@ final class QualityCommand extends Command
             return;
         }
 
-        $data = (new QualityJsonReportFormatter(RuleMetadata::default()))->format($result);
+        $data = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result);
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         file_put_contents($reportJson, $json);

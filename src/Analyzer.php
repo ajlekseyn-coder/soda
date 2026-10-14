@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Reporting\QualityResult;
+use Cosmira\Soda\Support\ConfigException;
 
 /**
  * Facade-style entry for code-quality rule evaluation.

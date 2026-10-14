@@ -37,16 +37,28 @@ trait UnusedMethodComposition
     }
 
     /**
+     * Build the known surface of a type that has no resolvable parent.
+     */
+    private function parentlessSurface(): array
+    {
+        $surface = $this->unknownSurface();
+        $surface['unknown'] = false;
+
+        return $surface;
+    }
+
+    /**
      * Compose one type surface from its parent chain, trait imports and own methods.
      *
      * @param array<string, mixed> $type
      */
     private function composedSurface(string $name, array $type, array $seen): array
     {
-        $surface = $type['parent'] !== null ? $this->surface($type['parent'], $seen) : $this->unknownSurface();
-        $surface['unknown'] = false;
+        $surface = $type['parent'] !== null
+            ? $this->surface($type['parent'], $seen)
+            : $this->parentlessSurface();
         $imports = $this->imports($type, $seen);
-        $surface['unknown'] = $surface['unknown'] || $imports['unknown'] || $type['duplicate'];
+        $surface['unknown'] = $surface['unknown'] || $imports['unknown'] || (bool) $type['duplicate'];
         $surface['methods'] = array_replace($surface['methods'], $this->scopedMethods($name, $imports['methods']), $type['methods']);
         $surface['bodies'] = $this->indexedBodies($surface['bodies'], $surface['methods']);
 

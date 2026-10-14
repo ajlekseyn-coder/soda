@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Commands;
 
-use Cosmira\Soda\Config\FactCatalog;
+use Cosmira\Soda\Support\FactCatalog;
 use Illuminate\Console\Command;
 
 final class ListMetricsCommand extends Command

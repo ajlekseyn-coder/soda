@@ -88,8 +88,6 @@ final class MaxArguments extends ExpressionCheck
 
     /**
      * Merge the project parameter contracts and resolve inherited external signatures.
-     *
-     * @return InheritedParameterContracts
      */
     private function inheritedContracts(ProjectFacts $project): InheritedParameterContracts
     {

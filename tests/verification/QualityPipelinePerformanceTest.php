@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Verification;
 
 use Cosmira\Soda\Analysis\Runner;
-use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Config\Soda;
+use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Rules\Usage\NoUnusedMethods;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;

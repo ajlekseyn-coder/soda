@@ -13,8 +13,8 @@ use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\SodaConfig;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
 use Cosmira\Soda\Contracts\Check;
-use Cosmira\Soda\Rules\Design\RepresentationChurn;
 use Cosmira\Soda\Contracts\ResearchCheck;
+use Cosmira\Soda\Rules\Design\RepresentationChurn;
 use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Events\Dispatcher;
@@ -161,7 +161,7 @@ final class ResearchReportingTest extends TestCase
         $report['candidates'] = [];
         $input = new ArrayInput([]);
         $buffer = new BufferedOutput;
-        (new ReportFormatter(RuleMetadata::default()))->write(
+        (new ReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->write(
             new OutputStyle($input, $buffer),
             new QualityResult([], ['representation_churn' => $report]),
             '/project',

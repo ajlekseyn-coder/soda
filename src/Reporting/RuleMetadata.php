@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Reporting;
 
-use Cosmira\Soda\Config\RuleCatalog;
-
 /**
  * Presentation metadata for quality rules (severity, display label).
  */
@@ -44,14 +42,6 @@ final readonly class RuleMetadata
          */
         private array $rules,
     ) {}
-
-    /**
-     * Create the configuration with its standard defaults.
-     */
-    public static function default(): self
-    {
-        return new self(RuleCatalog::definitions());
-    }
 
     /**
      * Return the configured severity, using warning for an unknown rule.

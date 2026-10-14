@@ -6,8 +6,8 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
-use Cosmira\Soda\Reporting\RuleMetadata;
 use Cosmira\Soda\Contracts\Check;
+use Cosmira\Soda\Reporting\RuleMetadata;
 use PHPUnit\Framework\TestCase;
 
 final class RuleCatalogTest extends TestCase
@@ -39,7 +39,7 @@ final class RuleCatalogTest extends TestCase
     public function testMetadataMatchesRuleMetadataDefault(): void
     {
         $fromCatalog = RuleCatalog::definitions();
-        $fromFacade = RuleMetadata::default();
+        $fromFacade = new RuleMetadata($fromCatalog);
 
         foreach ($fromCatalog as $id => $row) {
             $this->assertSame($row['severity'], $fromFacade->severity($id), $id);

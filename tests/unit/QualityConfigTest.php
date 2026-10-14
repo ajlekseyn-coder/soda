@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\SodaConfig;
+use Cosmira\Soda\Support\ConfigException;
 use Cosmira\Soda\Tests\CheckFixture;
 use PHPUnit\Framework\TestCase;
 

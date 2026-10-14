@@ -7,7 +7,11 @@ namespace Cosmira\Soda\Rules\Structure;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeFinder;
 
 /**
@@ -65,23 +69,26 @@ final class NoStaticOnlyClass extends Check
      */
     private function isStaticOnly(Class_ $class): bool
     {
-        if (!$class->name instanceof \PhpParser\Node\Identifier || $class->isAbstract() || $class->extends instanceof \PhpParser\Node\Name || $class->getTraitUses() !== []) {
-            return false;
-        }
-
         $methods = $class->getMethods();
-        if ($methods === []) {
-            return false;
-        }
 
-        foreach ($methods as $method) {
-            if (! $method->isStatic()) {
-                return false;
-            }
-        }
+        return $class->name instanceof Identifier
+            && ! $class->isAbstract()
+            && ! $class->extends instanceof Name
+            && $class->getTraitUses() === []
+            && $methods !== []
+            && $this->areAllStatic($methods)
+            && $this->areAllStatic($class->getProperties());
+    }
 
-        foreach ($class->getProperties() as $property) {
-            if (! $property->isStatic()) {
+    /**
+     * Require every member to declare itself static.
+     *
+     * @param list<ClassMethod|Property> $members
+     */
+    private function areAllStatic(array $members): bool
+    {
+        foreach ($members as $member) {
+            if (! $member->isStatic()) {
                 return false;
             }
         }

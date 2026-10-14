@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\Runner;
-use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Reporting\QualityResult;
+use Cosmira\Soda\Support\ConfigException;
 
 /**
  * Fluent entry for running quality analysis (reads like a sentence).

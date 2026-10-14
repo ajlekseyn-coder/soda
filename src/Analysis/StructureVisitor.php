@@ -104,8 +104,6 @@ final class StructureVisitor extends FactVisitor
 
     /**
      * Compose the structural fact row of one named class or trait declaration.
-     *
-     * @return array
      */
     private function classRow(Class_|Trait_ $node): array
     {
@@ -125,8 +123,6 @@ final class StructureVisitor extends FactVisitor
      * Attach resolved inheritance facts that only concrete classes declare.
      *
      * @param array $row Structural facts collected so far for the declaration.
-     *
-     * @return array
      */
     private function classParents(Class_|Trait_ $node, array $row): array
     {

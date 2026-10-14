@@ -6,7 +6,6 @@ namespace Cosmira\Soda\Rules\Usage;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt;
 
 /**
@@ -158,7 +157,8 @@ final readonly class ParameterInputNormalization
             }
 
             $value = $argument->value;
-            $isSubject = $argument->name instanceof Identifier ? $argument->name->toString() === $subjectName : $index === $subject;
+            $namedSubject = $argument->name?->toString();
+            $isSubject = $namedSubject !== null ? $namedSubject === $subjectName : $index === $subject;
             if ($isSubject) {
                 $hasInput = $this->isInput($value, $parameter) || $this->isNormalization($value, $parameter);
 

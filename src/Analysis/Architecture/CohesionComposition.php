@@ -63,6 +63,7 @@ trait CohesionComposition
     private function importedSurface(array $type, array $types, array $seen, array $base): array
     {
         $imported = [];
+        $composed = $base;
         foreach ($type['uses'] as $use) {
             $import = $this->traitSurface($use, $types, $seen, $type['methods']);
             $conflicts = array_diff_key(array_intersect_key($imported, $import['methods']), $type['methods']);
@@ -71,10 +72,10 @@ trait CohesionComposition
             }
 
             $imported += $import['methods'];
-            $base = $this->mergeSurface($base, $import);
+            $composed = $this->mergeSurface($composed, $import);
         }
 
-        return $base;
+        return $composed;
     }
 
     /**
@@ -99,8 +100,8 @@ trait CohesionComposition
     /**
      * Merge one trait's surface into the group, tracking per-method candidate sources.
      *
-     * @param array $base   Group surface accumulated so far.
-     * @param array $trait  Resolved surface of the imported trait.
+     * @param array $base    Group surface accumulated so far.
+     * @param array $trait   Resolved surface of the imported trait.
      * @param array $sources Candidate method bodies by trait name, updated in place.
      */
     private function mergeTrait(array $base, string $name, array $trait, array &$sources): array
@@ -205,12 +206,10 @@ trait CohesionComposition
     /**
      * Apply one alias adaptation, recording ambiguity or unresolved targets explicitly.
      *
-     * @param array $methods Method table accumulated so far for the group surface.
-     * @param array $base    Group surface whose unknown evidence is updated in place.
-     * @param array $sources Candidate method bodies by trait name.
+     * @param array $methods  Method table accumulated so far for the group surface.
+     * @param array $base     Group surface whose unknown evidence is updated in place.
+     * @param array $sources  Candidate method bodies by trait name.
      * @param array $selected Candidate bodies after insteadof exclusions.
-     *
-     * @return array
      */
     private function aliasMethod(array $methods, array &$base, array $sources, array $selected, array $adaptation): array
     {

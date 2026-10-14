@@ -8,8 +8,8 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\Soda;
-use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Contracts\Check;
+use Cosmira\Soda\Reporting\Violation;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 

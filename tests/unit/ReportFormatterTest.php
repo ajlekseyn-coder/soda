@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Reporting\QualityResult;
 use Cosmira\Soda\Reporting\ReportFormatter;
 use Cosmira\Soda\Reporting\RuleMetadata;
@@ -129,7 +130,7 @@ final class ReportFormatterTest extends TestCase
     {
         $output = new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, $decorated);
 
-        (new ReportFormatter($metadata ?? RuleMetadata::default()))->write(
+        (new ReportFormatter($metadata ?? new RuleMetadata(RuleCatalog::definitions())))->write(
             new OutputStyle(new ArrayInput([]), $output),
             new QualityResult($violations),
             '/project',

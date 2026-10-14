@@ -19,6 +19,9 @@ use PhpParser\NodeFinder;
  */
 final class PreferIncludes extends Check
 {
+    /**
+     * Map each forbidden position call to the substring-question replacement.
+     */
     private const array REPLACEMENTS = [
         'strpos'    => 'str_contains',
         'mb_strpos' => 'mb_str_contains',
@@ -59,7 +62,7 @@ final class PreferIncludes extends Check
         foreach ($comparisons as $comparison) {
             assert($comparison instanceof BinaryOp);
             $call = $this->positionCall($comparison);
-            if (!$call instanceof \PhpParser\Node\Expr\FuncCall) {
+            if (! $call instanceof FuncCall) {
                 continue;
             }
 

@@ -91,11 +91,12 @@ final class InterfaceFacts
      */
     private static function documentedReferences(array $nodes, array $references, array $dependencies): array
     {
+        $free = $references;
         foreach ((new NodeFinder)->find($nodes, static fn (Node $node): bool => $node->getDocComment() instanceof Doc) as $node) {
             $documented = PhpDocTypeReferences::collect($node);
             $owner = self::interfaceOwner($node);
             if ($owner === null) {
-                $references += $documented;
+                $free += $documented;
 
                 continue;
             }
@@ -103,7 +104,7 @@ final class InterfaceFacts
             $dependencies[$owner] = ($dependencies[$owner] ?? []) + $documented;
         }
 
-        return [$references, $dependencies];
+        return [$free, $dependencies];
     }
 
     /**

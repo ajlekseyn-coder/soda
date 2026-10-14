@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
-use Cosmira\Soda\Analysis\FactCollector;
-use Cosmira\Soda\Config\RuleExpression;
 use Cosmira\Soda\Analysis\Complexity\CognitiveComplexity;
+use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Rules\Complexity\MaxCognitiveComplexity;
+use Cosmira\Soda\Support\RuleExpression;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

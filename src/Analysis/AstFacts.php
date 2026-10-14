@@ -20,6 +20,7 @@ use PhpParser\NodeVisitor\ParentConnectingVisitor;
  * @phpstan-import-type ClassFacts from FileFacts
  * @phpstan-import-type MethodFacts from FileFacts
  * @phpstan-import-type FileMetrics from FileFacts
+ *
  * @phpstan-type ScanFacts array{
  *   complexity: ComplexityVisitor|null,
  *   structure: StructureVisitor,

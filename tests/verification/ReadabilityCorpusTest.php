@@ -6,7 +6,6 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
-use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInReturn;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedStringLiterals;
 use Cosmira\Soda\Rules\Usage\NoReassignedParameters;

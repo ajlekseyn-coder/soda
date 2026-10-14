@@ -176,8 +176,6 @@ final class Cohesion
      * Attach declared and composed method relations to one file's cohesion facts.
      *
      * @param array<string, array> $types All declarations collected across the project.
-     *
-     * @return array
      */
     private function resolveFile(string $path, array $file, array $types): array
     {

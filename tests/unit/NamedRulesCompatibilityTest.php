@@ -7,8 +7,9 @@ namespace Cosmira\Soda\Tests;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
-use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
 use Cosmira\Soda\Contracts\Check;
+use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
+use Cosmira\Soda\Reporting\RuleMetadata;
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\FileIterator\Facade;
 
@@ -34,7 +35,7 @@ final class NamedRulesCompatibilityTest extends TestCase
         $root = dirname(__DIR__, 2);
         $files = (new Facade)->getFilesAsArray([$root.'/demo-app'], ['.php']);
         $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
-        $report = (new QualityJsonReportFormatter)->format($result);
+        $report = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result);
         $actual = $report['violations'];
         foreach ($actual as &$row) {
             $row['file'] = substr($row['file'], strlen($root) + 1);

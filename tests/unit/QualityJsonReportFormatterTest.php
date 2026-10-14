@@ -11,7 +11,7 @@ final class QualityJsonReportFormatterTest extends TestCase
 {
     public function testFormatsQualityReportSchemaVersionAndGateResult(): void
     {
-        $data = (new QualityJsonReportFormatter)->format(new QualityResult([]));
+        $data = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format(new QualityResult([]));
 
         $this->assertSame(4, $data['schema_version']);
         $this->assertTrue($data['passed']);
@@ -30,7 +30,7 @@ final class QualityJsonReportFormatterTest extends TestCase
         $firstViolation = new Violation(rule: 'max_line_length', file: '/path/to/file.php', value: 121, threshold: 120, line: 7, message: 'Line is too long.');
         $secondViolation = new Violation(rule: 'custom_rule', file: '/path/to/other.php', value: 2, threshold: 1, line: 11, message: 'Second finding.');
 
-        $data = (new QualityJsonReportFormatter)->format(new QualityResult([
+        $data = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format(new QualityResult([
             $firstViolation,
             $secondViolation,
         ]));
@@ -50,7 +50,7 @@ final class QualityJsonReportFormatterTest extends TestCase
     {
         $violation = new Violation(rule: 'namespace_name_length', file: '/path/to/file.php', value: 1, threshold: 3, line: 3, message: 'Name "X" has length 1.');
 
-        $data = (new QualityJsonReportFormatter)->format(new QualityResult([
+        $data = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format(new QualityResult([
             $violation,
         ]));
 

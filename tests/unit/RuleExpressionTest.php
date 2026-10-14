@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
-use Cosmira\Soda\Config\ConfigException;
-use Cosmira\Soda\Config\RuleExpression;
+use Cosmira\Soda\Support\ConfigException;
+use Cosmira\Soda\Support\RuleExpression;
 use Phplrt\Compiler\Compiler;
 use Phplrt\Source\FileSource;
 use PHPUnit\Framework\Attributes\DataProvider;

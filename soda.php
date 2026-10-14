@@ -111,6 +111,7 @@ return Soda::configure()
             'Cosmira\Soda\Config',
             'Cosmira\Soda\Reporting',
             'Cosmira\Soda\Rules',
+            'Cosmira\Soda\Support',
         ]),
         new NoReassignedParameters(),
         new NoAskThenTellPatterns(),

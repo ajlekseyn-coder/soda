@@ -87,15 +87,15 @@ trait RepresentationExpressions
     private function evaluateExpression(array $node, array &$env, array $frame): array
     {
         return match ($node['op']) {
-            'variable' => $this->binding($node, $env, $frame),
-            'literal'  => [...$this->value($node['type']), 'literal' => $node['value']],
-            'property' => $this->property($node, $env, $frame),
-            'call'     => $this->call($node, $env, $frame),
-            'new'      => $this->construct($node, $env, $frame),
-            'binary'   => $this->binary($node, $env, $frame),
-            'cast'     => $this->cast($node, $env, $frame),
+            'variable'       => $this->binding($node, $env, $frame),
+            'literal'        => [...$this->value($node['type']), 'literal' => $node['value']],
+            'property'       => $this->property($node, $env, $frame),
+            'call'           => $this->call($node, $env, $frame),
+            'new'            => $this->construct($node, $env, $frame),
+            'binary'         => $this->binary($node, $env, $frame),
+            'cast'           => $this->cast($node, $env, $frame),
             self::TYPE_ARRAY => $this->arrayValue($node, $env, $frame),
-            default    => $this->unsupportedExpression($node, $frame),
+            default          => $this->unsupportedExpression($node, $frame),
         };
     }
 
@@ -139,7 +139,7 @@ trait RepresentationExpressions
         }
 
         $object = [...$this->value(self::TYPE_OBJECT), 'class' => $type, 'origin' => $origin.':'.++$this->serial,
-            'exact'                                   => $declaration['final'], 'fields' => []];
+            'exact'                                            => $declaration['final'], 'fields' => []];
         $fields = [];
         $properties = $declaration['eligible'] ? $declaration['properties'] : [];
         foreach ($properties as $name => $fieldType) {

@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
+use Cosmira\Soda\Reporting\RuleMetadata;
 use PHPUnit\Framework\TestCase;
 
 final class SandboxAuditCorpusTest extends TestCase
@@ -52,7 +53,7 @@ final class SandboxAuditCorpusTest extends TestCase
         self::assertSame($framework['sha256'], hash_file('sha256', $root.'/vendor/laravel/framework/'.$framework['file']));
         sort($files);
         $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
-        $actual = (new QualityJsonReportFormatter)->format($result)['violations'];
+        $actual = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result)['violations'];
         foreach ($actual as &$diagnostic) {
             $diagnostic['file'] = substr($diagnostic['file'], strlen($root) + 1);
         }

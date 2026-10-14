@@ -146,12 +146,20 @@ final class StronglyConnectedComponents
             return;
         }
 
+        $this->closeComponent($node);
+    }
+
+    /**
+     * Pop the completed strongly connected component rooted at this node from the stack.
+     */
+    private function closeComponent(string $root): void
+    {
         $component = [];
         do {
             $member = array_pop($this->stack);
             unset($this->active[$member]);
             $component[] = $member;
-        } while ($member !== $node);
+        } while ($member !== $root);
 
         sort($component);
         $this->components[] = $component;

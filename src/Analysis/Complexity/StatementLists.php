@@ -22,8 +22,8 @@ final class StatementLists
     public function within(Node $root): array
     {
         $bodies = [];
-        foreach ((new NodeFinder)->find($root, $this->isControlBody(...)) as $node) {
-            $statements = $this->body($node);
+        foreach ((new NodeFinder)->find($root, ControlBodies::isControlBody(...)) as $node) {
+            $statements = ControlBodies::statements($node);
             if ($statements !== []) {
                 $bodies[] = $statements;
             }
@@ -37,7 +37,7 @@ final class StatementLists
      *
      * @param list<Stmt> $statements
      */
-    public static function endsWithExit(array $statements): bool
+    public static function doesEndWithExit(array $statements): bool
     {
         $last = $statements === [] ? null : $statements[count($statements) - 1];
 
@@ -56,46 +56,5 @@ final class StatementLists
         return $node instanceof Stmt\Return_
             || $node instanceof Stmt\Break_
             || $node instanceof Stmt\Continue_;
-    }
-
-    /**
-     * Accept the statement types whose bodies hold plain statement lists.
-     */
-    private function isControlBody(Node $node): bool
-    {
-        return $node instanceof Stmt\If_
-            || $node instanceof Stmt\ElseIf_
-            || $node instanceof Stmt\Else_
-            || $node instanceof Stmt\For_
-            || $node instanceof Stmt\Foreach_
-            || $node instanceof Stmt\While_
-            || $node instanceof Stmt\Do_
-            || $node instanceof Stmt\TryCatch
-            || $node instanceof Stmt\Catch_
-            || $node instanceof Stmt\Switch_
-            || $node instanceof Stmt\Case_;
-    }
-
-    /**
-     * Return the statement list held by a known control body.
-     *
-     * @return list<Stmt>
-     */
-    private function body(Node $node): array
-    {
-        return match (true) {
-            $node instanceof Stmt\If_,
-            $node instanceof Stmt\ElseIf_,
-            $node instanceof Stmt\Else_,
-            $node instanceof Stmt\For_,
-            $node instanceof Stmt\Foreach_,
-            $node instanceof Stmt\While_,
-            $node instanceof Stmt\Do_,
-            $node instanceof Stmt\TryCatch,
-            $node instanceof Stmt\Catch_,
-            $node instanceof Stmt\Switch_,
-            $node instanceof Stmt\Case_ => $node->stmts,
-            default                     => [],
-        };
     }
 }

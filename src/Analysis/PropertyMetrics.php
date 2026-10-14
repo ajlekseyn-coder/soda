@@ -51,7 +51,8 @@ final class PropertyMetrics
     {
         $keys = [];
         foreach ($node->getMethods() as $method) {
-            if (strtolower($method->name->toString()) !== '__construct') {
+            $methodName = strtolower($method->name->toString());
+            if ($methodName !== '__construct') {
                 continue;
             }
 

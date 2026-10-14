@@ -6,8 +6,8 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\Soda;
-use Cosmira\Soda\Rules\Architecture\NoDynamicInvocation;
 use Cosmira\Soda\Contracts\Check;
+use Cosmira\Soda\Rules\Architecture\NoDynamicInvocation;
 use Cosmira\Soda\Rules\Structure\MaxArguments;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

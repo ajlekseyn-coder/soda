@@ -8,11 +8,11 @@ use Cosmira\Soda\Analysis\Complexity\StatementLists;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Else_;
 use PhpParser\NodeFinder;
 
 /**
@@ -71,17 +71,22 @@ final class NoDeclarationsBeforeEarlyExit extends Check
      */
     private function declarationsBehindGuards(array $statements, FileFacts $facts, NodeFinder $finder): iterable
     {
+        $last = count($statements) - 1;
         foreach ($this->declarations($statements) as $index => $variable) {
             foreach ($this->guards($statements) as $guard) {
                 if ($guard <= $index) {
                     continue;
                 }
 
-                if ($this->isUsed($statements, $index + 1, $guard, $variable, $finder)) {
+                $firstRead = $index + 1;
+                $afterGuard = $guard + 1;
+                $usedBeforeGuard = $this->isUsed($statements, $firstRead, $guard, $variable, $finder);
+                if ($usedBeforeGuard) {
                     continue;
                 }
 
-                if (! $this->isUsed($statements, $guard + 1, count($statements) - 1, $variable, $finder)) {
+                $usedAfterGuard = $this->isUsed($statements, $afterGuard, $last, $variable, $finder);
+                if (! $usedAfterGuard) {
                     continue;
                 }
 
@@ -168,17 +173,17 @@ final class NoDeclarationsBeforeEarlyExit extends Check
      */
     private function isGuard(Stmt\If_ $if): bool
     {
-        if (! StatementLists::endsWithExit($if->stmts)) {
+        if (! StatementLists::doesEndWithExit($if->stmts)) {
             return false;
         }
 
         $branches = [...array_map(static fn (Stmt\ElseIf_ $elseif): array => $elseif->stmts, $if->elseifs)];
-        if ($if->else instanceof \PhpParser\Node\Stmt\Else_) {
+        if ($if->else instanceof Else_) {
             $branches[] = $if->else->stmts;
         }
 
         foreach ($branches as $branch) {
-            if (! StatementLists::endsWithExit($branch)) {
+            if (! StatementLists::doesEndWithExit($branch)) {
                 return false;
             }
         }
@@ -194,7 +199,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     private function isUsed(array $statements, int $from, int $to, string $variable, NodeFinder $finder): bool
     {
         for ($index = $from; $index <= $to; $index++) {
-            $uses = $finder->find([$statements[$index]], static fn (Node $node): bool => $node instanceof Variable
+            $uses = $finder->find([$statements[$index]], static fn ($node): bool => $node instanceof Variable
                 && is_string($node->name)
                 && $node->name === $variable);
             if ($uses !== []) {

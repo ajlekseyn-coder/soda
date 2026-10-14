@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
-use Cosmira\Soda\Config\FactCatalog;
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Application;
 use Cosmira\Soda\Commands\ListMetricsCommand;
-use Cosmira\Soda\Config\RuleExpression;
 use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Rules\ExpressionCheck;
+use Cosmira\Soda\Support\FactCatalog;
+use Cosmira\Soda\Support\RuleExpression;
 use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Events\Dispatcher;
 use PHPUnit\Framework\TestCase;

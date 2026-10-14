@@ -6,8 +6,8 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\ProjectFacts;
-use Cosmira\Soda\Rules\Architecture\NoRepeatedTypeDispatch;
 use Cosmira\Soda\Contracts\Check;
+use Cosmira\Soda\Rules\Architecture\NoRepeatedTypeDispatch;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedCompoundConditions;
 use Cosmira\Soda\Rules\Structure\NoTrivialDelegatingClasses;
 use PHPUnit\Framework\TestCase;

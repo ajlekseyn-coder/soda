@@ -10,6 +10,7 @@ use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
+use Cosmira\Soda\Reporting\RuleMetadata;
 use Cosmira\Soda\Rules\Complexity\MaxConsecutiveLocalAssignments;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedStringLiterals;
 use Cosmira\Soda\Rules\Complexity\NoReturnInFinally;
@@ -93,7 +94,7 @@ PHP);
             }
             $result = (new Runner)->check([$path], Soda::configure()->with($rules)->checks());
             self::assertSame($expected, $result->violations->map(static fn ($finding): array => $finding->toArray())->all());
-            $report = (new QualityJsonReportFormatter)->format($result);
+            $report = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result);
             $json = json_decode(json_encode($report, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
             self::assertFalse($json['passed']);
             self::assertSame(4, $json['schema_version']);

@@ -6,10 +6,10 @@ namespace Cosmira\Soda\Rules;
 
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
-use Cosmira\Soda\Config\ConfigException;
-use Cosmira\Soda\Config\RuleExpression;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
+use Cosmira\Soda\Support\ConfigException;
+use Cosmira\Soda\Support\RuleExpression;
 
 abstract class ExpressionCheck extends Check
 {

@@ -7,10 +7,8 @@ namespace Cosmira\Soda\Rules\Complexity;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\BinaryOp\Coalesce;
-use PhpParser\Node\Expr\CallLike;
 use PhpParser\NodeFinder;
 use PhpParser\PrettyPrinter\Standard;
 
@@ -58,7 +56,7 @@ final class PreferNullCoalesceAssignment extends Check
                 continue;
             }
 
-            if ($this->readsWriteState($assign)) {
+            if ($this->doesReadWriteState($assign)) {
                 continue;
             }
 
@@ -76,11 +74,8 @@ final class PreferNullCoalesceAssignment extends Check
     /**
      * Skip targets whose reevaluation is a call or another assignment.
      */
-    private function readsWriteState(Assign $assign): bool
+    private function doesReadWriteState(Assign $assign): bool
     {
-        return (new NodeFinder)->findFirst([$assign->var], static fn ($node): bool => $node instanceof CallLike
-            || $node instanceof Assign
-            || $node instanceof Expr\AssignRef
-            || $node instanceof Expr\AssignOp) instanceof \PhpParser\Node;
+        return StateWriteSearch::hasStateWriteOrCall($assign->var);
     }
 }

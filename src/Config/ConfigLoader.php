@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Config;
 
+use Cosmira\Soda\Support\ConfigException;
+
 final class ConfigLoader
 {
     /**

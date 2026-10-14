@@ -12,10 +12,10 @@ final readonly class QualityJsonReportFormatter
     /**
      * Initialize the configured values and collaborators for this instance.
      *
-     * @param ?RuleMetadata $ruleMetadata Supplies labels and policy metadata for reported rule identifiers.
+     * @param RuleMetadata $ruleMetadata Supplies labels and policy metadata for reported rule identifiers.
      */
     public function __construct(
-        private ?RuleMetadata $ruleMetadata = null,
+        private RuleMetadata $ruleMetadata,
     ) {}
 
     /**
@@ -25,7 +25,7 @@ final readonly class QualityJsonReportFormatter
      */
     public function format(QualityResult $result): array
     {
-        $metadata = $this->ruleMetadata ?? RuleMetadata::default();
+        $metadata = $this->ruleMetadata;
 
         return [
             'schema_version' => 4,

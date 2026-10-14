@@ -7,6 +7,7 @@ namespace Cosmira\Soda\Analysis\Structure;
 use function is_string;
 use function method_exists;
 
+use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -15,7 +16,6 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
-use PhpParser\Node;
 use PhpParser\Node\Name;
 
 /**

@@ -78,6 +78,7 @@ final class BehaviorComposition
         $type = $types[$name];
         $base = $this->parentSurface($type, $types, $seen);
         $base = $this->importedSurfaces($base, $type, $types, $seen);
+
         $surface = $this->mergeSurface($base, $type);
         if ($type['kind'] === 'class') {
             $surface = $this->bindScope($surface, $name, $types);
@@ -106,6 +107,7 @@ final class BehaviorComposition
     private function importedSurfaces(array $base, array $type, array $types, array $seen): array
     {
         $imported = [];
+        $composed = $base;
         foreach ($type['uses'] as $use) {
             $import = $this->traitSurface($use, $types, $seen, $type['methods']);
             $conflicts = array_diff_key(array_intersect_key($imported, $import['methods']), $type['methods']);
@@ -114,10 +116,10 @@ final class BehaviorComposition
             }
 
             $imported += $import['methods'];
-            $base = $this->mergeSurface($base, $import);
+            $composed = $this->mergeSurface($composed, $import);
         }
 
-        return $base;
+        return $composed;
     }
 
     /**
@@ -295,17 +297,18 @@ final class BehaviorComposition
     private function aliasTraits(array $base, array $sources, array $selected, array $adaptations): array
     {
         $methods = $base['methods'];
+        $composed = $base;
         foreach ($adaptations as $adaptation) {
             if ($adaptation['kind'] !== 'alias') {
                 continue;
             }
 
-            [$methods, $base] = $this->aliasedTraitMethod($methods, $base, $sources, $selected, $adaptation);
+            [$methods, $composed] = $this->aliasedTraitMethod($methods, $composed, $sources, $selected, $adaptation);
         }
 
-        $base['methods'] = $methods;
+        $composed['methods'] = $methods;
 
-        return $base;
+        return $composed;
     }
 
     /**

@@ -43,6 +43,8 @@ trait CohesionConnections
     {
         $fields = [];
         $unknown = [];
+        $declared = $type['methods'];
+        $connected = $edges;
         foreach ($type['methods'] as $name => $method) {
             array_push($unknown, ...$method['unknown']);
             foreach ($method['fields'] as $field) {
@@ -54,18 +56,18 @@ trait CohesionConnections
             }
 
             foreach ($method['calls'] as $target) {
-                $isKnown = isset($type['methods'][$target]);
+                $isKnown = isset($declared[$target]);
                 if (! $isKnown) {
                     $unknown[] = 'unresolved method '.$target;
 
                     continue;
                 }
 
-                $edges = $this->connect($edges, $name, $target);
+                $connected = $this->connect($connected, $name, $target);
             }
         }
 
-        return ['edges' => $edges, 'fields' => $fields, 'unknown' => $unknown];
+        return ['edges' => $connected, 'fields' => $fields, 'unknown' => $unknown];
     }
 
     /**
@@ -75,14 +77,15 @@ trait CohesionConnections
      */
     private function sharedFieldEdges(array $fields, array $edges): array
     {
+        $connected = $edges;
         foreach ($fields as $members) {
             $first = reset($members);
             foreach ($members as $member) {
-                $edges = $this->connect($edges, $first, $member);
+                $connected = $this->connect($connected, $first, $member);
             }
         }
 
-        return $edges;
+        return $connected;
     }
 
     /**

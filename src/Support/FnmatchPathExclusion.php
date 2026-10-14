@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cosmira\Soda\Config;
+namespace Cosmira\Soda\Support;
 
 /**
  * Exclude file paths by absolute/resolved prefix and/or fnmatch patterns (full path + basename).

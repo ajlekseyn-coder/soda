@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Analysis\SingleVisitorTraversal;
 use Cosmira\Soda\Analysis\Naming\CompoundVariableNameVisitor;
+use Cosmira\Soda\Analysis\SingleVisitorTraversal;
 use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PHPUnit\Framework\TestCase;
 

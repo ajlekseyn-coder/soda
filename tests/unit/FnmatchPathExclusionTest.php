@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Config\FnmatchPathExclusion;
+use Cosmira\Soda\Support\FnmatchPathExclusion;
 use PHPUnit\Framework\TestCase;
 
 final class FnmatchPathExclusionTest extends TestCase

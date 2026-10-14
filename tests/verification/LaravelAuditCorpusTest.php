@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
+use Cosmira\Soda\Reporting\RuleMetadata;
 use PHPUnit\Framework\TestCase;
 
 final class LaravelAuditCorpusTest extends TestCase
@@ -59,7 +60,7 @@ final class LaravelAuditCorpusTest extends TestCase
             sort($files);
             $actual = [];
             $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
-            foreach ((new QualityJsonReportFormatter)->format($result)['violations'] as $diagnostic) {
+            foreach ((new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result)['violations'] as $diagnostic) {
                 $diagnostic['file'] = substr($diagnostic['file'], strlen($root) + 1);
                 $actual[] = $this->canonical($diagnostic);
             }

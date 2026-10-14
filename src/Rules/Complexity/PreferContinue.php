@@ -10,6 +10,7 @@ use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Else_;
 use PhpParser\NodeFinder;
 
 /**
@@ -56,11 +57,11 @@ final class PreferContinue extends Check
                 continue;
             }
 
-            if ($last->else instanceof \PhpParser\Node\Stmt\Else_ || $last->elseifs !== []) {
+            if ($last->else instanceof Else_ || $last->elseifs !== []) {
                 continue;
             }
 
-            if (StatementLists::endsWithExit($last->stmts)) {
+            if (StatementLists::doesEndWithExit($last->stmts)) {
                 continue;
             }
 

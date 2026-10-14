@@ -16,7 +16,7 @@ final class ReadabilityPolicyCalibrationTest extends TestCase
 {
     public function testActualLazyCachesRemainReadableUnderTheStandardPolicy(): void
     {
-        foreach (['Config/FactCatalog.php', 'Rules/ExpressionCheck.php'] as $path) {
+        foreach (['Support/FactCatalog.php', 'Rules/ExpressionCheck.php'] as $path) {
             self::assertSame([], $this->findings($this->standard('no_assignment_in_return'), $path));
             self::assertCount(1, $this->findings(new NoAssignmentInReturn(allowLazyInitialization: false), $path));
         }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cosmira\Soda\Config;
+namespace Cosmira\Soda\Support;
 
 final class FactCatalog
 {

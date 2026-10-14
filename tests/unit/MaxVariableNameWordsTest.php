@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Analysis\Naming\CompoundVariableNameOccurrence;
 use Cosmira\Soda\Rules\Naming\MaxVariableNameWords;
 use Cosmira\Soda\Tests\CheckFixture;

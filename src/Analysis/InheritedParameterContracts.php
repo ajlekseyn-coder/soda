@@ -82,7 +82,7 @@ final readonly class InheritedParameterContracts
     /**
      * Summarize one method signature, including which inputs its body reads.
      */
-    private static function methodSignature(Stmt\ClassLike $class, Node\Stmt\ClassMethod $method): array
+    private static function methodSignature(Stmt\ClassLike $class, Stmt\ClassMethod $method): array
     {
         return [
             'arity'               => count($method->params),

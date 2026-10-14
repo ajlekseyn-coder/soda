@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Analysis\Naming\NamingVisitor;
 use Cosmira\Soda\Rules\Naming\RedundantNamingAnalyser;
 use Cosmira\Soda\Tests\ParsesPhpSnippets;

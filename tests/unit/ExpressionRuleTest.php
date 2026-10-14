@@ -6,11 +6,11 @@ namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\FileFacts;
-use Cosmira\Soda\QualityAnalyser;
-use Cosmira\Soda\Config\ConfigException;
-use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Contracts\Check as SodaRule;
+use Cosmira\Soda\QualityAnalyser;
+use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Rules\ExpressionCheck;
+use Cosmira\Soda\Support\ConfigException;
 use PHPUnit\Framework\TestCase;
 
 final class ExpressionRuleTest extends TestCase

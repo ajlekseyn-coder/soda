@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Structure\MaxFileLoc;
 use Cosmira\Soda\Rules\Structure\MaxMethodLength;
+use Cosmira\Soda\Support\ConfigException;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 

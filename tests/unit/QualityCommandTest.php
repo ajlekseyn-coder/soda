@@ -14,7 +14,6 @@ namespace Cosmira\Soda\Commands;
 
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Application;
-use Cosmira\Soda\Config\SodaConfig;
 use Cosmira\Soda\Reporting\QualityResult;
 use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Console\OutputStyle;
