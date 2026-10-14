@@ -53,7 +53,7 @@ jobs:
         run: composer dump-autoload --optimize --strict-psr
 
       - name: Run PHPUnit
-        run: composer test -- --no-coverage --order-by=random --random-order-seed=1788957854 --display-warnings --fail-on-warning --log-junit build/phpunit.xml
+        run: composer test -- --no-coverage --order-by=random --display-warnings --fail-on-warning --log-junit build/phpunit.xml
 
       - name: Performance budgets
         run: composer test:performance -- --no-coverage
@@ -96,7 +96,7 @@ jobs:
         run: composer dump-autoload --optimize --strict-psr
 
       - name: Run PHPUnit
-        run: composer test -- --no-coverage --order-by=random --random-order-seed=1788957854 --display-warnings --fail-on-warning --log-junit build/phpunit.xml
+        run: composer test -- --no-coverage --order-by=random --display-warnings --fail-on-warning --log-junit build/phpunit.xml
 
       - name: Upload test results
         if: always()
