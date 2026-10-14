@@ -1,0 +1,17 @@
+{
+  "config": {
+    "default": true,
+    // Soda documentation intentionally uses long prose lines and wide
+    // tables, so structural-only rules are enforced below.
+    "MD001": false,
+    "MD004": false,
+    "MD012": false,
+    "MD013": false,
+    "MD036": false,
+    "MD040": false,
+    "MD041": false,
+    "MD056": false,
+    "MD060": false
+  },
+  "globs": ["**/*.md", "!vendor/**"]
+}

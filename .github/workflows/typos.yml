@@ -1,17 +1,25 @@
-name: Typos
+name: Spelling
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: typos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  spelling:
-    name: Spell check
-    runs-on: ubuntu-latest
+  typos:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - name: Check spelling
-        uses: crate-ci/typos@v1.50.2
+      - uses: actions/checkout@v7
+      - uses: crate-ci/typos@v1.50.2
         with:
-          config: .typos.toml
+          config: ./.typos.toml

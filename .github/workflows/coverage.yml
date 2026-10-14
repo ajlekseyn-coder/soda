@@ -1,6 +1,11 @@
-name: Coverage
+name: Code Coverage
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -8,36 +13,45 @@ permissions:
 env:
   COMPOSER_ROOT_VERSION: "1.0-dev"
 
+concurrency:
+  group: coverage-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   coverage:
     name: Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        id: php
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo
           coverage: pcov
           tools: composer:v2
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
-      - name: Generate coverage report
-        run: composer test -- --coverage-clover=coverage.xml --coverage-html=coverage-html --coverage-text --colors=never
-      - name: Save coverage report
-        if: always() && hashFiles('coverage.xml') != ''
-        uses: actions/upload-artifact@v4
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v5
         with:
-          name: coverage-report
-          path: |
-            coverage.xml
-            coverage-html
-          if-no-files-found: error
-      - name: Add coverage summary
-        if: always() && hashFiles('coverage.xml') != ''
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-${{ steps.php.outputs.php-version }}-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Generate coverage report
+        run: composer test -- --coverage-clover=build/coverage.xml --coverage-html=build/coverage-html --coverage-text --colors=never
+
+      - name: Enforce complete source coverage
         run: |
-          php <<'PHP' >> "$GITHUB_STEP_SUMMARY"
+          php <<'PHP'
           <?php
-          $xml = simplexml_load_file('coverage.xml');
+          $xml = simplexml_load_file('build/coverage.xml');
           if ($xml === false || !isset($xml->project->metrics)) {
               fwrite(STDERR, "Unable to read coverage metrics\n");
               exit(1);
@@ -49,5 +63,35 @@ jobs:
               fwrite(STDERR, "Invalid statement count in coverage.xml\n");
               exit(1);
           }
-          printf("## Code Coverage\n\nStatements: **%.2f%%** (%d/%d)\n\nDownload the `coverage-report` artifact and open `coverage-html/index.html` for details.\n", $covered * 100 / $statements, $covered, $statements);
+          printf("Statements: %.2f%% (%d/%d)\n", $covered * 100 / $statements, $covered, $statements);
           PHP
+
+      - name: Add coverage summary
+        if: always() && hashFiles('build/coverage.xml') != ''
+        run: |
+          php <<'PHP' >> "$GITHUB_STEP_SUMMARY"
+          <?php
+          $xml = simplexml_load_file('build/coverage.xml');
+          if ($xml === false || !isset($xml->project->metrics)) {
+              fwrite(STDERR, "Unable to read coverage metrics\n");
+              exit(1);
+          }
+          $metrics = $xml->project->metrics;
+          $statements = (int) $metrics['statements'];
+          $covered = (int) $metrics['coveredstatements'];
+          if ($statements <= 0) {
+              fwrite(STDERR, "Invalid statement count in coverage.xml\n");
+              exit(1);
+          }
+          printf("## Code Coverage\n\nStatements: **%.2f%%** (%d/%d)\n\nDownload the `coverage-report` artifact and open `build/coverage-html/index.html` for details.\n", $covered * 100 / $statements, $covered, $statements);
+          PHP
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: |
+            build/coverage.xml
+            build/coverage-html
+          if-no-files-found: warn
