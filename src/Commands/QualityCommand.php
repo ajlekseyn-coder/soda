@@ -119,9 +119,8 @@ final class QualityCommand extends Command
     }
 
     /**
-     * Vendor code is not part of the project being assessed. FileIterator expects
-     * exclusion paths rather than path fragments, so expand relative CLI values
-     * against every requested analysis root.
+     * Relative exclusions apply to each analysis root, including the automatic
+     * vendor boundary. Absolute exclusions remain independent of those roots.
      *
      * @param list<non-empty-string> $directories
      * @param list<non-empty-string> $requested
@@ -145,10 +144,7 @@ final class QualityCommand extends Command
             }
         }
 
-        return array_values(array_unique(array_map(
-            fn (string $path): string => is_dir($path) ? rtrim($path, '/\\').DIRECTORY_SEPARATOR : $path,
-            $paths,
-        )));
+        return array_values(array_unique($paths));
     }
 
     /**
@@ -177,8 +173,14 @@ final class QualityCommand extends Command
             [...$excludedPaths, ...(array) ($this->option('exclude') ?? [])],
         );
         /** @var list<non-empty-string> $exclude */
+        $iterator = new Facade;
+        $files = $iterator->getFilesAsArray($directories, $suffixes);
+        $excludedFiles = [
+            ...$iterator->getFilesAsArray($exclude, $suffixes),
+            ...array_filter(array_map(realpath(...), $exclude), fn (string|false $path): bool => $path !== false),
+        ];
 
-        return (new Facade)->getFilesAsArray($directories, $suffixes, '', $exclude);
+        return array_values(array_diff($files, $excludedFiles));
     }
 
     /**
