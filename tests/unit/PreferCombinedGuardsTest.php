@@ -23,6 +23,11 @@ final class PreferCombinedGuardsTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'nested closure checked once' => ['function outer() { register(function ($items) { foreach ($items as $item) { if ($item->hidden) { continue; } if ($item->gone) { continue; } work($item); } }); }', 1];
+        yield 'nested named function checked once' => ['function outer() { function inner($items) { foreach ($items as $item) { if ($item->hidden) { continue; } if ($item->gone) { continue; } work($item); } } }', 1];
+        yield 'anonymous class method checked once' => ['function outer() { return new class { function run($items) { foreach ($items as $item) { if ($item->hidden) { continue; } if ($item->gone) { continue; } work($item); } } }; }', 1];
+        yield 'arrow returning a closure checked once' => ['$callback = fn () => function ($items) { foreach ($items as $item) { if ($item->hidden) { continue; } if ($item->gone) { continue; } work($item); } };', 1];
+        yield 'separate closures retain both findings' => ['function outer() { register(function ($items) { foreach ($items as $item) { if ($item->hidden) { continue; } if ($item->gone) { continue; } work($item); } }); register(function ($items) { foreach ($items as $item) { if ($item->hidden) { continue; } if ($item->gone) { continue; } work($item); } }); }', 2];
         yield 'interface method without a body' => ['interface Contract { public function run(): void; }', 0];
         yield 'abstract method without a body' => ['abstract class Worker { abstract public function run(): void; }', 0];
         yield 'plain returns' => ['function check(bool $finished, bool $cancelled): void { if ($finished) { return; } if ($cancelled) { return; } work(); }', 1];
@@ -93,6 +98,6 @@ PHP);
         $source = str_starts_with($source, '<?php') ? $source : '<?php '.$source;
         $nodes = (new ParserFactory)->createForNewestSupportedVersion()->parse($source);
 
-        return iterator_to_array((new PreferCombinedGuards)->checkFile(new FileFacts('/guards.php', $source, $nodes, [])));
+        return iterator_to_array((new PreferCombinedGuards)->checkFile(new FileFacts('/guards.php', $source, $nodes, [])), false);
     }
 }

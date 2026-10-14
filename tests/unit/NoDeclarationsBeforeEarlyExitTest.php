@@ -23,6 +23,11 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'nested closure checked once' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); }', 1];
+        yield 'nested named function checked once' => ['function outer() { function inner($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } } }', 1];
+        yield 'anonymous class method checked once' => ['function outer() { return new class { function run($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } } }; }', 1];
+        yield 'arrow returning a closure checked once' => ['$callback = fn () => function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } };', 1];
+        yield 'separate closures retain both findings' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); }', 2];
         yield 'interface method without a body' => ['interface Contract { public function run(): void; }', 0];
         yield 'abstract method without a body' => ['abstract class Worker { abstract public function run(): void; }', 0];
         yield 'work skipped by the guard' => ['function run(bool $ready, array $items): void { $result = compute($items); if (!$ready) { return; } useIt($result); }', 1];
@@ -86,6 +91,6 @@ PHP);
         $source = str_starts_with($source, '<?php') ? $source : '<?php '.$source;
         $nodes = (new ParserFactory)->createForNewestSupportedVersion()->parse($source);
 
-        return iterator_to_array((new NoDeclarationsBeforeEarlyExit)->checkFile(new FileFacts('/declarations.php', $source, $nodes, [])));
+        return iterator_to_array((new NoDeclarationsBeforeEarlyExit)->checkFile(new FileFacts('/declarations.php', $source, $nodes, [])), false);
     }
 }

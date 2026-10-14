@@ -7,7 +7,6 @@ namespace Cosmira\Soda\Analysis\Complexity;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
-use PhpParser\NodeFinder;
 
 /**
  * Collects control-structure statement lists without crossing closure boundaries.
@@ -22,14 +21,37 @@ final class StatementLists
     public function within(Node $root): array
     {
         $bodies = [];
-        foreach ((new NodeFinder)->find($root, ControlBodies::isControlBody(...)) as $node) {
+        foreach ($this->children($root) as $node) {
+            if ($node instanceof Node\FunctionLike || $node instanceof Stmt\ClassLike) {
+                continue;
+            }
+
             $statements = ControlBodies::statements($node);
             if ($statements !== []) {
                 $bodies[] = $statements;
             }
+
+            array_push($bodies, ...$this->within($node));
         }
 
         return $bodies;
+    }
+
+    /**
+     * Yield direct AST children without traversing their execution scopes.
+     *
+     * @return iterable<Node>
+     */
+    private function children(Node $node): iterable
+    {
+        foreach ($node->getSubNodeNames() as $field) {
+            $child = get_object_vars($node)[$field];
+            foreach (is_array($child) ? $child : [$child] as $value) {
+                if ($value instanceof Node) {
+                    yield $value;
+                }
+            }
+        }
     }
 
     /**
