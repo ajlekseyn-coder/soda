@@ -70,6 +70,10 @@ class Runner
             $file = $this->collector->collect($path, $required);
             $violations = [];
             foreach ($checks as $check) {
+                if ($check->isExcludedPath($path)) {
+                    continue;
+                }
+
                 array_push($violations, ...$check->checkFile($file));
             }
 
@@ -108,16 +112,32 @@ class Runner
         $violations = [];
         $research = [];
         foreach ($checks as $check) {
+            $facts = $this->projectFor($check, $project);
             if ($check instanceof ResearchCheck) {
-                $research[$check->id()] = $check->researchProject($project);
+                $research[$check->id()] = $check->researchProject($facts);
             }
 
-            foreach ($check->checkProject($project) as $violation) {
+            foreach ($check->checkProject($facts) as $violation) {
                 $violations[] = $violation;
             }
         }
 
         return [$violations, $research];
+    }
+
+    /**
+     * Restrict one rule's source files after resolving the complete inherited class surface.
+     */
+    private function projectFor(Check $check, ProjectFacts $project): ProjectFacts
+    {
+        $filtered = clone $project;
+        $filtered->files = array_filter(
+            $project->files,
+            fn (string $path): bool => ! $check->isExcludedPath($path),
+            ARRAY_FILTER_USE_KEY,
+        );
+
+        return $filtered;
     }
 
     /**

@@ -76,8 +76,9 @@ return Soda::configure()
     ->with(RuleCatalog::standard());
 ```
 
-`exclude()` accepts non-empty paths and can be called repeatedly. Absolute paths
-apply directly; relative paths expand against each analysis root, just like
+`exclude()` accepts non-empty paths and file masks and can be called repeatedly.
+A basename mask such as `*.blade.php` excludes matching files at every depth.
+Absolute paths apply directly; relative paths expand against each analysis root, just like
 `--exclude`. For multiple roots, absolute paths avoid ambiguity. A directory
 exclusion does not exclude siblings whose names merely share its prefix.
 
@@ -85,6 +86,28 @@ The `quality` command combines configuration exclusions with `--exclude`, includ
 when source paths or `--config` are supplied explicitly. Vendor exclusions remain
 automatic. If no source files remain, the command reports `No files found to scan`
 and exits with status `1`.
+
+## Per-rule exclusions
+
+Every rule inherits `exclude()` from `Cosmira\Soda\Contracts\Check`:
+
+```php
+(new MaxPublicMethods(20))->exclude([
+    __DIR__.'/packages/Octopus/Clients/*',
+]),
+```
+
+This exemption belongs to that rule instance. Repeated calls add exclusions.
+For these masks, `*` may cross directory separators: `*/Data/*` matches files
+inside a `Data` directory at any depth, including its subdirectories. It does not
+match a directory named `Metadata` or `DataExtra`.
+File paths, directory boundaries, and filename masks are accepted; matched
+boundaries include descendants without matching similarly named siblings.
+File checks skip matching sources. Project and research checks receive a filtered
+view of the project after inherited class surfaces have been resolved. Other rules
+still receive all files, and excluding a parent does not exempt child classes in
+other files or reduce their inherited public method count. Parse errors remain
+visible because exclusions do not disable source parsing.
 
 ## Rules
 

@@ -15,7 +15,8 @@ final readonly class FnmatchPathExclusion
      * Configure normalized path prefixes and glob patterns excluded from analysis.
      *
      * @param list<string> $patterns     fnmatch patterns (full path and basename checked per pattern)
-     * @param list<string> $pathPrefixes file path must be under one of these when resolved
+     * @param list<string> $pathPrefixes Literal or masked directory boundaries; wildcards match one path segment
+     * @param int          $flags        Flags controlling wildcard matching for file patterns.
      */
     public function __construct(
         /**
@@ -26,6 +27,10 @@ final readonly class FnmatchPathExclusion
          * Normalized directory prefixes identifying exempted source boundaries.
          */
         private array $pathPrefixes,
+        /**
+         * Pattern flags preserve segment boundaries unless the caller allows directory separators.
+         */
+        private int $flags = FNM_PATHNAME,
     ) {}
 
     /**
@@ -60,7 +65,7 @@ final readonly class FnmatchPathExclusion
      */
     private function fnmatchFlags(): int
     {
-        $flags = FNM_PATHNAME;
+        $flags = $this->flags;
         if (defined('FNM_CASEFOLD')) {
             $flags |= FNM_CASEFOLD;
         }
@@ -80,7 +85,23 @@ final readonly class FnmatchPathExclusion
 
         $path = rtrim($resolvedFile, '/');
 
-        return $path === $root || str_starts_with($path, $root.'/');
+        $boundary = $root.'/';
+        if ($path === $root || str_starts_with($path, $boundary)) {
+            return true;
+        }
+
+        while (true) {
+            if (fnmatch($root, $path, FNM_PATHNAME)) {
+                return true;
+            }
+
+            $parent = dirname($path);
+            if ($path === $parent) {
+                return false;
+            }
+
+            $path = $parent;
+        }
     }
 
     /**
@@ -103,7 +124,30 @@ final readonly class FnmatchPathExclusion
             }
         }
 
-        return $slash;
+        return $this->resolvedPattern($slash);
+    }
+
+    /**
+     * Resolve the literal directory before the first wildcard, preserving the mask.
+     */
+    private function resolvedPattern(string $path): string
+    {
+        $length = strcspn($path, '*?[');
+        if ($length === strlen($path)) {
+            return $path;
+        }
+
+        $boundary = strrpos(substr($path, 0, $length), '/');
+        if ($boundary === false) {
+            return $path;
+        }
+
+        $directory = realpath(substr($path, 0, $boundary + 1));
+        if ($directory === false) {
+            return $path;
+        }
+
+        return rtrim(str_replace('\\', '/', $directory), '/').'/'.substr($path, $boundary + 1);
     }
 
     /**

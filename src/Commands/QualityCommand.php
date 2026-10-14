@@ -13,6 +13,7 @@ use Cosmira\Soda\Reporting\ReportFormatter;
 use Cosmira\Soda\Reporting\ResearchJsonReportFormatter;
 use Cosmira\Soda\Reporting\RuleMetadata;
 use Cosmira\Soda\Support\ConfigException;
+use Cosmira\Soda\Support\FnmatchPathExclusion;
 
 use function file_put_contents;
 use function getcwd;
@@ -168,10 +169,8 @@ final class QualityCommand extends Command
         $suffixOpt = $this->option('suffix');
         $suffixes = $suffixOpt === null ? ['.php'] : array_merge(['.php'], (array) $suffixOpt);
         /** @var list<non-empty-string> $suffixes */
-        $exclude = $this->exclusionPaths(
-            $directories,
-            [...$excludedPaths, ...(array) ($this->option('exclude') ?? [])],
-        );
+        $requested = [...$excludedPaths, ...(array) ($this->option('exclude') ?? [])];
+        $exclude = $this->exclusionPaths($directories, $requested);
         /** @var list<non-empty-string> $exclude */
         $iterator = new Facade;
         $files = $iterator->getFilesAsArray($directories, $suffixes);
@@ -180,7 +179,18 @@ final class QualityCommand extends Command
             ...array_filter(array_map(realpath(...), $exclude), fn (string|false $path): bool => $path !== false),
         ];
 
-        return array_values(array_diff($files, $excludedFiles));
+        $exclusion = new FnmatchPathExclusion(
+            patterns: array_values(array_filter(
+                [...$exclude, ...$requested],
+                fn (string $path): bool => strpbrk($path, '*?[') !== false,
+            )),
+            pathPrefixes: [],
+        );
+
+        return array_values(array_filter(
+            array_diff($files, $excludedFiles),
+            fn (string $file): bool => ! $exclusion->isExcludedPath($file),
+        ));
     }
 
     /**

@@ -61,3 +61,21 @@ return Soda::configure()
 
 - [no_process_configuration_mutation](no_process_configuration_mutation.md) — flags runtime writes to ini, cwd, locale, and timezone.
 - [no_global_state](no_global_state.md) — flags the other process-wide state channels.
+
+### Package configuration masks
+
+Directory prefixes can contain glob masks. A wildcard matches a single path
+segment; descendants of the matched directory are also excluded:
+
+```php
+new NoEnvironmentReads(ignorePathPrefixes: [
+    __DIR__.'/config',
+    __DIR__.'/packages/*/config',
+]);
+```
+
+This allows environment access in each package's configuration, including nested
+configuration files. It does not allow access in package source files, sibling
+`configuration` directories, or an extra directory level between package and
+`config`. Prefix matching remains case-sensitive; literal prefixes retain their
+existing behavior.

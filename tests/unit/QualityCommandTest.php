@@ -340,18 +340,26 @@ final class QualityCommandTest extends TestCase
     #[TestWith([false, false])]
     #[TestWith([true, false])]
     #[TestWith([true, true])]
-    public function testConfigAndCliExclusionsAreCombined(bool $requestedPaths, bool $explicitConfig): void
-    {
+    #[TestWith([true, true, true])]
+    public function testConfigAndCliExclusionsAreCombined(
+        bool $requestedPaths,
+        bool $explicitConfig,
+        bool $cliPattern = false,
+    ): void {
         $project = $this->minimalConfiguredProject('soda-config-exclusions');
         $cwd = getcwd();
         foreach (['generated', 'cache', 'cli-excluded', 'generated-code'] as $directory) {
             mkdir($project['dir'].'/'.$directory);
             file_put_contents($project['dir'].'/'.$directory.'/Example.php', "<?php\n");
         }
+        foreach (['View.blade.php', 'generated-code/View.blade.php', 'generated-code/View.blade.php.php', 'OnlyRoot.php', 'generated-code/OnlyRoot.php'] as $file) {
+            file_put_contents($project['dir'].'/'.$file, "<?php\n");
+        }
+        $pattern = $cliPattern ? '' : ", '*.blade.php'";
         $config = file_get_contents($project['soda']);
         file_put_contents($project['soda'], str_replace(
             '->with([])',
-            "->exclude(['generated', __DIR__.'/cache'])->with([])",
+            "->exclude(['generated', __DIR__.'/cache', 'OnlyRoot.php'{$pattern}])->with([])",
             $config,
         ));
         $stub = new class extends Runner
@@ -376,6 +384,9 @@ final class QualityCommandTest extends TestCase
             $artisan->setAutoExit(false);
             $artisan->add($container->make(QualityCommand::class));
             $arguments = ['command' => 'quality', '--exclude' => ['cli-excluded']];
+            if ($cliPattern) {
+                $arguments['--exclude'][] = '*.blade.php';
+            }
             if ($requestedPaths) {
                 $arguments['path'] = [$project['dir']];
             }
@@ -389,9 +400,14 @@ final class QualityCommandTest extends TestCase
                 realpath($project['php']),
                 realpath($project['soda']),
                 realpath($project['dir'].'/generated-code/Example.php'),
+                realpath($project['dir'].'/generated-code/OnlyRoot.php'),
+                realpath($project['dir'].'/generated-code/View.blade.php.php'),
             ], $stub->files);
         } finally {
             chdir($cwd);
+            foreach (['View.blade.php', 'generated-code/View.blade.php', 'generated-code/View.blade.php.php', 'OnlyRoot.php', 'generated-code/OnlyRoot.php'] as $file) {
+                unlink($project['dir'].'/'.$file);
+            }
             foreach (['generated', 'cache', 'cli-excluded', 'generated-code'] as $directory) {
                 unlink($project['dir'].'/'.$directory.'/Example.php');
                 rmdir($project['dir'].'/'.$directory);

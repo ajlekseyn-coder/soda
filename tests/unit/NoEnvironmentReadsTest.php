@@ -33,6 +33,26 @@ final class NoEnvironmentReadsTest extends TestCase
         yield 'other package config' => ['/project/packages/Other/config/app.php', 1];
     }
 
+    #[DataProvider('packageConfigurationMasks')]
+    public function testPackageConfigurationMasksRespectDirectoryBoundaries(string $path, int $expected): void
+    {
+        $rule = new NoEnvironmentReads(ignorePathPrefixes: ['/project/config', '/project/packages/*/config']);
+        $file = new FileFacts($path, '', $this->parseSnippet('return env("TOKEN");'), []);
+
+        $this->assertCount($expected, iterator_to_array($rule->checkFile($file)));
+    }
+
+    public static function packageConfigurationMasks(): \Iterator
+    {
+        yield 'first package' => ['/project/packages/Octopus/config/app.php', 0];
+        yield 'another package' => ['/project/packages/Other/config/app.php', 0];
+        yield 'nested configuration' => ['/project/packages/Other/config/services/cache.php', 0];
+        yield 'package code' => ['/project/packages/Octopus/Client.php', 1];
+        yield 'similar directory' => ['/project/packages/Other/configuration/app.php', 1];
+        yield 'extra package level' => ['/project/packages/Other/Nested/config/app.php', 1];
+        yield 'case sensitive prefix' => ['/project/PACKAGES/Other/config/app.php', 1];
+    }
+
     public function testDefaultPolicyStillReportsEnvironmentAccessInConfig(): void
     {
         $file = new FileFacts('/project/config/app.php', '', $this->parseSnippet('return env("TOKEN");'), []);
