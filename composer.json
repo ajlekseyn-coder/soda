@@ -11,10 +11,10 @@
         "developer-tools"
     ],
     "homepage": "https://github.com/cosmira/soda",
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "authors": [
         {
-            "name": "Alexadr Chernyaev",
+            "name": "Alexandr Chernyaev",
             "email": "bliz48rus@gmail.com",
             "role": "lead"
         }

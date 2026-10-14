@@ -532,7 +532,7 @@ operator would evaluate them once instead of twice.
 
 ## Third-party material
 
-Soda's own code remains BSD-3-Clause. Adapted third-party material retains the
+Soda's own code is licensed under MIT. Adapted third-party material retains the
 notice and terms below; no Java or Python runtime dependency is introduced.
 
 ### Aibolit test scenarios

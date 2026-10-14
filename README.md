@@ -84,7 +84,7 @@ Clone this repository and run `composer install`. Inside the Soda repository,
 use `php soda` in place of `vendor/bin/soda`. Run `composer test` for behavioral
 tests and `composer ci` for the full project checks.
 
-Licensed under the [BSD 3-Clause License](LICENSE).
+Licensed under the [MIT License](LICENSE).
 
 ### Explicit behavior checks
 
