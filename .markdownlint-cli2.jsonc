@@ -6,6 +6,9 @@
     "MD001": false,
     "MD004": false,
     "MD012": false,
+    // Rule sections repeat the same sub-heading names (How It Works,
+    // Examples) by design; only duplicates inside one section matter.
+    "MD024": { "siblings_only": true },
     "MD013": false,
     "MD036": false,
     "MD040": false,
