@@ -15,7 +15,7 @@ use PhpParser\Node\Stmt\Expression;
 final readonly class UselessVariableAliasAssignment
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Hold one alias assignment with both variable names and its source line.
      *
      * @param string $variable Name of the newly assigned alias variable.
      * @param string $source   Name of the original variable copied by the alias assignment.

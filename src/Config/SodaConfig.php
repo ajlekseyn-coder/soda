@@ -70,7 +70,7 @@ final class SodaConfig
     }
 
     /**
-     * Register paths analysed when `soda quality` is called without arguments.
+     * Register paths analyzed when `soda quality` is called without arguments.
      *
      * @param list<non-empty-string> $paths
      */

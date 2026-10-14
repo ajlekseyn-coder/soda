@@ -19,10 +19,10 @@ final class RepresentationFlowSafetyTest extends TestCase
         }
 
         $flow = new RepresentationFlow(12, 2000, 100);
-        $first = $flow->analyse($project);
+        $first = $flow->analyze($project);
         $this->assertNotEmpty($first['candidates']);
-        $this->assertSame($first, $flow->analyse($project));
-        $empty = $flow->analyse(new ProjectFacts);
+        $this->assertSame($first, $flow->analyze($project));
+        $empty = $flow->analyze(new ProjectFacts);
         $this->assertSame([], $empty['candidates']);
         $this->assertSame([], $empty['partial']);
         $this->assertSame(0, $empty['coverage']['operations']);
@@ -145,7 +145,7 @@ final class RepresentationFlowSafetyTest extends TestCase
                 $project->add((new FactCollector)->collect($path, ['representationFlow']));
             }
 
-            return (new RepresentationFlow(12, 2000, 100))->analyse($project);
+            return (new RepresentationFlow(12, 2000, 100))->analyze($project);
         } finally {
             foreach ($paths as $path) {
                 unlink($path);

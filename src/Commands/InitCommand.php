@@ -14,12 +14,12 @@ use Illuminate\Console\Command;
 final class InitCommand extends Command
 {
     /**
-     * Stores signature for this analysis instance.
+     * Console signature accepted by the init command.
      */
     protected $signature = 'init';
 
     /**
-     * Stores description for this analysis instance.
+     * Summary shown by `soda list`.
      */
     protected $description = 'Create soda.php with default quality rules';
 

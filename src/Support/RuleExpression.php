@@ -44,7 +44,7 @@ final class RuleExpression
     private array $fields = [];
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Validate the configured expression once and compile it into a reusable predicate.
      *
      * @param string $source Configured expression evaluated against collected metric rows.
      */

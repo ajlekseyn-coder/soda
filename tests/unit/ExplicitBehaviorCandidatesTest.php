@@ -283,7 +283,7 @@ final class ExplicitBehaviorCandidatesTest extends TestCase
         $container = new Application;
         $console = new \Illuminate\Console\Application($container, new Dispatcher($container), 'test');
         $console->setAutoExit(false);
-        $console->add(new QualityCommand);
+        $console->add($container->make(QualityCommand::class));
 
         try {
             foreach ([true, false] as $enabled) {

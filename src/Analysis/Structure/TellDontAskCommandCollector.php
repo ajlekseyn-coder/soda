@@ -20,7 +20,7 @@ use PhpParser\Node\Stmt\If_;
 final readonly class TellDontAskCommandCollector
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Compose the fingerprint that identifies receivers in collected commands.
      *
      * @param TellDontAskReceiverFingerprint $fingerprint Builds comparable receiver and argument identities for call matching.
      */

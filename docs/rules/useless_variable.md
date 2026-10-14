@@ -6,7 +6,7 @@
 
 ## Why
 
-A variable assigned directly from another variable (`$a = $b`) introduces a second name for the same value. If the name adds nothing, every reader has to keep two bindings in sync for no benefit. The rule flags such alias assignments that can be safely removed by replacing all later uses of the copy with the source variable. The advice is to inline the value when the name adds nothing, or to use the variable where its name clarifies intent. The analysis is limited to function and method bodies; top-level code is not analysed.
+A variable assigned directly from another variable (`$a = $b`) introduces a second name for the same value. If the name adds nothing, every reader has to keep two bindings in sync for no benefit. The rule flags such alias assignments that can be safely removed by replacing all later uses of the copy with the source variable. The advice is to inline the value when the name adds nothing, or to use the variable where its name clarifies intent. The analysis is limited to function and method bodies; top-level code is not analyzed.
 
 A variable is *not* reported when:
 

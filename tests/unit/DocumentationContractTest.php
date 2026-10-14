@@ -64,7 +64,7 @@ final class DocumentationContractTest extends TestCase
         $this->assertStringContainsString('command exit status', $reportDocs);
         $this->assertStringContainsString('current schema is **4**', strtolower($reportDocs));
         $this->assertStringNotContainsString('`metrics`', $reportDocs);
-        $this->assertStringNotContainsString('soda analyse', $reportDocs);
+        $this->assertStringNotContainsString('soda analyze', $reportDocs);
     }
 
     public function testRuleAuthoringChecklistMentionsFullListRulesMetadata(): void

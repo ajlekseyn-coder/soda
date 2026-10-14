@@ -34,7 +34,7 @@ class Handler {
     }
 }
 PHP);
-        $findings = (new UselessVariableAnalyser)->analyse($nodes);
+        $findings = (new UselessVariableAnalyser)->analyze($nodes);
         self::assertSame([['line' => 6, 'variable' => '$selected', 'source' => '$servers']], $findings);
         $violations = iterator_to_array((new UselessVariableRule)->checkFile(new FileFacts('/handler.php', '', $nodes, [])));
         self::assertCount(1, $violations);
@@ -77,6 +77,6 @@ PHP);
 
     private function findings(string $source): array
     {
-        return (new UselessVariableAnalyser)->analyse($this->parseSnippet($source));
+        return (new UselessVariableAnalyser)->analyze($this->parseSnippet($source));
     }
 }

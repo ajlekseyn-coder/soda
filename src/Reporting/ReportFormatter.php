@@ -21,7 +21,7 @@ use Symfony\Component\Console\Formatter\OutputFormatter;
 final readonly class ReportFormatter
 {
     /**
-     * Defines separator width used by this policy.
+     * Character width of the horizontal rules framing report sections.
      */
     private const int SEPARATOR_WIDTH = 60;
 
@@ -36,7 +36,7 @@ final readonly class ReportFormatter
     private const string UNKNOWN_STATUS = 'unknown';
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Bind the metadata used to resolve rule labels, advice and severity.
      *
      * @param RuleMetadata $ruleMetadata Supplies labels and policy metadata for reported rule identifiers.
      */

@@ -25,7 +25,7 @@ use PhpParser\Node\Stmt\Function_;
 final class CompoundVariableNameVisitor extends FactVisitor
 {
     /**
-     * Defines superglobals used by this policy.
+     * Superglobal names whose entries never originate from local declarations.
      */
     private const array SUPERGLOBALS = [
         'GLOBALS', '_SERVER', '_GET', '_POST', '_FILES', '_COOKIE',
@@ -68,17 +68,17 @@ final class CompoundVariableNameVisitor extends FactVisitor
     private array $classStack = [];
 
     /**
-     * Stores scope for this analysis instance.
+     * Callable context currently being traversed.
      */
     private CompoundVariableScope $scope;
 
     /**
-     * Stores class for this analysis instance.
+     * Class owning the declarations currently being traversed.
      */
     private ?string $class = null;
 
     /**
-     * Stores scope sequence for this analysis instance.
+     * Monotonic counter giving every visited scope a stable occurrence key.
      */
     private int $scopeSequence = 0;
 

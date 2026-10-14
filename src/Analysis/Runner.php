@@ -57,7 +57,7 @@ class Runner
     }
 
     /**
-     * Analyse one file and record its facts, or report an unparseable source instead.
+     * Analyze one file and record its facts, or report an unparseable source instead.
      *
      * @param list<Check>       $checks
      * @param list<string>|null $required
@@ -74,7 +74,6 @@ class Runner
             }
 
             $project->add($file);
-            unset($file);
 
             return $violations;
         } catch (ParserException|Error $error) {

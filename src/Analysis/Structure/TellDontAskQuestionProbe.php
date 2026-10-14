@@ -22,7 +22,7 @@ use PhpParser\Node\Expr\Variable;
 final readonly class TellDontAskQuestionProbe
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Compose the fingerprint that identifies receivers in probed queries.
      *
      * @param TellDontAskReceiverFingerprint $fingerprint Builds comparable receiver and argument identities for call matching.
      */

@@ -27,7 +27,7 @@ final class NoAssignmentInCondition extends Check
     }
 
     /**
-     * Defines message used by this policy.
+     * Diagnostic text reported for every assignment found inside a condition.
      */
     private const string MESSAGE = 'Assignment inside condition is forbidden. Assign first, then test the value.';
 
@@ -48,7 +48,7 @@ final class NoAssignmentInCondition extends Check
     #[\Override]
     public function checkFile(FileFacts $facts): iterable
     {
-        foreach ((new AssignmentInConditionAnalyser)->analyse($facts->nodes) as $hit) {
+        foreach ((new AssignmentInConditionAnalyser)->analyze($facts->nodes) as $hit) {
             yield new Violation(rule: $this->id(), file: $facts->path, value: 1, threshold: 0, line: $hit['line'], message: self::MESSAGE);
         }
     }

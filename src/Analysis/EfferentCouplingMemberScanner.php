@@ -20,7 +20,7 @@ use PhpParser\Node\Stmt\Property;
 final readonly class EfferentCouplingMemberScanner
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Compose the reference recorder backing this scanner.
      *
      * @param EfferentCouplingReferences $types Declared type and inheritance facts used to resolve local contracts.
      */

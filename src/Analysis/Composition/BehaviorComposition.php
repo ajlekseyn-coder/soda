@@ -17,7 +17,7 @@ final class BehaviorComposition
     private array $surfaces = [];
 
     /**
-     * Attach declaration provenance once before composing a complete analysed project.
+     * Attach declaration provenance once before composing a complete analyzed project.
      */
     public function project(ProjectFacts $project): array
     {

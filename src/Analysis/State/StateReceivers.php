@@ -9,7 +9,7 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 
 /**
- * Tracks lexical receivers whose private slots belong to the class being analysed.
+ * Tracks lexical receivers whose private slots belong to the class being analyzed.
  */
 final class StateReceivers
 {

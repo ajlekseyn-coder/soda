@@ -16,7 +16,7 @@ final class NoRedundantLocalInterfaces extends Check
     /**
      * Register interfaces whose consumers reside outside the analyzed source.
      *
-     * @param list<string> $contracts Qualified interfaces consumed outside analysed source.
+     * @param list<string> $contracts Qualified interfaces consumed outside analyzed source.
      */
     public function __construct(
         /**
@@ -51,7 +51,7 @@ final class NoRedundantLocalInterfaces extends Check
             yield new Violation(
                 rule: $this->id(), file: $declaration['file'], value: 1, threshold: 0,
                 class: $declaration['name'], line: $declaration['line'],
-                message: $declaration['name'].' has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.',
+                message: $declaration['name'].' has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.',
             );
         }
     }

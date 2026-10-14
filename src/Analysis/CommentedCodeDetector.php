@@ -12,7 +12,7 @@ use function trim;
 final class CommentedCodeDetector
 {
     /**
-     * Defines explicit code patterns used by this policy.
+     * Regex fragments that can only match PHP declarations, never prose.
      */
     private const array EXPLICIT_CODE_PATTERNS = [
         '/\b(?:final\s+|abstract\s+)?(?:class|interface|trait|enum)\s+[A-Za-z_\\\\]/',

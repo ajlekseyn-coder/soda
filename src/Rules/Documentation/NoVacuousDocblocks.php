@@ -8,9 +8,10 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Comment\Doc;
-use PhpParser\Node\Param;
+use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassLike;
+use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeFinder;
 
@@ -79,7 +80,7 @@ final class NoVacuousDocblocks extends Check
     }
 
     /**
-     * Report each documented member whose description carries no content words.
+     * Report every documented member whose description carries no content words.
      *
      * @return iterable<Violation>
      */
@@ -87,54 +88,110 @@ final class NoVacuousDocblocks extends Check
     public function checkFile(FileFacts $file): iterable
     {
         foreach ((new NodeFinder)->findInstanceOf($file->nodes, ClassLike::class) as $class) {
-            $className = $class->name?->toString() ?? 'anonymous@'.$class->getLine();
-
-            foreach ($class->getProperties() as $property) {
-                foreach ($this->propertyNames($property) as $name) {
-                    yield from $this->violations($file, $className, $property->getDocComment(),
-                        $this->nameWords($name), $property->getLine(), '$'.$name);
-                }
-            }
-
-            foreach ($class->getConstants() as $constant) {
-                foreach ($this->constantNames($constant) as $name) {
-                    yield from $this->violations($file, $className, $constant->getDocComment(),
-                        $this->nameWords($name), $constant->getLine(), $name);
-                }
-            }
-
-            foreach ($class->getMethods() as $method) {
-                yield from $this->violations($file, $className, $method->getDocComment(),
-                    $this->nameWords($method->name->toString()), $method->getLine(),
-                    $method->name->toString().'()');
-
-                foreach ($method->params as $parameter) {
-                    if (! $parameter->isPromoted()) {
-                        continue;
-                    }
-
-                    yield from $this->violations($file, $className, $parameter->getDocComment(),
-                        $this->nameWords($parameter->var->name), $parameter->getLine(), '$'.$parameter->var->name);
-                }
-            }
+            yield from $this->classViolations($file, $class);
         }
     }
 
     /**
-     * Report the documented declaration once its description has no content words left.
+     * Inspect the properties, constants and methods of one class-like declaration.
      *
-     * @param list<string> $nameWords Words composing the declared identifier.
+     * @return iterable<Violation>
      */
-    private function violations(FileFacts $file, string $class, ?Doc $comment, array $nameWords, int $line, string $member): iterable
+    private function classViolations(FileFacts $file, ClassLike $class): iterable
     {
-        if ($comment === null || $this->contentWords($this->prose($comment), $nameWords) !== []) {
+        $owner = $class->name?->toString() ?? 'anonymous@'.$class->getLine();
+
+        foreach ($class->getProperties() as $property) {
+            yield from $this->propertyViolations($file, $owner, $property);
+        }
+
+        foreach ($class->getConstants() as $constant) {
+            yield from $this->constantViolations($file, $owner, $constant);
+        }
+
+        foreach ($class->getMethods() as $method) {
+            yield from $this->methodViolations($file, $owner, $method);
+        }
+    }
+
+    /**
+     * Inspect each name declared by one property statement.
+     *
+     * @return iterable<Violation>
+     */
+    private function propertyViolations(FileFacts $file, string $owner, Property $property): iterable
+    {
+        foreach ($property->props as $item) {
+            $name = $item->name->toString();
+            yield from $this->violations($file, $owner, $property, $name, '$'.$name);
+        }
+    }
+
+    /**
+     * Inspect each name declared by one constant statement.
+     *
+     * @return iterable<Violation>
+     */
+    private function constantViolations(FileFacts $file, string $owner, ClassConst $constant): iterable
+    {
+        foreach ($constant->consts as $item) {
+            $name = $item->name->toString();
+            yield from $this->violations($file, $owner, $constant, $name, $name);
+        }
+    }
+
+    /**
+     * Inspect one method and the parameters it promotes to properties.
+     *
+     * @return iterable<Violation>
+     */
+    private function methodViolations(FileFacts $file, string $owner, ClassMethod $method): iterable
+    {
+        $name = $method->name->toString();
+        yield from $this->violations($file, $owner, $method, $name, $name.'()');
+
+        foreach ($method->params as $parameter) {
+            if (! $parameter->isPromoted()) {
+                continue;
+            }
+
+            yield from $this->promotedParameterViolations($file, $owner, $parameter);
+        }
+    }
+
+    /**
+     * Inspect one promoted parameter declared inside a constructor signature.
+     *
+     * @return iterable<Violation>
+     */
+    private function promotedParameterViolations(FileFacts $file, string $owner, Node\Param $parameter): iterable
+    {
+        $name = (string) $parameter->var->name;
+
+        yield from $this->violations($file, $owner, $parameter, $name, '$'.$name);
+    }
+
+    /**
+     * Report the documented member once its description has no content words left.
+     *
+     * @return iterable<Violation>
+     */
+    private function violations(FileFacts $file, string $owner, Node $node, string $name, string $label): iterable
+    {
+        $comment = $node->getDocComment();
+        if (! $comment instanceof Doc) {
+            return;
+        }
+
+        $hasContent = $this->contentWords($this->prose($comment), $this->nameWords($name)) !== [];
+        if ($hasContent) {
             return;
         }
 
         yield new Violation(
             rule: $this->id(), file: $file->path, value: 1, threshold: 0,
-            class: $class, line: $line,
-            message: sprintf('PHPDoc on %s adds nothing beyond the name; describe the purpose or delete the comment.', $member),
+            class: $owner, line: $node->getLine(),
+            message: sprintf('PHPDoc on %s adds nothing beyond the name; describe the purpose or delete the comment.', $label),
         );
     }
 
@@ -143,8 +200,11 @@ final class NoVacuousDocblocks extends Check
      */
     private function prose(Doc $comment): string
     {
+        $split = preg_split('/\R/', trim($comment->getText()));
+        $lines = $split === false ? [] : $split;
+
         $prose = [];
-        foreach (preg_split('/\R/', trim($comment->getText())) ?: [] as $line) {
+        foreach ($lines as $line) {
             $content = trim(ltrim(trim((string) preg_replace('~^\s*/\*+\s*~', '', $line)), '*'));
             $content = trim((string) preg_replace('~\*/\s*$~', '', $content));
 
@@ -176,9 +236,13 @@ final class NoVacuousDocblocks extends Check
         $content = [];
         foreach ($matches[0] as $word) {
             $word = mb_strtolower($word);
-            if (! in_array($word, $ignored, true) && ! in_array(rtrim($word, 's'), $filler, true)) {
-                $content[] = $word;
+            $singular = rtrim($word, 's');
+
+            if (in_array($word, $ignored, true) || in_array($singular, $filler, true)) {
+                continue;
             }
+
+            $content[] = $word;
         }
 
         return $content;
@@ -193,7 +257,10 @@ final class NoVacuousDocblocks extends Check
     {
         $words = [];
         foreach ($names as $name) {
-            foreach (preg_split('/(?<=[a-z0-9])(?=[A-Z])|_+/', $name) ?: [] as $word) {
+            $parts = preg_split('/(?<=[a-z0-9])(?=[A-Z])|_+/', $name);
+            $parts = $parts === false ? [] : $parts;
+
+            foreach ($parts as $word) {
                 $word = strtolower(trim($word, '_$'));
                 if ($word !== '') {
                     $words[] = $word;
@@ -202,35 +269,5 @@ final class NoVacuousDocblocks extends Check
         }
 
         return $words;
-    }
-
-    /**
-     * Collect the declared property names.
-     *
-     * @return list<string>
-     */
-    private function propertyNames(Property $property): array
-    {
-        $names = [];
-        foreach ($property->props as $item) {
-            $names[] = $item->name->toString();
-        }
-
-        return $names;
-    }
-
-    /**
-     * Collect the declared constant names.
-     *
-     * @return list<string>
-     */
-    private function constantNames(ClassConst $constant): array
-    {
-        $names = [];
-        foreach ($constant->consts as $item) {
-            $names[] = $item->name->toString();
-        }
-
-        return $names;
     }
 }

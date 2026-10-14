@@ -51,9 +51,7 @@ final class InitCommandTest extends TestCase
             $this->assertStringContainsString('->with([', $content);
 
             foreach (RuleCatalog::standardDefinitions() as $id => $init) {
-                $expression = $id === 'boolean_methods_without_prefix'
-                    ? 'BooleanMethodPrefix::standard()'
-                    : 'new '.$this->shortName($init['class']).'(';
+                $expression = 'new '.$this->shortName($init['class']).'(';
                 $this->assertStringContainsString($expression, $content, $id);
             }
 

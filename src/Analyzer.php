@@ -44,6 +44,6 @@ final class Analyzer
     {
         $builder = self::paths($paths)->config($configPath);
 
-        return $builder->analyse();
+        return $builder->analyze();
     }
 }

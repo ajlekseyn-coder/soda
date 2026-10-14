@@ -18,7 +18,7 @@ use PhpParser\Node\Stmt\Trait_;
 final readonly class EfferentCouplingClassScanner
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Compose the dependency graph and the name resolver backing this scanner.
      *
      * @param EfferentCouplingGraph      $graph Dependency graph receiving references collected from source declarations.
      * @param EfferentCouplingReferences $types Declared type and inheritance facts used to resolve local contracts.

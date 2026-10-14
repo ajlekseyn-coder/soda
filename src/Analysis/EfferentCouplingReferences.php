@@ -24,7 +24,7 @@ use function strtolower;
 final readonly class EfferentCouplingReferences
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Bind the recorder to the graph that accumulates coupling edges.
      *
      * @param EfferentCouplingGraph $graph Dependency graph receiving references collected from source declarations.
      */

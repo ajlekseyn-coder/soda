@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Naming;
 
 use function array_fill_keys;
+use function array_values;
 
 use Cosmira\Soda\Analysis\ProjectFacts;
 
+use function is_array;
+use function is_string;
 use function str_starts_with;
 
 /**
@@ -44,7 +47,7 @@ final readonly class BooleanMethodPrefixInspector
         private array $allowedPrefixes,
     ) {
         $this->ignored = array_fill_keys($ignore, true);
-        $this->typeIndex = BooleanMethodTypeIndexBuilder::build($project);
+        $this->typeIndex = $this->typeIndex($project);
     }
 
     /**
@@ -145,10 +148,9 @@ final readonly class BooleanMethodPrefixInspector
     {
         $methodName = $methodData['methodName'] ?? null;
         $fullName = $methodData['name'] ?? null;
-        $exceptMethods = $this->ignored;
 
-        return (is_string($methodName) && isset($exceptMethods[$methodName]))
-            || (is_string($fullName) && isset($exceptMethods[$fullName]));
+        return (is_string($methodName) && isset($this->ignored[$methodName]))
+            || (is_string($fullName) && isset($this->ignored[$fullName]));
     }
 
     /**
@@ -168,6 +170,113 @@ final readonly class BooleanMethodPrefixInspector
 
         return is_string($className)
             && is_string($methodName)
-            && BooleanMethodInheritanceProbe::hasDeclaredMethod($this->typeIndex, $className, $methodName);
+            && $this->hasDeclaredMethod($className, $methodName);
+    }
+
+    /**
+     * Index declared methods and inherited types across all analyzed files.
+     *
+     * @return array<string, array{inherits: list<string>, methods: array<string, true>}>
+     */
+    private function typeIndex(ProjectFacts $project): array
+    {
+        $index = [];
+
+        foreach ($project->files as $metrics) {
+            $naming = $metrics['naming'] ?? null;
+            $types = is_array($naming) ? ($naming['types'] ?? null) : null;
+
+            if (! is_array($types)) {
+                continue;
+            }
+
+            foreach ($types as $typeData) {
+                $entry = $this->typeIndexEntry($typeData);
+
+                if ($entry === null) {
+                    continue;
+                }
+
+                $index[$entry['name']] = $entry['data'];
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * Normalize one type declaration into its methods and inheritance entry.
+     *
+     * @return array{name: string, data: array{inherits: list<string>, methods: array<string, true>}}|null
+     */
+    private function typeIndexEntry(mixed $typeData): ?array
+    {
+        if (! is_array($typeData)) {
+            return null;
+        }
+
+        $name = $typeData['name'] ?? null;
+
+        if (! is_string($name)) {
+            return null;
+        }
+
+        return [
+            'name' => $name,
+            'data' => [
+                'inherits' => $this->stringList($typeData['inherits'] ?? []),
+                'methods'  => array_fill_keys($this->stringList($typeData['methods'] ?? []), true),
+            ],
+        ];
+    }
+
+    /**
+     * Retain only string entries when normalizing collected type facts.
+     *
+     * @return list<string>
+     */
+    private function stringList(mixed $values): array
+    {
+        if (! is_array($values)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $values,
+            static fn (mixed $name): bool => is_string($name) && $name !== '',
+        ));
+    }
+
+    /**
+     * Find a method contract in the type or its ancestors while avoiding inheritance cycles.
+     */
+    private function hasDeclaredMethod(string $typeName, string $methodName): bool
+    {
+        $visited = [$typeName => true];
+        $typeRow = $this->typeIndex[$typeName] ?? [];
+        $pending = $typeRow['inherits'] ?? [];
+
+        while ($pending !== []) {
+            $ancestor = array_pop($pending);
+            if (! is_string($ancestor) || isset($visited[$ancestor])) {
+                continue;
+            }
+
+            $visited[$ancestor] = true;
+            $ancestorType = $this->typeIndex[$ancestor] ?? null;
+
+            if ($ancestorType === null) {
+                continue;
+            }
+
+            $ancestorMethods = $ancestorType['methods'];
+            if (isset($ancestorMethods[$methodName])) {
+                return true;
+            }
+
+            $pending = [...$pending, ...$ancestorType['inherits']];
+        }
+
+        return false;
     }
 }

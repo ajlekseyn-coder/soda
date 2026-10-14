@@ -53,7 +53,7 @@ final class LocalInterfaceRulesTest extends TestCase
         $source = ['<?php namespace Package; interface Printer { function print(string $message): void; }'];
         $findings = $this->findings(new NoRedundantLocalInterfaces, $source);
         self::assertCount(1, $findings);
-        self::assertStringContainsString('in the analysed project', $findings[0]->message);
+        self::assertStringContainsString('in the analyzed project', $findings[0]->message);
         self::assertStringContainsString('Declare external consumers in contracts', $findings[0]->message);
         self::assertStringContainsString('remove it only if it has no consumers', $findings[0]->message);
         self::assertSame([], $this->findings(new NoRedundantLocalInterfaces(['Package\\Printer']), $source));

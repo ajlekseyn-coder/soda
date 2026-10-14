@@ -17,7 +17,7 @@ Soda — PHP CLI-инструмент для автоматической про
 
 ```mermaid
 flowchart LR
-    Developer["Разработчик"] -->|php soda init / analyse / quality| Soda["Soda CLI"]
+    Developer["Разработчик"] -->|php soda init / analyze / quality| Soda["Soda CLI"]
     CI["CI pipeline"] -->|quality gate| Soda
     Soda -->|читает| Config["soda.php"]
     Soda -->|сканирует| Source["PHP project sources"]
@@ -32,7 +32,7 @@ flowchart LR
 | Контейнер / часть | Назначение | Основные файлы |
 |-------------------|------------|----------------|
 | CLI entrypoint | Запускает приложение и команды | `soda`, `soda.php`, `src/Application.php` |
-| Commands | Обрабатывают пользовательские команды `init`, `analyse`, `quality`, `list-rules` | `src/Commands/*` |
+| Commands | Обрабатывают пользовательские команды `init`, `analyze`, `quality`, `list-rules` | `src/Commands/*` |
 | Config | Описывает fluent API конфигурации, правила, плагины и генерацию `soda.php` | `src/Config/*`, `src/Quality/Config/*` |
 | File metrics pipeline | Парсит PHP-файлы, строит AST, собирает LOC, complexity, structure, breathing | `src/FileAnalyser.php`, `src/ProjectMetricsFileGatherer.php`, `src/Structure/*`, `src/Complexity/*`, `src/Breathing/*` |
 | Quality engine | Превращает метрики и AST-проверки в violations | `src/Quality/*` |
@@ -89,10 +89,10 @@ sequenceDiagram
     participant File as FileAnalyser
     participant Formatter as StructureFormatter / TextResultFormatter
 
-    Dev->>Command: php soda analyse src
+    Dev->>Command: php soda analyze src
     Command->>Gatherer: собрать файлы
     loop каждый PHP-файл
-        Gatherer->>File: analyse(file)
+        Gatherer->>File: analyze(file)
         File-->>Gatherer: Loc + Complexity + Structure + Breathing
     end
     Gatherer-->>Command: ProjectMetrics

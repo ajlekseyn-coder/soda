@@ -88,7 +88,7 @@ final class NoTrivialDelegatingClasses extends Check
     public function checkFile(FileFacts $facts): iterable
     {
         $file = $facts->path;
-        $findings = (new TrivialDelegatingClassAnalyser)->analyse($facts->nodes);
+        $findings = (new TrivialDelegatingClassAnalyser)->analyze($facts->nodes);
         $violations = [];
 
         foreach ($findings as $finding) {

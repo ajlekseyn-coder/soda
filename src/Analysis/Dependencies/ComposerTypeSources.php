@@ -10,7 +10,7 @@ namespace Cosmira\Soda\Analysis\Dependencies;
 final readonly class ComposerTypeSources
 {
     /**
-     * Discover installed PSR-4 sources enclosing the analysed files.
+     * Discover installed PSR-4 sources enclosing the analyzed files.
      */
     public static function discover(array $files): self
     {

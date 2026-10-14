@@ -25,12 +25,12 @@ use PhpParser\NodeFinder;
 final readonly class AssignmentInConditionAnalyser
 {
     /**
-     * Stores finder for this analysis instance.
+     * Locates assignments embedded in condition expressions across the tree.
      */
     private NodeFinder $finder;
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Prepare the node finder used for every subsequent analysis.
      */
     public function __construct()
     {
@@ -44,7 +44,7 @@ final readonly class AssignmentInConditionAnalyser
      *
      * @return list<AssignmentCondition>
      */
-    public function analyse(array $nodes): array
+    public function analyze(array $nodes): array
     {
         $lines = [];
 

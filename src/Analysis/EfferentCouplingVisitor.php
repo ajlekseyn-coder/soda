@@ -16,27 +16,27 @@ use PhpParser\Node\Stmt\Trait_;
 final class EfferentCouplingVisitor extends FactVisitor
 {
     /**
-     * Stores graph for this analysis instance.
+     * Dependency edges accumulated while the traversal owns a class or trait.
      */
     private readonly EfferentCouplingGraph $graph;
 
     /**
-     * Stores types for this analysis instance.
+     * Resolves referenced names into fully qualified external type names.
      */
     private readonly EfferentCouplingReferences $types;
 
     /**
-     * Stores class scanner for this analysis instance.
+     * Opens and closes class frames so references attach to their owning declaration.
      */
     private readonly EfferentCouplingClassScanner $classScanner;
 
     /**
-     * Stores member scanner for this analysis instance.
+     * Records type references found inside member bodies and attributes.
      */
     private readonly EfferentCouplingMemberScanner $memberScanner;
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Wire the graph, name resolution and both scanners into one traversal pipeline.
      */
     public function __construct()
     {

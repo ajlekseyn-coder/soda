@@ -8,7 +8,7 @@
 | src/ComplexityMetrics.php | 44 | `ComplexityMetrics` | public | `methods()` | accepted-laravel-style |
 | src/ComplexityMetrics.php | 58 | `ComplexityMetrics` | public | `classes()` | accepted-laravel-style |
 | src/ComplexityMetrics.php | 67 | `ComplexityMetrics` | public | `averagePerLloc()` | accepted-laravel-style |
-| src/FileAnalyser.php | 26 | `FileAnalyser` | public | `analyse()` | verb-ok |
+| src/FileAnalyser.php | 26 | `FileAnalyser` | public | `analyze()` | verb-ok |
 | src/ExtendedMetrics.php | 20 | `ExtendedMetrics` | public | `structure()` | accepted-laravel-style |
 | src/ExtendedMetrics.php | 25 | `ExtendedMetrics` | public | `breathing()` | accepted-laravel-style |
 | src/Quality/EfferentCoupling/EfferentCouplingInvokeShapeScanner.php | 25 | `EfferentCouplingInvokeShapeScanner` | public | `onNode()` | accepted-laravel-style |
@@ -161,7 +161,7 @@
 | src/Quality/Naming/RedundantNamingVisitor.php | 58 | `RedundantNamingVisitor` | protected | `doEnterNode()` | framework-contract |
 | src/Quality/Naming/RedundantNamingVisitor.php | 78 | `RedundantNamingVisitor` | protected | `doLeaveNode()` | framework-contract |
 | src/Quality/Naming/RedundantNamingVisitor.php | 158 | `RedundantNamingVisitor` | public | `namingReferences()` | accepted-laravel-style |
-| src/Quality/Naming/RedundantNamingAnalyser.php | 41 | `RedundantNamingAnalyser` | public | `analyse()` | verb-ok |
+| src/Quality/Naming/RedundantNamingAnalyser.php | 41 | `RedundantNamingAnalyser` | public | `analyze()` | verb-ok |
 | src/Quality/RuleCheckerState.php | 18 | `RuleCheckerState` | public | `create()` | verb-ok |
 | src/Quality/RuleCheckerState.php | 23 | `RuleCheckerState` | public | `rule()` | accepted-laravel-style |
 | src/Quality/RuleCheckerState.php | 28 | `RuleCheckerState` | public | `file()` | accepted-laravel-style |
@@ -246,9 +246,9 @@
 | src/Quality/RuleReadability/ComplexityRuleDensityDefinitions.php | 19 | `ComplexityRuleDensityDefinitions` | public | `entries()` | accepted-laravel-style |
 | src/Quality/RuleReadability/ComplexityRuleDefinitions.php | 16 | `ComplexityRuleDefinitions` | public | `all()` | accepted-laravel-style |
 | src/Quality/RuleReadability/ReadabilityRuleDefinitions.php | 16 | `ReadabilityRuleDefinitions` | public | `all()` | accepted-laravel-style |
-| src/Quality/QualityAnalyser.php | 27 | `QualityAnalyser` | public | `analyse()` | verb-ok |
+| src/Quality/QualityAnalyser.php | 27 | `QualityAnalyser` | public | `analyze()` | verb-ok |
 | src/Quality/Engine/LayerMixingDirectoryAggregator.php | 28 | `LayerMixingDirectoryAggregator` | public | `aggregate()` | verb-ok |
-| src/Quality/Engine/QualityAnalysisContract.php | 21 | `QualityAnalysisContract` | public | `analyse()` | verb-ok |
+| src/Quality/Engine/QualityAnalysisContract.php | 21 | `QualityAnalysisContract` | public | `analyze()` | verb-ok |
 | src/Quality/Engine/EvaluateInput.php | 44 | `EvaluateInput` | public | `fromArrays()` | verb-ok |
 | src/Quality/Engine/QualityAnalyserConfigurationSession.php | 22 | `QualityAnalyserConfigurationSession` | public | `createEngineForFiles()` | verb-ok |
 | src/Quality/Engine/QualityEngineEvaluatePipeline.php | 27 | `QualityEngineEvaluatePipeline` | public | `finish()` | verb-ok |
@@ -308,11 +308,11 @@
 | src/Plugins/Rules/NestedArrayAccess/NoNestedArrayAccess.php | 24 | `NoNestedArrayAccess` | public | `id()` | framework-contract |
 | src/Plugins/Rules/NestedArrayAccess/NoNestedArrayAccess.php | 30 | `NoNestedArrayAccess` | protected | `analyze()` | framework-contract |
 | src/Plugins/Rules/NestedArrayAccess/NoNestedArrayAccess.php | 41 | `NoNestedArrayAccess` | protected | `evaluate()` | framework-contract |
-| src/Plugins/Rules/NestedArrayAccess/NestedArrayAccessAnalyser.php | 31 | `NestedArrayAccessAnalyser` | public | `analyse()` | verb-ok |
+| src/Plugins/Rules/NestedArrayAccess/NestedArrayAccessAnalyser.php | 31 | `NestedArrayAccessAnalyser` | public | `analyze()` | verb-ok |
 | src/Plugins/Rules/NumericArrayIndex/NoNumericArrayIndex.php | 20 | `NoNumericArrayIndex` | public | `id()` | framework-contract |
 | src/Plugins/Rules/NumericArrayIndex/NoNumericArrayIndex.php | 26 | `NoNumericArrayIndex` | protected | `analyze()` | framework-contract |
 | src/Plugins/Rules/NumericArrayIndex/NoNumericArrayIndex.php | 37 | `NoNumericArrayIndex` | protected | `evaluate()` | framework-contract |
-| src/Plugins/Rules/NumericArrayIndex/NumericArrayIndexAnalyser.php | 33 | `NumericArrayIndexAnalyser` | public | `analyse()` | verb-ok |
+| src/Plugins/Rules/NumericArrayIndex/NumericArrayIndexAnalyser.php | 33 | `NumericArrayIndexAnalyser` | public | `analyze()` | verb-ok |
 | src/Plugins/Rules/Breathing/MinCodeOxygenLevel.php | 17 | `MinCodeOxygenLevel` | public | `check()` | framework-contract |
 | src/Plugins/Rules/Breathing/MinIdentifierReadabilityScore.php | 17 | `MinIdentifierReadabilityScore` | public | `check()` | framework-contract |
 | src/Plugins/Rules/Breathing/MinCodeBreathingScore.php | 17 | `MinCodeBreathingScore` | public | `check()` | framework-contract |
@@ -325,7 +325,7 @@
 | src/Plugins/Rules/ListOnlyArray/OnlyListArraysAllowed.php | 89 | `OnlyListArraysAllowed` | protected | `evaluate()` | framework-contract |
 | src/Plugins/Rules/ListOnlyArray/ListOnlyArrayCollectingVisitor.php | 28 | `ListOnlyArrayCollectingVisitor` | public | `enterNode()` | framework-contract |
 | src/Plugins/Rules/ListOnlyArray/ListOnlyArrayCollectingVisitor.php | 44 | `ListOnlyArrayCollectingVisitor` | public | `findings()` | accepted-laravel-style |
-| src/Plugins/Rules/ListOnlyArray/ListOnlyArrayAnalyser.php | 26 | `ListOnlyArrayAnalyser` | public | `analyse()` | verb-ok |
+| src/Plugins/Rules/ListOnlyArray/ListOnlyArrayAnalyser.php | 26 | `ListOnlyArrayAnalyser` | public | `analyze()` | verb-ok |
 | src/Plugins/Rules/Complexity/MaxTryCatchBlocks.php | 23 | `MaxTryCatchBlocks` | public | `check()` | framework-contract |
 | src/Plugins/Rules/Complexity/MaxReturnStatements.php | 23 | `MaxReturnStatements` | public | `check()` | framework-contract |
 | src/Plugins/Rules/Complexity/MaxWeightedCognitiveDensity.php | 23 | `MaxWeightedCognitiveDensity` | public | `check()` | framework-contract |
@@ -333,7 +333,7 @@
 | src/Plugins/Rules/Complexity/MaxLogicalComplexityFactor.php | 23 | `MaxLogicalComplexityFactor` | public | `check()` | framework-contract |
 | src/Plugins/Rules/Complexity/MaxCyclomaticComplexity.php | 23 | `MaxCyclomaticComplexity` | public | `check()` | framework-contract |
 | src/Plugins/Rules/Complexity/MaxControlNesting.php | 23 | `MaxControlNesting` | public | `check()` | framework-contract |
-| src/Plugins/Rules/UselessVariable/UselessVariableAnalyser.php | 40 | `UselessVariableAnalyser` | public | `analyse()` | verb-ok |
+| src/Plugins/Rules/UselessVariable/UselessVariableAnalyser.php | 40 | `UselessVariableAnalyser` | public | `analyze()` | verb-ok |
 | src/Plugins/Rules/UselessVariable/UselessVariableArrowCapture.php | 21 | `UselessVariableArrowCapture` | public | `isCapturedByExpression()` | verb-ok |
 | src/Plugins/Rules/UselessVariable/UselessVariableAliasAssignment.php | 23 | `UselessVariableAliasAssignment` | public | `fromNode()` | verb-ok |
 | src/Plugins/Rules/UselessVariable/UselessVariableAliasAssignment.php | 45 | `UselessVariableAliasAssignment` | public | `toViolationRow()` | verb-ok |
@@ -380,13 +380,13 @@
 | src/Plugins/Rules/NoUnusedMethods.php | 46 | `NoUnusedMethods` | public | `id()` | framework-contract |
 | src/Plugins/Rules/NoUnusedMethods.php | 52 | `NoUnusedMethods` | protected | `analyze()` | framework-contract |
 | src/Plugins/Rules/NoUnusedMethods.php | 58 | `NoUnusedMethods` | protected | `evaluate()` | framework-contract |
-| src/Plugins/Rules/UnusedMethods/UnusedMethodAnalyser.php | 49 | `UnusedMethodAnalyser` | public | `analyse()` | verb-ok |
+| src/Plugins/Rules/UnusedMethods/UnusedMethodAnalyser.php | 49 | `UnusedMethodAnalyser` | public | `analyze()` | verb-ok |
 | src/Plugins/Rules/UnusedMethods/UnusedMethodInFileInheritance.php | 23 | `UnusedMethodInFileInheritance` | public | `ancestors()` | accepted-laravel-style |
 | src/Plugins/Rules/UnusedMethods/UnusedMethodInFileInheritance.php | 42 | `UnusedMethodInFileInheritance` | public | `directParent()` | accepted-laravel-style |
 | src/Plugins/Rules/UnusedMethods/UnusedMethodInFileInheritance.php | 53 | `UnusedMethodInFileInheritance` | public | `hasMethod()` | verb-ok |
 | src/Plugins/Rules/UnusedMethods/UnusedMethodProtectedContract.php | 21 | `UnusedMethodProtectedContract` | public | `isDeclaredOnSupertype()` | verb-ok |
 | src/Plugins/Rules/UnusedMethods/UnusedMethodCandidatePolicy.php | 20 | `UnusedMethodCandidatePolicy` | public | `isCandidate()` | verb-ok |
-| src/Plugins/Rules/ControlFlow/AssignmentInConditionAnalyser.php | 37 | `AssignmentInConditionAnalyser` | public | `analyse()` | verb-ok |
+| src/Plugins/Rules/ControlFlow/AssignmentInConditionAnalyser.php | 37 | `AssignmentInConditionAnalyser` | public | `analyze()` | verb-ok |
 | src/Plugins/Rules/ControlFlow/NoAssignmentInCondition.php | 20 | `NoAssignmentInCondition` | public | `id()` | framework-contract |
 | src/Plugins/Rules/ControlFlow/NoAssignmentInCondition.php | 26 | `NoAssignmentInCondition` | protected | `analyze()` | framework-contract |
 | src/Plugins/Rules/ControlFlow/NoAssignmentInCondition.php | 37 | `NoAssignmentInCondition` | protected | `evaluate()` | framework-contract |
@@ -421,7 +421,7 @@
 | src/Breathing/LineBlockData.php | 40 | `LineBlockData` | public | `blocks()` | accepted-laravel-style |
 | src/Breathing/LineBlockData.php | 48 | `LineBlockData` | public | `blockLines()` | accepted-laravel-style |
 | src/Breathing/LineBlockData.php | 53 | `LineBlockData` | public | `shortBlocks()` | accepted-laravel-style |
-| src/Breathing/BreathingAnalyser.php | 17 | `BreathingAnalyser` | public | `analyse()` | verb-ok |
+| src/Breathing/BreathingAnalyser.php | 17 | `BreathingAnalyser` | public | `analyze()` | verb-ok |
 | src/Breathing/BreathingFactors.php | 17 | `BreathingFactors` | public | `cognitive()` | accepted-laravel-style |
 | src/Breathing/BreathingFactors.php | 22 | `BreathingFactors` | public | `airiness()` | accepted-laravel-style |
 | src/Breathing/Calc/BreathingWcdResolver.php | 18 | `BreathingWcdResolver` | public | `resolve()` | verb-ok |
@@ -436,7 +436,7 @@
 | src/Breathing/Calc/BreathingLcfFromAstResolver.php | 19 | `BreathingLcfFromAstResolver` | public | `resolve()` | verb-ok |
 | src/Breathing/BreathingSourceTokenPipeline.php | 16 | `BreathingSourceTokenPipeline` | public | `prepare()` | verb-ok |
 | src/Breathing/CommentOnlyDetector.php | 18 | `CommentOnlyDetector` | public | `detect()` | verb-ok |
-| src/Breathing/LineAnalyser.php | 16 | `LineAnalyser` | public | `analyse()` | verb-ok |
+| src/Breathing/LineAnalyser.php | 16 | `LineAnalyser` | public | `analyze()` | verb-ok |
 | src/Breathing/BreathingPerceptualIndices.php | 21 | `BreathingPerceptualIndices` | public | `collect()` | verb-ok |
 | src/Breathing/TokenWeightResolver.php | 110 | `TokenWeightResolver` | public | `weight()` | accepted-laravel-style |
 | src/ProjectMetricsBreathingAggregator.php | 20 | `ProjectMetricsBreathingAggregator` | public | `aggregate()` | verb-ok |
@@ -460,7 +460,7 @@
 | src/Formatter/DependenciesFormatter.php | 20 | `DependenciesFormatter` | public | `format()` | verb-ok |
 | src/Formatter/JsonResultFormatter.php | 18 | `JsonResultFormatter` | public | `format()` | verb-ok |
 | src/Formatter/StructureFormatter.php | 20 | `StructureFormatter` | public | `format()` | verb-ok |
-| src/ProjectMetrics.php | 16 | `ProjectMetrics` | public | `analyse()` | verb-ok |
+| src/ProjectMetrics.php | 16 | `ProjectMetrics` | public | `analyze()` | verb-ok |
 | src/ProjectMetricsAnalyseResultBuilder.php | 30 | `ProjectMetricsAnalyseResultBuilder` | public | `build()` | verb-ok |
 | src/Visitor/NullableReturnVisitor.php | 20 | `NullableReturnVisitor` | public | `enterNode()` | framework-contract |
 | src/Visitor/NullableReturnVisitor.php | 31 | `NullableReturnVisitor` | public | `leaveNode()` | framework-contract |
@@ -504,7 +504,7 @@
 | src/Structure/AnonymousClassBoundary.php | 42 | `AnonymousClassBoundary` | public | `isAnonymousClass()` | verb-ok |
 | src/QualityAnalysisBuilder.php | 28 | `QualityAnalysisBuilder` | public | `debug()` | accepted-laravel-style |
 | src/QualityAnalysisBuilder.php | 38 | `QualityAnalysisBuilder` | public | `config()` | accepted-laravel-style |
-| src/QualityAnalysisBuilder.php | 48 | `QualityAnalysisBuilder` | public | `analyse()` | verb-ok |
+| src/QualityAnalysisBuilder.php | 48 | `QualityAnalysisBuilder` | public | `analyze()` | verb-ok |
 | src/FileAnalysisAstPipeline.php | 39 | `FileAnalysisAstPipeline` | public | `traverse()` | verb-ok |
 | src/FileAnalysisAstPipeline.php | 50 | `FileAnalysisAstPipeline` | public | `complexity()` | accepted-laravel-style |
 | src/FileAnalysisAstPipeline.php | 55 | `FileAnalysisAstPipeline` | public | `linesOfCode()` | accepted-laravel-style |

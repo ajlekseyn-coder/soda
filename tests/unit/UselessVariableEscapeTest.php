@@ -16,7 +16,7 @@ final class UselessVariableEscapeTest extends TestCase
     public function testEscapePolicyThroughAliasAnalysis(string $after, int $expected): void
     {
         $nodes = $this->parsePhpFile('<?php function example($source) { $alias = $source; '.$after.' return $alias; }');
-        $findings = (new UselessVariableAnalyser)->analyse($nodes);
+        $findings = (new UselessVariableAnalyser)->analyze($nodes);
 
         self::assertCount($expected, $findings);
     }

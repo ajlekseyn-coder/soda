@@ -28,7 +28,7 @@ interface Marker
 ```
 
 ```php
-// ❌ The parent is not part of the analysed project, so no
+// ❌ The parent is not part of the analyzed project, so no
 // method contract is known
 interface Marker extends ExternalProtocol {}
 

@@ -10,7 +10,7 @@ use Illuminate\Container\Container;
 final class Application extends Container
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Register the shared analysis runner as a container singleton.
      */
     public function __construct()
     {

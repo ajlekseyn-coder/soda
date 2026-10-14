@@ -17,34 +17,34 @@ use Illuminate\Support\Str;
 final readonly class RedundantNamingAnalyser
 {
     /**
-     * Defines similarity threshold used by this policy.
+     * Percentage of shared words above which a name repeats its context.
      */
     private const float SIMILARITY_THRESHOLD = 80.0;
 
     /**
-     * Defines min word length used by this policy.
+     * Shortest token considered meaningful during word comparison.
      */
     private const int MIN_WORD_LENGTH = 4;
 
     /**
-     * Defines class suffix ignore used by this policy.
+     * Declared suffixes owned by the language or test tooling, never by taste.
      */
     private const array CLASS_SUFFIX_IGNORE = [
         'Exception', 'Interface', 'Trait', 'Abstract', 'Test',
     ];
 
     /**
-     * Defines generic suffixes used by this policy.
+     * Role words stripped before a class name is compared with its members.
      */
     private const array GENERIC_SUFFIXES = ['Collection', 'Repository', 'Service', 'Manager', 'Factory', 'Handler', 'Provider'];
 
     /**
-     * Defines redundant middle used by this policy.
+     * Middle words repeating the entity already named by the class.
      */
     private const array REDUNDANT_MIDDLE = ['Item', 'Items', 'Entity', 'Entities', 'Model', 'Models'];
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Freeze the sensitivity of the repeated-naming comparison.
      *
      * @param float $similarityThreshold Minimum percentage similarity required to flag repeated naming.
      * @param int   $minWordLength       Minimum token length considered when comparing names.
@@ -61,7 +61,7 @@ final readonly class RedundantNamingAnalyser
      *
      * @return list<array{type: 'class'|'method', current: string, suggested: string, reason: string, similarity: float, line: int, className?: string}>
      */
-    public function analyse(array $data): array
+    public function analyze(array $data): array
     {
         $violations = [];
         $methodChecker = new MethodRedundancyChecker($this->similarityThreshold, $this->minWordLength);

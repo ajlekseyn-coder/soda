@@ -39,7 +39,7 @@ final class CallableMetricsVisitor extends FactVisitor
     private array $empty = [];
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Compose the nesting tracker and the per-callable condition recorder.
      *
      * @param NestingTracker    $tracker  Tracks the active callable scopes while traversing the syntax tree.
      * @param ConditionRecorder $recorder Records measurements for each completed callable scope.

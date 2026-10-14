@@ -28,15 +28,12 @@ final class SodaInitFileEmitter
         $items = [];
         $shortNames = [];
 
-        foreach (RuleCatalog::standardDefinitions() as $ruleKey => $definition) {
+        foreach (RuleCatalog::standardDefinitions() as $definition) {
             $shortName = self::shortName($definition['class']);
             self::assertUniqueShortName($shortNames, $shortName, $definition['class']);
             $shortNames[$shortName] = $definition['class'];
             $uses[] = 'use '.$definition['class'].';';
-            $items[] = match ($ruleKey) {
-                'boolean_methods_without_prefix' => $shortName.'::standard(),',
-                default                          => self::instantiate($shortName, $definition['arguments']),
-            };
+            $items[] = self::instantiate($shortName, $definition['arguments']);
         }
 
         sort($uses);

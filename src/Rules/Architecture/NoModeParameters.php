@@ -27,7 +27,7 @@ final class NoModeParameters extends Check
                 continue;
             }
 
-            foreach ((new ParameterControlAnalysis)->analyse($callable)['modes'] as $parameter => $lines) {
+            foreach ((new ParameterControlAnalysis)->analyze($callable)['modes'] as $parameter => $lines) {
                 yield new Violation(
                     rule: $this->id(), file: $file->path, value: 1, threshold: 0,
                     line: min($lines),

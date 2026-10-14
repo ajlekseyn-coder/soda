@@ -12,7 +12,7 @@ final class NoElseBranchesTest extends TestCase
 {
     public function testReportsElseifAndElseAtTheirExactLines(): void
     {
-        $result = $this->analyse(<<<'PHP'
+        $result = $this->analyze(<<<'PHP'
 <?php
 if ($first) {
     return 1;
@@ -34,7 +34,7 @@ PHP);
 
     public function testReportsEveryNestedElseFromAccessCheckExample(): void
     {
-        $result = $this->analyse(<<<'PHP'
+        $result = $this->analyze(<<<'PHP'
 <?php
 function hasAccess(User $user): bool {
     if (!$user->isBanned()) {
@@ -59,7 +59,7 @@ PHP);
 
     public function testAllowsGuardClausesAndDoesNotConfuseOtherAlternativesWithElse(): void
     {
-        $result = $this->analyse(<<<'PHP'
+        $result = $this->analyze(<<<'PHP'
 <?php
 function hasAccess(User $user): bool {
     if ($user->isBanned()) {
@@ -88,7 +88,7 @@ PHP);
     }
 
     /** @return array{metrics: array, violations: array} */
-    private function analyse(string $source): array
+    private function analyze(string $source): array
     {
         $path = tempnam(sys_get_temp_dir(), 'soda_no_else_');
         $this->assertNotFalse($path);

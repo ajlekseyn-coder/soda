@@ -30,7 +30,7 @@ final class OrderSaver
 }
 PHP;
 
-        $findings = $this->analyse($source);
+        $findings = $this->analyze($source);
 
         $this->assertCount(1, $findings);
         $this->assertSame('OrderSaver', $findings[0]->class);
@@ -59,7 +59,7 @@ final class UserFinder
 }
 PHP;
 
-        $findings = $this->analyse($source);
+        $findings = $this->analyze($source);
 
         $this->assertCount(1, $findings);
         $this->assertSame('UserFinder', $findings[0]->class);
@@ -118,7 +118,7 @@ return \Cosmira\Soda\Config\Soda::configure()->with([
 PHP);
 
         try {
-            $result = (new QualityAnalyser)->analyse([$sourcePath], $configPath);
+            $result = Analyzer::analyze([$sourcePath], $configPath);
 
             $this->assertCount(1, $result->violations);
             $this->assertSame('no_trivial_delegating_classes', $result->violations[0]->rule);
@@ -141,7 +141,7 @@ final class OrderGateway
     public function delete(Order $order): void { $this->repository->delete($order); }
 }
 PHP;
-        $findings = $this->analyse($source);
+        $findings = $this->analyze($source);
         self::assertCount(1, $findings);
         self::assertSame(['save', 'delete'], $findings[0]->methods);
         self::assertSame('repository', $findings[0]->delegate);
@@ -160,14 +160,14 @@ PHP;
                 public function __construct(private Repository $repository) {}
                 #[Operation] public function renamed($order) { return $this->repository->save(order: $order); }
             }';
-            self::assertCount(1, $this->analyse($source));
+            self::assertCount(1, $this->analyze($source));
         }
     }
 
     #[DataProvider('legitimateSmallClassProvider')]
     public function testAllowsSmallClassWithIndependentReasonToExist(string $source): void
     {
-        $this->assertSame([], $this->analyse($source));
+        $this->assertSame([], $this->analyze($source));
     }
 
     /**
@@ -309,9 +309,9 @@ PHP];
     /**
      * @return list<TrivialDelegatingClassFinding>
      */
-    private function analyse(string $source): array
+    private function analyze(string $source): array
     {
-        return (new TrivialDelegatingClassAnalyser)->analyse($this->parse($source));
+        return (new TrivialDelegatingClassAnalyser)->analyze($this->parse($source));
     }
 
     /**

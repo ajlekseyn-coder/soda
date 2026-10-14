@@ -31,7 +31,7 @@ use PhpParser\Node\Stmt\Trait_;
 final class NamingVisitor extends FactVisitor
 {
     /**
-     * Defines magic methods used by this policy.
+     * Magic methods whose names are fixed by the engine, never by taste.
      */
     private const array MAGIC_METHODS = [
         '__construct', '__destruct', '__call', '__callStatic', '__get', '__set',

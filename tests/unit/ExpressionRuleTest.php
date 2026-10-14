@@ -6,8 +6,8 @@ namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analyzer;
 use Cosmira\Soda\Contracts\Check as SodaRule;
-use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Rules\ExpressionCheck;
 use Cosmira\Soda\Support\ConfigException;
@@ -100,16 +100,15 @@ return \Cosmira\Soda\Config\Soda::configure()->with([
 PHP);
 
         try {
-            $analyser = new QualityAnalyser;
-            $result = $analyser->analyse([$this->file], $config);
+            $result = Analyzer::analyze([$this->file], $config);
             $this->assertFalse($result->isPassing());
             file_put_contents($this->file, '<?php function broken(');
-            $result = $analyser->analyse([$this->file], $config);
+            $result = Analyzer::analyze([$this->file], $config);
             $this->assertFalse($result->isPassing());
             $this->assertSame('parse_error', $result->violations->first()->rule);
-            // Reusing the analyser after a parse failure must not retain old AST state.
+            // Reusing the analyzer after a parse failure must not retain old AST state.
             file_put_contents($this->file, '<?php function valid(): void {}');
-            $this->assertTrue($analyser->analyse([$this->file], $config)->isPassing());
+            $this->assertTrue(Analyzer::analyze([$this->file], $config)->isPassing());
         } finally {
             unlink($config);
         }

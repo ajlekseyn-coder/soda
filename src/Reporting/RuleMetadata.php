@@ -10,22 +10,22 @@ namespace Cosmira\Soda\Reporting;
 final readonly class RuleMetadata
 {
     /**
-     * Defines severity error used by this policy.
+     * Severity label for rules whose violation fails the quality gate.
      */
     public const string SEVERITY_ERROR = 'error';
 
     /**
-     * Defines severity warning used by this policy.
+     * Severity label for findings reported without failing the run.
      */
     public const string SEVERITY_WARNING = 'warning';
 
     /**
-     * Defines comparison max used by this policy.
+     * Comparison mode where the measured value must not exceed the threshold.
      */
     public const string COMPARISON_MAX = 'max';
 
     /**
-     * Defines comparison min used by this policy.
+     * Comparison mode where the measured value must reach the threshold.
      */
     public const string COMPARISON_MIN = 'min';
 

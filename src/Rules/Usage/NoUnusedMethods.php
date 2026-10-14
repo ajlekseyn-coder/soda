@@ -75,7 +75,7 @@ final class NoUnusedMethods extends Check
     #[\Override]
     public function checkProject(ProjectFacts $facts): iterable
     {
-        foreach ((new UnusedMethodAnalyser)->analyse($facts) as $finding) {
+        foreach ((new UnusedMethodAnalyser)->analyze($facts) as $finding) {
             $method = strtolower($finding['method']);
             if (in_array($method, $this->ignore, true)) {
                 continue;

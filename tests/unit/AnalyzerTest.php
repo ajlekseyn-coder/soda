@@ -23,7 +23,7 @@ final class AnalyzerTest extends TestCase
         $path = __DIR__.'/../quality-fixture/SimpleClass.php';
         $result = Analyzer::file($path)
             ->config(__DIR__.'/../quality-fixture/soda.php')
-            ->analyse();
+            ->analyze();
 
         $this->assertInstanceOf(QualityResult::class, $result);
     }

@@ -27,12 +27,12 @@ use PhpParser\NodeFinder;
 final readonly class UselessVariableAnalyser
 {
     /**
-     * Stores finder for this analysis instance.
+     * Locates assignments and their usages across the syntax tree.
      */
     private NodeFinder $finder;
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Prepare the node finder used for every subsequent analysis.
      */
     public function __construct()
     {
@@ -46,7 +46,7 @@ final readonly class UselessVariableAnalyser
      *
      * @return list<array{line: int, variable: string, source: string}>
      */
-    public function analyse(array $nodes): array
+    public function analyze(array $nodes): array
     {
         $violations = [];
 

@@ -87,7 +87,7 @@ return \Cosmira\Soda\Config\Soda::configure()->with([
 PHP);
 
         try {
-            $result = (new QualityAnalyser)->analyse([$sourcePath], $configPath);
+            $result = Analyzer::analyze([$sourcePath], $configPath);
 
             $this->assertCount(1, $result->violations);
             $violation = $result->violations->first();

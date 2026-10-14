@@ -51,9 +51,9 @@ final class MaxConsecutiveLocalAssignments extends Check
      */
     public function checkFile(FileFacts $file): iterable
     {
-        $analyser = new ConsecutiveAssignmentRuns;
+        $analyzer = new ConsecutiveAssignmentRuns;
         foreach ((new NodeFinder)->findInstanceOf($file->nodes, FunctionLike::class) as $callable) {
-            foreach ($analyser->collect($callable) as $run) {
+            foreach ($analyzer->collect($callable) as $run) {
                 if (count($run) <= $this->limit) {
                     continue;
                 }

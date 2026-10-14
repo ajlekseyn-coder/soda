@@ -41,7 +41,7 @@ final class UnusedMethodAnalyser
      *
      * @return list<array{file: string, class: string, method: string, visibility: string, line: int}>
      */
-    public function analyse(ProjectFacts $project): array
+    public function analyze(ProjectFacts $project): array
     {
         $this->types = $this->index($project);
         $this->surfaces = [];

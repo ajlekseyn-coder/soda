@@ -16,25 +16,25 @@ final class UnusedMethodsTest extends TestCase
 {
     use ParsesPhpSnippets;
 
-    private UnusedMethodAnalyser $analyser;
+    private UnusedMethodAnalyser $analyzer;
 
     protected function setUp(): void
     {
-        $this->analyser = new UnusedMethodAnalyser;
+        $this->analyzer = new UnusedMethodAnalyser;
     }
 
-    private function analyse(array $nodes): array
+    private function analyze(array $nodes): array
     {
         $metrics = AstFacts::collect($nodes, LogicalLineMap::fromSource(''), ['methodUsage']);
         $project = new ProjectFacts;
         $project->add(new FileFacts('example.php', '', $nodes, $metrics));
 
-        return $this->analyser->analyse($project);
+        return $this->analyzer->analyze($project);
     }
 
     private function hasViolation(string $code): bool
     {
-        return $this->analyse($this->parseSnippet($code)) !== [];
+        return $this->analyze($this->parseSnippet($code)) !== [];
     }
 
     #[DataProvider('callForms')]
@@ -83,7 +83,7 @@ final class UnusedMethodsTest extends TestCase
     /** Private and uncontracted protected both reported. */
     public function testCase8MultipleUnused(): void
     {
-        $violations = $this->analyse($this->parseSnippet(
+        $violations = $this->analyze($this->parseSnippet(
             'class A { private function a() {} protected function b() {} }',
         ));
 
@@ -101,7 +101,7 @@ final class UnusedMethodsTest extends TestCase
     /** Child override is skipped; abstract parent stub may still be reported if unused in A. */
     public function testChildProtectedOverrideSkippedWhenAbstractDeclaresConcreteProtected(): void
     {
-        $violations = $this->analyse($this->parseSnippet(
+        $violations = $this->analyze($this->parseSnippet(
             'abstract class A { protected function f(): void {} } class B extends A { protected function f(): void {} }',
         ));
 
@@ -140,7 +140,7 @@ final class UnusedMethodsTest extends TestCase
     /** Protected not on contract; other protected on implementor still reported. */
     public function testProtectedOrphanStillReportedWhenInterfaceDeclaresOtherMethod(): void
     {
-        $violations = $this->analyse($this->parseSnippet(
+        $violations = $this->analyze($this->parseSnippet(
             'interface I { public function run(): void; } class C implements I { public function run(): void {} protected function helper(): void {} }',
         ));
 
@@ -245,7 +245,7 @@ final class UnusedMethodsTest extends TestCase
         ));
     }
 
-    /** Analyser still sees private setUp; {@see NoUnusedMethods} merges DEFAULT_IGNORE for the rule. */
+    /** Analyzer still sees private setUp; {@see NoUnusedMethods} merges DEFAULT_IGNORE for the rule. */
     public function testPrivateSetUpReportedByAnalyser(): void
     {
         $this->assertTrue($this->hasViolation(
@@ -256,7 +256,7 @@ final class UnusedMethodsTest extends TestCase
     /** Violation contains expected metadata */
     public function testViolationMetadata(): void
     {
-        $violations = $this->analyse($this->parseSnippet(
+        $violations = $this->analyze($this->parseSnippet(
             'class MyClass { private function myMethod() {} }',
         ));
 

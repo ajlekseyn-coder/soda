@@ -34,12 +34,12 @@ final class OnlyListArraysAllowed extends Check
     }
 
     /**
-     * Defines message pragmatic used by this policy.
+     * Diagnostic text asking the author to review the shape of the data.
      */
     private const string MESSAGE_PRAGMATIC = 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.';
 
     /**
-     * Defines message strict used by this policy.
+     * Diagnostic text used when strict mode forbids every associative array.
      */
     private const string MESSAGE_STRICT = 'Only list arrays are allowed. Associative arrays are forbidden. Use Value Objects instead.';
 
@@ -56,7 +56,7 @@ final class OnlyListArraysAllowed extends Check
     ];
 
     /**
-     * Stores path exclusion for this analysis instance.
+     * Matches source paths exempt from the list-array policy.
      */
     private readonly FnmatchPathExclusion $pathExclusion;
 

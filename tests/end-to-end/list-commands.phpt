@@ -22,7 +22,7 @@ Options:
   help          Display help for a command
   init          Create soda.php with default quality rules
   list          List commands
-  quality       Analyse code quality and check against configured thresholds
+  quality       Analyze code quality and check against configured thresholds
  list
   list:metrics  List expression metrics, their meaning and calculation source
   list:rules    List built-in quality rules

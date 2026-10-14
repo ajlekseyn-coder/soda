@@ -22,12 +22,12 @@ final class NestingTracker
     private array $scopes = [];
 
     /**
-     * Stores name for this analysis instance.
+     * Callable whose control structures are currently being counted.
      */
     private ?string $name = null;
 
     /**
-     * Stores depth for this analysis instance.
+     * Nesting depth reached inside the callable being tracked.
      */
     private int $depth = 0;
 

@@ -18,12 +18,12 @@ use function similar_text;
 final readonly class MethodRedundancyChecker
 {
     /**
-     * Defines method prefix add used by this policy.
+     * Verbs whose suffix should name the parameter or return type.
      */
     private const array METHOD_PREFIX_ADD = ['add', 'has', 'remove', 'append', 'prepend', 'push', 'attach'];
 
     /**
-     * Defines method prefix get used by this policy.
+     * Read verbs whose suffix may repeat the collection return type.
      */
     private const array METHOD_PREFIX_GET = ['get', 'find', 'list', 'all', 'fetch', 'load'];
 
@@ -33,12 +33,12 @@ final readonly class MethodRedundancyChecker
     private const string COLLECTION_MARKER = 'all';
 
     /**
-     * Defines finding type method used by this policy.
+     * Finding discriminator marking suggestions scoped to a single method.
      */
     private const string FINDING_TYPE_METHOD = 'method';
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Freeze the sensitivity of the repeated-naming comparison.
      *
      * @param float $similarityThreshold Minimum percentage similarity required to flag repeated naming.
      * @param int   $minWordLength       Minimum token length considered when comparing names.
@@ -143,7 +143,7 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
-     * Defines class entity suffixes used by this policy.
+     * Role suffixes stripped before comparing a method name with its owner.
      */
     private const array CLASS_ENTITY_SUFFIXES = [
         'Collection', 'Service', 'Repository', 'Manager', 'Controller', 'Handler',
@@ -151,7 +151,7 @@ final readonly class MethodRedundancyChecker
     ];
 
     /**
-     * Defines class context fillers used by this policy.
+     * Owner words that add no meaning once the role suffix is removed.
      */
     private const array CLASS_CONTEXT_FILLERS = ['Item', 'Items', 'Entity', 'Entities', 'Model', 'Models'];
 

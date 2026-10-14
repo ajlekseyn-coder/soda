@@ -11,17 +11,17 @@ final class UselessVariableRuleTest extends TestCase
 {
     use ParsesPhpSnippets;
 
-    private UselessVariableAnalyser $analyser;
+    private UselessVariableAnalyser $analyzer;
 
     protected function setUp(): void
     {
-        $this->analyser = new UselessVariableAnalyser;
+        $this->analyzer = new UselessVariableAnalyser;
     }
 
     /** @return list<array{line: int, variable: string, source: string}> */
     private function violations(string $code): array
     {
-        return $this->analyser->analyse($this->parseSnippet($code));
+        return $this->analyzer->analyze($this->parseSnippet($code));
     }
 
     private function hasViolation(string $code): bool
@@ -153,14 +153,14 @@ PHP));
     // Scope behaviour
     // -------------------------------------------------------------------------
 
-    /** Top-level code is not analysed — only function/method bodies. */
+    /** Top-level code is not analyzed — only function/method bodies. */
     public function testTopLevelCodeIsIgnored(): void
     {
         $this->assertFalse($this->hasViolation('$a = $b; return $a;'));
     }
 
-    /** Class methods are analysed. */
-    public function testClassMethodIsAnalysed(): void
+    /** Class methods are analyzed. */
+    public function testClassMethodIsAnalyzed(): void
     {
         $this->assertTrue($this->hasViolation(
             'class Foo { public function test($b) { $a = $b; return $a; } }',

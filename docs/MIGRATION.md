@@ -14,7 +14,7 @@ Then apply the internal namespace changes below where relevant.
 The configuration remains a PHP file returning `Soda::configure()->withPaths(...)->with(...)`.
 Keep rule class names, constructor settings and rule IDs; update their imports.
 `Analyzer::file()`, `Analyzer::paths()`, `Analyzer::analyze()` and the fluent
-`config(...)->analyse()` entry remain available. JSON output remains schema 4.
+`config(...)->analyze()` entry remain available. JSON output remains schema 4.
 This refactor changes extension contracts and namespaces; it does not provide
 compatibility aliases for the removed internal runtime.
 
@@ -35,7 +35,7 @@ All names below are relative to `Cosmira\Soda\`.
 | `Plugins\Rules\NestedArrayAccess\NoNestedArrayAccess` | `Rules\Usage\NoNestedArrayAccess` |
 | `Plugins\Rules\ListOnlyArray\OnlyListArraysAllowed` | `Rules\Usage\OnlyListArraysAllowed` |
 | `Plugins\Rules\NoTrivialDelegatingClasses` | `Rules\Structure\NoTrivialDelegatingClasses` |
-| `Quality\Analyser` | `Analysis\Runner` |
+| `Quality\Analyzer` | `Analysis\Runner` |
 | `Quality\QualityResult` | `Reporting\QualityResult` |
 | `Quality\Report\Violation` and report formatters | `Reporting\` |
 | `Quality\Config\*`, `Quality\ConfigException` | `Config\` |
@@ -114,7 +114,7 @@ Import `Cosmira\Soda\Config\RuleCatalog` for catalog selection. Explicit named
 rules in `with([new MaxCyclomaticComplexity(10), ...])` remain unchanged.
 
 There is no `QualityEngine`, `QualityRuleAdapter`, `EvaluationContext`, or shared
-active threshold table. Use `Analysis\Analyser::check($files, $config)` for an
+active threshold table. Use `Analysis\Analyzer::check($files, $config)` for an
 already constructed config. `resources/catalog.php` contains flat entries with
 `class`, `arguments` and discovery metadata. Adding a normal built-in rule needs
 its class, catalogue entry and behavioral test; the executor does not change.
@@ -292,7 +292,7 @@ unchanged. Update custom code that injected the internal executor or used collec
 
 | Previous internal name | Current name |
 | --- | --- |
-| `Analysis\Analyser` | `Analysis\Runner` |
+| `Analysis\Analyzer` | `Analysis\Runner` |
 | `Analysis\QualityMetricsVisitor` | `Analysis\StructureVisitor` |
 | `Analysis\MetricsExtractor` | `Analysis\ClassFactsExtractor` |
 | `Analysis\NullableReturnVisitor` | `Analysis\FactVisitor` |
@@ -409,7 +409,7 @@ remove former findings. Missing relationships and dynamic receivers are
 conservative within affected types. No vendor autoload or reachability scan is
 introduced.
 
-The internal `UnusedMethodAnalyser::analyse()` consumes `ProjectFacts` instead of
+The internal `UnusedMethodAnalyser::analyze()` consumes `ProjectFacts` instead of
 AST nodes. Its former same-file candidate/contract helpers were replaced by
 declaration collection and project resolution; their behavioral cases are now
 covered through the actual rule pipeline.

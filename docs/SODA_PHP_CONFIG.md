@@ -41,7 +41,7 @@ return Soda::configure()
 
 ## Paths
 
-Use `withPaths()` for the default paths analysed by `vendor/bin/soda quality`:
+Use `withPaths()` for the default paths analyzed by `vendor/bin/soda quality`:
 
 ```php
 use Cosmira\Soda\Config\Soda;

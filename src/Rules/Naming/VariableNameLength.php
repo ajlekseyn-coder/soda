@@ -13,7 +13,7 @@ use PhpParser\NodeFinder;
 final class VariableNameLength extends Check
 {
     /**
-     * Defines superglobals used by this policy.
+     * Superglobal names excluded from the length measurement.
      */
     private const array SUPERGLOBALS = [
         'GLOBALS', '_SERVER', '_GET', '_POST', '_FILES', '_COOKIE',

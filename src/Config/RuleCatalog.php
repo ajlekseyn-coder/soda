@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Config;
 
 use Cosmira\Soda\Contracts\Check;
-use Cosmira\Soda\Rules\Naming\BooleanMethodPrefix;
 
 final class RuleCatalog
 {
@@ -39,12 +38,9 @@ final class RuleCatalog
         $definitions = self::standardDefinitions();
         $checks = [];
 
-        foreach ($definitions as $id => $entry) {
+        foreach ($definitions as $entry) {
             $class = $entry['class'];
-            $checks[] = match ($id) {
-                'boolean_methods_without_prefix'    => BooleanMethodPrefix::standard(),
-                default                             => new $class(...$entry['arguments']),
-            };
+            $checks[] = new $class(...$entry['arguments']);
         }
 
         return $checks;

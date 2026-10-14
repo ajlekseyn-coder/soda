@@ -9,7 +9,6 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Contracts\Check;
-use Cosmira\Soda\Rules\Naming\BooleanMethodPrefix;
 use Illuminate\Support\Collection;
 
 /** Synthetic fact fixtures used to exercise named checks independently of parsing. */
@@ -57,7 +56,7 @@ final class CheckFixture
             if ($id === 'max_layer_dominance_percentage') {
                 $args = [$limit, $options['min_files'] ?? 4];
             }
-            $checks[] = $id === 'boolean_methods_without_prefix' ? BooleanMethodPrefix::standard() : new $class(...$args);
+            $checks[] = new $class(...$args);
         }
 
         return $checks;

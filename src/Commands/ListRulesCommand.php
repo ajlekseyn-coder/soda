@@ -10,12 +10,12 @@ use Illuminate\Console\Command;
 final class ListRulesCommand extends Command
 {
     /**
-     * Stores signature for this analysis instance.
+     * Console signature accepted by the list-rules command.
      */
     protected $signature = 'list:rules';
 
     /**
-     * Stores description for this analysis instance.
+     * Summary shown by `soda list`.
      */
     protected $description = 'List built-in quality rules';
 

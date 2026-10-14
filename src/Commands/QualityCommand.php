@@ -29,21 +29,21 @@ use SebastianBergmann\FileIterator\Facade;
 final class QualityCommand extends Command
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Compose the command with the runner executing the configured checks.
      *
-     * @param ?Runner $qualityAnalysis Runs the configured checks and assembles the quality report.
+     * @param Runner $runner Runs the configured checks and assembles the quality report.
      */
     public function __construct(
-        private readonly ?Runner $qualityAnalysis = null,
+        private readonly Runner $runner,
     ) {
         parent::__construct();
     }
 
     /**
-     * Stores signature for this analysis instance.
+     * Console signature accepted by the quality command.
      */
     protected $signature = 'quality
-        {path?* : Directory or directories to analyse}
+        {path?* : Directory or directories to analyze}
         {--suffix= : Include files with names ending in suffix (default: .php)}
         {--exclude=* : Exclude files with path in their path}
         {--config= : Path to soda.php}
@@ -52,9 +52,9 @@ final class QualityCommand extends Command
     ';
 
     /**
-     * Stores description for this analysis instance.
+     * Summary shown by `soda list`.
      */
-    protected $description = 'Analyse code quality and check against configured thresholds';
+    protected $description = 'Analyze code quality and check against configured thresholds';
 
     /**
      * Execute the console command and return its exit status.
@@ -67,7 +67,7 @@ final class QualityCommand extends Command
         $root = getcwd();
         $root = ($root !== false && $root !== '') ? $root : '/';
 
-        $result = $this->analyse($directories, $root);
+        $result = $this->analyze($directories, $root);
         if (! $result instanceof QualityResult) {
             return self::FAILURE;
         }
@@ -84,12 +84,13 @@ final class QualityCommand extends Command
      *
      * @param list<non-empty-string> $requested
      */
-    private function analyse(array $requested, string $root): ?QualityResult
+    private function analyze(array $requested, string $root): ?QualityResult
     {
         $directories = $requested;
 
         try {
-            $configPath = $this->resolveConfigPath();
+            $configOption = $this->option('config');
+            $configPath = is_string($configOption) && $configOption !== '' ? $configOption : null;
             $loader = new ConfigLoader;
             $config = null;
             if ($directories === []) {
@@ -112,7 +113,7 @@ final class QualityCommand extends Command
 
             $config ??= $loader->resolve($files, $configPath);
 
-            return ($this->qualityAnalysis ?? new Runner)->check($files, $config->checks());
+            return $this->runner->check($files, $config->checks());
         } catch (ConfigException $configException) {
             $this->error($configException->getMessage());
 
@@ -156,23 +157,6 @@ final class QualityCommand extends Command
     private function isAbsolutePath(string $path): bool
     {
         return str_starts_with($path, '/') || preg_match('~^[A-Za-z]:[\\\\/]~', $path) === 1;
-    }
-
-    /**
-     * Resolve the requested configuration file relative to the current working directory.
-     *
-     * @return non-empty-string|null
-     */
-    private function resolveConfigPath(): ?string
-    {
-        $configOpt = $this->option('config');
-        $isMissingConfig = ! is_string($configOpt) || $configOpt === '';
-
-        if ($isMissingConfig) {
-            return null;
-        }
-
-        return $configOpt;
     }
 
     /**

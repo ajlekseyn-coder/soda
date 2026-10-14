@@ -55,6 +55,6 @@ final class RepresentationChurn extends ResearchCheck
      */
     public function researchProject(ProjectFacts $project): array
     {
-        return (new RepresentationFlow($this->maxDepth, $this->maxSteps, $this->maxCandidates))->analyse($project);
+        return (new RepresentationFlow($this->maxDepth, $this->maxSteps, $this->maxCandidates))->analyze($project);
     }
 }

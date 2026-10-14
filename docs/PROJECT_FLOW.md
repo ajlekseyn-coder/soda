@@ -64,7 +64,7 @@ roles are derived only by the layer rule from class-name suffixes.
 
 The executor releases the current `FileFacts` before advancing and project checks
 receive no source or AST. Parse errors become `parse_error` violations and remaining
-files are still analysed. Do not retain AST nodes in a custom check.
+files are still analyzed. Do not retain AST nodes in a custom check.
 
 `resources/facts.php` documents expression fields and collector requirements.
 `resources/catalog.php` records classes, default arguments and report metadata.

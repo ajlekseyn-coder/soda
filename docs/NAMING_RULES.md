@@ -14,6 +14,7 @@ use Cosmira\Soda\Rules\Naming\ClassNameLength;
 use Cosmira\Soda\Rules\Naming\MethodNameLength;
 use Cosmira\Soda\Rules\Naming\MaxVariableNameWords;
 use Cosmira\Soda\Rules\Naming\NamespaceNameLength;
+use Cosmira\Soda\Rules\Naming\NoDumpsterSuffixes;
 use Cosmira\Soda\Rules\Naming\VariableNameLength;
 
 return Soda::configure()
@@ -21,6 +22,7 @@ return Soda::configure()
     ->with([
         new AvoidRedundantNaming(80),
         new BooleanMethodPrefix(),
+        new NoDumpsterSuffixes(),
         new VariableNameLength(min: 2, max: 16),
         new MaxVariableNameWords(maxWords: 1, ignore: ['openAI']),
         new MethodNameLength(min: 1, max: 32),
@@ -33,6 +35,7 @@ return Soda::configure()
 |------|---------|---------|
 | `avoid_redundant_naming` | Reports names that repeat type or class context. Similarity threshold: 0 disables, 1-100 is percent. Minimum word length: 4. | 80 |
 | `boolean_methods_without_prefix` | Reports boolean-returning methods that do not start with a question-style prefix. | opt-in; allowed prefixes: is/has/can/should/... |
+| `no_dumpster_suffixes` | Reports class, trait, and interface names ending in generic role suffixes (`Manager`, `Helper`, `Util`, `Service`, ...). | opt-in |
 | `variable_name_length` | Minimum and maximum variable name length. | min 2 / max 16 |
 | `max_variable_name_words` | Optional policy for local variables and parameters that combine multiple concepts. | opt-in |
 | `method_name_length` | Minimum and maximum method name length. | min 1 / max 32 |
@@ -107,6 +110,38 @@ Reports boolean-returning methods whose names do not read like questions.
 Allowed prefixes include `is`, `has`, `can`, `should`, `does`, `was`, `are`,
 `do`, `did`, `will`, and `try`. Command-style names such as `run`, `handle`,
 and `save` are ignored by default.
+
+## no_dumpster_suffixes
+
+Rejects class, trait, and interface names ending in a generic role suffix.
+`Manager`, `Helper`, `Util`, `Processor`, `Service`, `Handler`, and `Wrapper`
+name a job category, not a thing: an `OrderHelper` is a `Pricer`, an
+`Exporter`, a `Validator` — the name should say which.
+
+### How It Works
+
+1. Collect every declared class, trait, and interface name from the naming
+   facts.
+2. Match the name ending against the rejected suffixes case-insensitively.
+3. Report each match at the declaration line with the offending suffix.
+
+### Ignored
+
+- Type names that merely contain a suffix word, such as `Database` or
+  `Pricer`; only the ending is matched.
+
+### Examples
+
+```php
+new NoDumpsterSuffixes(extraSuffixes: ['Evidence', 'Probe'])
+```
+
+```
+OrderHelper → OrderPricer, OrderExporter — name what the type does
+CacheManager → CacheWarmer, CacheStore
+ImageProcessor → ImageResizer, ImageEncoder
+```
+
 
 ```php
 new BooleanMethodPrefix()

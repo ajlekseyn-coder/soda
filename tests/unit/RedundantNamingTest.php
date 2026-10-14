@@ -15,9 +15,9 @@ final class RedundantNamingTest extends TestCase
 
     private function parseAndAnalyse(string $code): array
     {
-        $analyser = new RedundantNamingAnalyser(80.0, 4);
+        $analyzer = new RedundantNamingAnalyser(80.0, 4);
 
-        return $analyser->analyse($this->parseNaming($code));
+        return $analyzer->analyze($this->parseNaming($code));
     }
 
     private function parseNaming(string $code): array
@@ -117,7 +117,7 @@ return \Cosmira\Soda\Config\Soda::configure()->with([
 PHP);
 
         try {
-            $result = (new QualityAnalyser)->analyse([$sourcePath], $configPath);
+            $result = Analyzer::analyze([$sourcePath], $configPath);
             $messages = $result->violations
                 ->map(static fn ($violation): ?string => $violation->message)
                 ->all();

@@ -183,7 +183,7 @@ final class ResearchReportingTest extends TestCase
             $container = new Application;
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand);
+            $artisan->add($container->make(QualityCommand::class));
             $input = new ArrayInput([
                 'command'         => 'quality',
                 'path'            => [__DIR__.'/../fixtures/representation/text'],

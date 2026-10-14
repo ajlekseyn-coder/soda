@@ -72,9 +72,9 @@ final class RepresentationFlow
     ) {}
 
     /**
-     * Analyse deterministic declaration order and retain no source or AST.
+     * Analyze deterministic declaration order and retain no source or AST.
      */
-    public function analyse(ProjectFacts $project): array
+    public function analyze(ProjectFacts $project): array
     {
         $this->resetState();
         $this->evidence = new ResearchEvidence(['maxDepth' => $this->maxDepth, 'maxSteps' => $this->maxSteps, 'maxCandidates' => $this->maxCandidates]);

@@ -4022,7 +4022,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Archivable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Catalog\\Archivable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4033,7 +4033,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Auditable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Orders\\Auditable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4044,7 +4044,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Billable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Orders\\Billable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4055,7 +4055,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Billable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Subscriptions\\Billable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4066,7 +4066,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Consolidated has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Subscriptions\\Consolidated has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4077,7 +4077,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Exportable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Catalog\\Exportable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4088,7 +4088,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Exportable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Orders\\Exportable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4099,7 +4099,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Importable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Catalog\\Importable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4110,7 +4110,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Localized has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Catalog\\Localized has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4121,7 +4121,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Negotiable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Subscriptions\\Negotiable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4132,7 +4132,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Notifiable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Subscriptions\\Notifiable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4143,7 +4143,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Prioritized has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Orders\\Prioritized has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4154,7 +4154,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Publishable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Catalog\\Publishable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4165,7 +4165,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Reconciled has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Orders\\Reconciled has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4176,7 +4176,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Renewable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Subscriptions\\Renewable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4187,7 +4187,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Reservable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Orders\\Reservable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4198,7 +4198,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Searchable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Catalog\\Searchable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {
@@ -4209,7 +4209,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Transferable has no explicit type consumer in the analysed project. Declare external consumers in contracts; remove it only if it has no consumers.",
+        "message": "DemoApp\\Subscriptions\\Transferable has no explicit type consumer in the analyzed project. Declare external consumers in contracts; remove it only if it has no consumers.",
         "recommendation": "List externally consumed interfaces in contracts. Remove only unused interfaces; an implements clause alone is not a type consumer for this policy."
     },
     {

@@ -29,13 +29,25 @@ final class NoDumpsterSuffixes extends Check
     ];
 
     /**
+     * Lowercase rejected suffixes matched against the end of every type name.
+     *
+     * @var list<string>
+     */
+    private readonly array $suffixes;
+
+    /**
      * Merge extra suffixes with the built-in vocabulary.
      *
      * @param string[] $extraSuffixes Additional rejected suffixes, matched at word boundaries.
      */
     public function __construct(
-        private readonly array $extraSuffixes = [],
-    ) {}
+        array $extraSuffixes = [],
+    ) {
+        $this->suffixes = array_map(
+            strtolower(...),
+            array_merge(self::SUFFIXES, $extraSuffixes),
+        );
+    }
 
     /**
      * Return the stable identifier used in diagnostics.
@@ -65,7 +77,10 @@ final class NoDumpsterSuffixes extends Check
     #[\Override]
     public function checkFile(FileFacts $file): iterable
     {
-        foreach ($file->metrics['naming']['types'] ?? [] as $type) {
+        $naming = $file->metrics['naming'] ?? [];
+        $types = $naming['types'] ?? [];
+
+        foreach ($types as $type) {
             $suffix = $this->fillerSuffix($type['name']);
             if ($suffix === null) {
                 continue;
@@ -84,8 +99,10 @@ final class NoDumpsterSuffixes extends Check
      */
     private function fillerSuffix(string $name): ?string
     {
-        foreach (array_merge(self::SUFFIXES, $this->extraSuffixes) as $suffix) {
-            if (str_ends_with(strtolower($name), strtolower($suffix))) {
+        $normalizedName = strtolower($name);
+
+        foreach ($this->suffixes as $suffix) {
+            if (str_ends_with($normalizedName, $suffix)) {
                 return $suffix;
             }
         }

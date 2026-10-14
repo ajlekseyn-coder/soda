@@ -47,14 +47,14 @@ final class AvoidRedundantNaming extends Check
         }
 
         $threshold = $this->normalisedSimilarityThreshold($this->threshold);
-        $analyser = new RedundantNamingAnalyser($threshold);
+        $analyzer = new RedundantNamingAnalyser($threshold);
         $naming = $file->metrics['naming'] ?? [];
         $hasNames = isset($naming['classes'], $naming['methods']);
         if (! $hasNames) {
             return;
         }
 
-        foreach ($analyser->analyse($naming) as $finding) {
+        foreach ($analyzer->analyze($naming) as $finding) {
             yield $this->toViolation($file->path, $finding, (int) $threshold);
         }
     }

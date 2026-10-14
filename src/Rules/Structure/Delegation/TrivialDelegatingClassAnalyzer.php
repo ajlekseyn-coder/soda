@@ -18,12 +18,12 @@ use PhpParser\NodeFinder;
 final readonly class TrivialDelegatingClassAnalyser
 {
     /**
-     * Stores finder for this analysis instance.
+     * Locates method declarations inside candidate class bodies.
      */
     private NodeFinder $finder;
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Combine the eligibility policy with the forwarding probe.
      *
      * @param TrivialDelegatingClassPolicy $classPolicy Exclusions and contracts that determine eligible forwarding classes.
      * @param TrivialDelegatingMethodProbe $methodProbe Examines method bodies for transparent forwarding behavior.
@@ -42,7 +42,7 @@ final readonly class TrivialDelegatingClassAnalyser
      *
      * @return list<TrivialDelegatingClassFinding>
      */
-    public function analyse(array $nodes): array
+    public function analyze(array $nodes): array
     {
         $findings = [];
 

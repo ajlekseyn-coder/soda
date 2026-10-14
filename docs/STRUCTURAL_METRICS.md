@@ -223,6 +223,29 @@ $this->sendReceipt($order);
 $this->sendReceipt($order);
 ```
 
+### no_vacuous_docblocks
+
+Flags PHPDoc descriptions that add nothing beyond the member's own name. A
+description built from filler verbs (`stores`, `defines`, `holds`) and generic
+context nouns (`this instance`, `this policy`) restates the declaration; either
+describe the member's purpose or delete the comment.
+
+```php
+new NoVacuousDocblocks()
+```
+
+```php
+// Good
+/** Ruler width printed above each report section. */
+private const int SEPARATOR_WIDTH = 60;
+```
+
+```php
+// Bad
+/** Defines separator width used by this policy. */
+private const int SEPARATOR_WIDTH = 60;
+```
+
 ### max_empty_catch_blocks
 
 Forbids empty `catch` blocks. If an exception is intentionally ignored, make
@@ -305,7 +328,7 @@ the small class when it owns behavior or establishes a real boundary:
 
 Interfaces and attributes do not grant an automatic exemption. A transformation,
 additional state or constructor behavior distinguishes an operation from a pure
-forwarder. Known parent and trait methods are composed across analysed files, including
+forwarder. Known parent and trait methods are composed across analyzed files, including
 precedence and aliases. Only explicit `contracts: ['App\\StoragePort']` entries preserve
 an established boundary class or interface; source attributes alone grant no exemption.
 
@@ -895,7 +918,7 @@ statements in the current class. Constructor-promoted properties, properties
 composed from project traits, and properties inherited from project classes are
 included recursively. Repeated non-private names represent one inherited slot;
 private names retain their declaring type. State from a parent outside the
-analysed project cannot be inferred and is not fabricated.
+analyzed project cannot be inferred and is not fabricated.
 
 Maximum properties (fields) per class.
 
@@ -1239,7 +1262,7 @@ Forbids `eval`. Keep executable policy in typed code or represent variable polic
 
 ### no_process_configuration_mutation
 
-Forbids changing ini settings, working directory, locale, or default timezone inside analysed code. Configure process state once at startup.
+Forbids changing ini settings, working directory, locale, or default timezone inside analyzed code. Configure process state once at startup.
 
 ### no_direct_response_globals
 
@@ -1320,7 +1343,7 @@ Use `ignorePathPrefixes` to permit reads at explicit configuration boundaries.
 The default policy excludes no paths. Directory prefixes match whole path segments,
 so allowing `/project/config` does not allow `/project/configuration`.
 
-Forbids `env()`, `getenv()`, `$_ENV`, and `$_SERVER` outside an application configuration boundary selected by excluding that boundary from analysed paths.
+Forbids `env()`, `getenv()`, `$_ENV`, and `$_SERVER` outside an application configuration boundary selected by excluding that boundary from analyzed paths.
 
 ### no_error_suppression
 
@@ -1511,7 +1534,7 @@ limits are rejected. The existing `max_class_length` remains a local source meas
 ### max_delegation_depth
 
 `new MaxDelegationDepth(3)` counts consecutive methods that forward unchanged parameters
-in a single direct call. It resolves named dependency property types across analysed files,
+in a single direct call. It resolves named dependency property types across analyzed files,
 local `$this` calls and named static calls. Inherited and trait methods, local argument
 aliases and returned result variables are included. Private calls bind to their lexical
 owner; virtual calls bind to the consuming class. Private methods and renamed operations count.
@@ -1526,7 +1549,7 @@ through literal `switch`, `match`, or equality-based `if` branches. Default arms
 direct aliases and conservative branch merges preserve input identity. Shared preparation
 before different operations does not hide the dispatch. Selecting scalar data, or calling
 the same operation with different data, does not match this pattern. Nested callable scopes
-are analysed independently. The rule reports one finding per parameter with dispatch lines.
+are analyzed independently. The rule reports one finding per parameter with dispatch lines.
 
 ### no_repeated_type_dispatch
 
@@ -1559,7 +1582,7 @@ a same-named variable in an independent nested scope does not. Installed Compose
 Source declarations in PHAR archives shipped by those packages are also inspected;
 the qualified declaration name must match the requested ancestor.
 Known parent methods and interfaces preserve their declared input positions across
-analysed files, including implementations imported from traits and trait aliases.
+analyzed files, including implementations imported from traits and trait aliases.
 An input read by a known override also remains part of the base
 method contract. Extra implementation parameters remain checked; the necessity of
 the interface itself is evaluated by a separate architecture rule. `contracts: ['App\\Callback::handle']` lists exact
@@ -1590,7 +1613,7 @@ members of that kind; dynamic access is covered by separate prohibitions.
 
 `new NoEmptyLocalInterfaces()` rejects local interfaces with neither declared methods nor
 known inherited method contracts. Constants and attributes do not establish such a contract.
-Parents are resolved across analysed files. An unknown parent alone does not prove a contract;
+Parents are resolved across analyzed files. An unknown parent alone does not prove a contract;
 `protocols: ['External\\Marker']` can identify an actual external protocol explicitly.
 
 ### no_redundant_local_interfaces
@@ -1602,11 +1625,11 @@ or an unused cycle of interfaces cannot create its own consumer. This is bounded
 PHPDoc support, not a complete PHPDoc type parser or alias resolver.
 
 `new NoRedundantLocalInterfaces()` rejects local interfaces without explicit type consumers
-in analysed code. Implementing or importing an interface alone is not a consumer. Parameter
+in analyzed code. Implementing or importing an interface alone is not a consumer. Parameter
 and return types and explicit class-name registrations can establish use. References in
 an interface signature or its parent list become useful only when that interface has a
 consumer. Self-references and unused interface cycles do not establish use.
-`contracts: ['App\\PublicApi']` lists contracts consumed outside the analysed source.
+`contracts: ['App\\PublicApi']` lists contracts consumed outside the analyzed source.
 String-based framework conventions require an explicit contract entry.
 
 ### no_dependency_cycles
@@ -1616,7 +1639,7 @@ Standard architecture policy. Configure actual module prefixes; namespace folder
 `new NoDependencyCycles()` rejects strongly connected groups of namespace modules using
 resolved type-dependency edges. By default each exact namespace is a module. Configure
 `modules: ['App\\Sales', 'App\\Billing']` to establish broader boundaries; the longest
-matching prefix wins. Dependencies inside one module are allowed. Only analysed types
+matching prefix wins. Dependencies inside one module are allowed. Only analyzed types
 participate; external code does not create speculative edges. Each diagnostic names the
 mutually dependent modules and a contributing source location.
 

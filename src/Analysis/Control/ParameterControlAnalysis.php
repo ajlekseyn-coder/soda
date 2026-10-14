@@ -21,7 +21,7 @@ final class ParameterControlAnalysis
     /**
      * Return parameter names and the dispatch source lines, keeping each callable isolated.
      */
-    public function analyse(Node\FunctionLike $callable): array
+    public function analyze(Node\FunctionLike $callable): array
     {
         $this->findings = [];
         $origins = [];

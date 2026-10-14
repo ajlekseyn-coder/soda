@@ -15,7 +15,7 @@ use Cosmira\Soda\Support\ConfigException;
 final class QualityAnalysisBuilder
 {
     /**
-     * Stores config path for this analysis instance.
+     * Configuration file used when the analysis executes; null selects the discovered default.
      */
     private ?string $configPath = null;
 
@@ -48,10 +48,10 @@ final class QualityAnalysisBuilder
      *
      * @throws ConfigException
      */
-    public function analyse(?Runner $engine = null): QualityResult
+    public function analyze(): QualityResult
     {
         $config = (new ConfigLoader)->resolve($this->paths, $this->configPath);
 
-        return ($engine ?? new Runner)->check($this->paths, $config->checks());
+        return (new Runner)->check($this->paths, $config->checks());
     }
 }

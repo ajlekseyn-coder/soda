@@ -16,7 +16,7 @@ Soda follows Laravel-style naming principles: consistency over cleverness, names
 ## Methods
 
 - Use `camelCase`.
-- Prefer verb-first names: `analyse()`, `calculate()`, `collectViolations()`, `writeReportJson()`.
+- Prefer verb-first names: `analyze()`, `calculate()`, `collectViolations()`, `writeReportJson()`.
 - Use boolean prefixes consistently:
   - `is...` for state.
   - `has...` for presence.
@@ -35,7 +35,7 @@ Soda follows Laravel-style naming principles: consistency over cleverness, names
 
 ## Examples
 
-- `QualityAnalysisBuilder::run()` -> `QualityAnalysisBuilder::analyse()`: the method now names the domain action instead of a generic execution step.
+- `QualityAnalysisBuilder::run()` -> `QualityAnalysisBuilder::analyze()`: the method now names the domain action instead of a generic execution step.
 - `RuleChecker::result()` -> `RuleChecker::violations()`: fluent checks now end with the collection they produce.
 - `ReturnStatementsVisitor::result()` -> `ReturnStatementsVisitor::returnsByMethod()`: the output shape is explicit without a generic getter.
 - `StructureVisitor::result()` -> `StructureVisitor::metrics()`: the method names the grouped metric map it returns.

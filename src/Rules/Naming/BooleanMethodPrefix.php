@@ -11,7 +11,7 @@ use Cosmira\Soda\Reporting\Violation;
 final class BooleanMethodPrefix extends Check
 {
     /**
-     * Defines default ignore used by this policy.
+     * Operation verbs that may legitimately return a success flag.
      */
     private const array DEFAULT_IGNORE = [
         'create', 'update', 'delete', 'execute', 'run', 'process',
@@ -19,7 +19,7 @@ final class BooleanMethodPrefix extends Check
     ];
 
     /**
-     * Defines default prefix used by this policy.
+     * Predicate prefixes that make a boolean method read as a question.
      */
     private const array DEFAULT_PREFIX = [
         'is', 'has', 'can', 'should', 'does', 'was',
@@ -27,14 +27,14 @@ final class BooleanMethodPrefix extends Check
     ];
 
     /**
-     * Stores ignore for this analysis instance.
+     * Method names and Class::method references never flagged.
      */
-    private array $ignore;
+    private readonly array $ignore;
 
     /**
-     * Stores prefix for this analysis instance.
+     * Allowed predicate prefixes, merged over the built-in vocabulary.
      */
-    private array $prefix;
+    private readonly array $prefix;
 
     /**
      * Configure ignored boolean methods and extend the allowed predicate prefixes.
@@ -48,18 +48,6 @@ final class BooleanMethodPrefix extends Check
     ) {
         $this->ignore = array_merge(self::DEFAULT_IGNORE, $ignore);
         $this->prefix = array_merge(self::DEFAULT_PREFIX, $prefix);
-    }
-
-    /**
-     * Preserve the standard bundle's original vocabulary and empty ignore list.
-     */
-    public static function standard(): self
-    {
-        $rule = new self;
-        $rule->ignore = [];
-        $rule->prefix = ['is', 'has', 'should', 'can', 'try'];
-
-        return $rule;
     }
 
     /**

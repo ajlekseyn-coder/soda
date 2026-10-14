@@ -39,7 +39,7 @@ register(Work::class);
 ```
 
 ```php
-// ❌ Declared but never consumed outside the analysed project
+// ❌ Declared but never consumed outside the analyzed project
 namespace Package;
 
 interface Printer
@@ -55,7 +55,7 @@ new NoRedundantLocalInterfaces(contracts: ['Package\Printer']);
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `contracts` | `[]` | Qualified interface names whose consumers reside outside the analysed source. Listed interfaces are exempt from reporting. |
+| `contracts` | `[]` | Qualified interface names whose consumers reside outside the analyzed source. Listed interfaces are exempt from reporting. |
 
 ## Configuration
 

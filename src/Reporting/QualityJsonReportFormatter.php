@@ -10,7 +10,7 @@ namespace Cosmira\Soda\Reporting;
 final readonly class QualityJsonReportFormatter
 {
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Bind the metadata used to enrich every reported rule identifier.
      *
      * @param RuleMetadata $ruleMetadata Supplies labels and policy metadata for reported rule identifiers.
      */

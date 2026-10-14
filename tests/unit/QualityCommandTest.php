@@ -33,7 +33,7 @@ final class QualityCommandTest extends TestCase
         $container = new Application();
         $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
         $artisan->setAutoExit(false);
-        $artisan->add(new QualityCommand());
+        $artisan->add($container->make(QualityCommand::class));
 
         $input = new ArrayInput([
             'command' => 'quality',
@@ -53,7 +53,7 @@ final class QualityCommandTest extends TestCase
         $container = new Application();
         $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
         $artisan->setAutoExit(false);
-        $artisan->add(new QualityCommand());
+        $artisan->add($container->make(QualityCommand::class));
 
         $input = new ArrayInput([
             'command'       => 'quality',
@@ -94,7 +94,7 @@ final class QualityCommandTest extends TestCase
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command'       => 'quality',
@@ -144,7 +144,7 @@ final class QualityCommandTest extends TestCase
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command'  => 'quality',
@@ -174,7 +174,7 @@ final class QualityCommandTest extends TestCase
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command'       => 'quality',
@@ -233,7 +233,7 @@ final class QualityCommandTest extends TestCase
             $container = new Application;
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand);
+            $artisan->add($container->make(QualityCommand::class));
             $arguments = ['command' => 'quality'];
             if ($explicit) {
                 $arguments['--config'] = $project['soda'];
@@ -270,7 +270,8 @@ final class QualityCommandTest extends TestCase
         $container = new Application();
         $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
         $artisan->setAutoExit(false);
-        $artisan->add(new QualityCommand($stub));
+        $container->instance(Runner::class, $stub);
+        $artisan->add($container->make(QualityCommand::class));
 
         $input = new ArrayInput([
             'command' => 'quality',
@@ -314,7 +315,8 @@ final class QualityCommandTest extends TestCase
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand($stub));
+            $container->instance(Runner::class, $stub);
+            $artisan->add($container->make(QualityCommand::class));
             $input = new ArrayInput([
                 'command'   => 'quality',
                 'path'      => [$dir],
@@ -358,7 +360,7 @@ PHP);
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command'  => 'quality',
@@ -387,7 +389,7 @@ PHP);
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command' => 'quality',
@@ -444,7 +446,7 @@ PHP);
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command'  => 'quality',
@@ -496,7 +498,7 @@ PHP);
             $container = new Application();
             $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
             $artisan->setAutoExit(false);
-            $artisan->add(new QualityCommand());
+            $artisan->add($container->make(QualityCommand::class));
 
             $input = new ArrayInput([
                 'command'  => 'quality',

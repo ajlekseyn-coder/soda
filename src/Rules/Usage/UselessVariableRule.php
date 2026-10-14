@@ -52,7 +52,7 @@ final class UselessVariableRule extends Check
     #[\Override]
     public function checkFile(FileFacts $facts): iterable
     {
-        foreach ((new UselessVariableAnalyser)->analyse($facts->nodes) as $finding) {
+        foreach ((new UselessVariableAnalyser)->analyze($facts->nodes) as $finding) {
             yield new Violation(rule: $this->id(), file: $facts->path, value: 1, threshold: 0, line: $finding['line']);
         }
     }

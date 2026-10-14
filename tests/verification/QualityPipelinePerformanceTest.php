@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Verification;
 
 use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Analyzer;
 use Cosmira\Soda\Config\Soda;
-use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Rules\Usage\NoUnusedMethods;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -33,7 +33,7 @@ final class QualityPipelinePerformanceTest extends TestCase
         $startedAt = hrtime(true);
 
         try {
-            $result = (new QualityAnalyser)->analyse($files, $config);
+            $result = Analyzer::analyze($files, $config);
             $elapsedSeconds = (hrtime(true) - $startedAt) / 1_000_000_000;
             $peakGrowth = memory_get_peak_usage(true) - $memoryBefore;
 

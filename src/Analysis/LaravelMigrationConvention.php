@@ -12,7 +12,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 final class LaravelMigrationConvention
 {
     /**
-     * Defines base class used by this policy.
+     * Normalized name of the class every Laravel migration must extend.
      */
     private const string BASE_CLASS = 'illuminate\\database\\migrations\\migration';
 

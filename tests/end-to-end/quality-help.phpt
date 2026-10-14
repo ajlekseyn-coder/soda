@@ -12,7 +12,7 @@ $_SERVER['argv'] = ['soda', 'quality', '--help'];
 require __DIR__ . '/../../soda';
 --EXPECTF--
 %ADescription:
-  Analyse code quality and check against configured thresholds
+  Analyze code quality and check against configured thresholds
 
 Usage:
   quality [options] [--] [<path>...]

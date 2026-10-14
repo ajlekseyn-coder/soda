@@ -33,11 +33,11 @@ That file is the single source of truth. No JSON config. No secondary app config
 ## Public API
 
 ```php
-Analyzer::file($path)->analyse();
+Analyzer::file($path)->analyze();
 
 Analyzer::paths([$fileA, $fileB])
     ->config($pathToSodaPhp)
-    ->analyse();
+    ->analyze();
 
 Analyzer::analyze($paths, configPath: null);
 ```

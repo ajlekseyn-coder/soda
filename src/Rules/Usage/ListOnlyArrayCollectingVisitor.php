@@ -25,7 +25,7 @@ final class ListOnlyArrayCollectingVisitor extends NodeVisitorAbstract
     private array $byLine = [];
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Bind the strictness policy deciding which accesses are recorded.
      *
      * @param ListOnlyArrayStrictness $strictness Selection policy for nested array access.
      */

@@ -12,7 +12,7 @@ use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
 
 /**
- * Resolves mandatory inherited parameter positions across analysed source files.
+ * Resolves mandatory inherited parameter positions across analyzed source files.
  */
 final readonly class InheritedParameterContracts
 {

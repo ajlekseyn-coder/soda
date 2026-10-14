@@ -35,12 +35,14 @@ use Cosmira\Soda\Rules\Design\ScatteredOwnerConcern;
 use Cosmira\Soda\Rules\Documentation\MultilineConstantPhpDoc;
 use Cosmira\Soda\Rules\Documentation\MultilineMethodPhpDoc;
 use Cosmira\Soda\Rules\Documentation\MultilinePropertyPhpDoc;
+use Cosmira\Soda\Rules\Documentation\NoVacuousDocblocks;
 use Cosmira\Soda\Rules\Naming\AvoidRedundantNaming;
 use Cosmira\Soda\Rules\Naming\BooleanMethodPrefix;
 use Cosmira\Soda\Rules\Naming\ClassNameLength;
 use Cosmira\Soda\Rules\Naming\MaxVariableNameWords;
 use Cosmira\Soda\Rules\Naming\MethodNameLength;
 use Cosmira\Soda\Rules\Naming\NamespaceNameLength;
+use Cosmira\Soda\Rules\Naming\NoDumpsterSuffixes;
 use Cosmira\Soda\Rules\Naming\VariableNameLength;
 use Cosmira\Soda\Rules\Structure\MaxArguments;
 use Cosmira\Soda\Rules\Structure\MaxClassesPerFile;
@@ -126,10 +128,12 @@ return Soda::configure()
         new MultilineMethodPhpDoc(['public', 'protected', 'private']),
         new MultilinePropertyPhpDoc(['public', 'protected', 'private']),
         new MultilineConstantPhpDoc(['public', 'protected', 'private']),
+        new NoVacuousDocblocks(),
+        new NoDumpsterSuffixes(),
         new MaxLayerDominancePercentage(50, 4),
         new MaxNamespaceDepth(5),
         new MaxClassesPerNamespace(40),
-        new MaxClassesPerProject(300),
+        new MaxClassesPerProject(289),
 
         // Owner behavior
         new FragmentedOwnerBehavior(),

@@ -12,7 +12,7 @@ use PhpParser\Node;
 final class ControlStructureMatcher
 {
     /**
-     * Defines control structure node kinds used by this policy.
+     * PhpParser node kinds counted as control structures for nesting depth.
      */
     private const array CONTROL_STRUCTURE_NODE_KINDS = [
         'Stmt_If'       => true,

@@ -40,27 +40,27 @@ final class TellDontAskVisitor extends FactVisitor
     private array $result = [];
 
     /**
-     * Stores current method for this analysis instance.
+     * Method whose body is currently being scanned for ask-then-tell pairs.
      */
     private ?string $currentMethod = null;
 
     /**
-     * Stores question probe for this analysis instance.
+     * Resolves variables read in conditions back to the queries that filled them.
      */
     private readonly TellDontAskQuestionProbe $questionProbe;
 
     /**
-     * Stores command collector for this analysis instance.
+     * Collects the commands issued after a query was already answered.
      */
     private readonly TellDontAskCommandCollector $commandCollector;
 
     /**
-     * Stores aliases for this analysis instance.
+     * Aliases between variables and query results, tracked per closure scope.
      */
     private readonly TellDontAskScopes $aliases;
 
     /**
-     * Initialize the configured values and collaborators for this instance.
+     * Share one receiver fingerprint between the probe and the command collector.
      */
     public function __construct()
     {

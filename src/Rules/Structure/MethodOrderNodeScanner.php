@@ -13,7 +13,7 @@ use PhpParser\NodeFinder;
 final readonly class MethodOrderNodeScanner
 {
     /**
-     * Analyse each declaration independently of its surrounding lexical scope.
+     * Analyze each declaration independently of its surrounding lexical scope.
      *
      * @return list<MethodOrderClassAnalysis>
      */
