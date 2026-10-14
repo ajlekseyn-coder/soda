@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 — 2026-10-14
+
+- Add fluent `exclude([...])` configuration for the `quality` command, combined
+  with CLI exclusions for default and explicit analysis paths.
+- Keep similarly named sibling directories when excluding a directory.
+- Handle interface and abstract methods without bodies in
+  `NoDeclarationsBeforeEarlyExit` and `PreferCombinedGuards` without crashing.
+
 ## 1.0.0 — 2026-10-14
 
 First stable release of Soda, published as `cosmira/soda` under the MIT license.

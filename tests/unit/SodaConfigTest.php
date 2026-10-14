@@ -11,6 +11,7 @@ use Cosmira\Soda\Rules\Structure\MaxFileLoc;
 use Cosmira\Soda\Rules\Structure\MaxMethodLength;
 use Cosmira\Soda\Support\ConfigException;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 final class SodaConfigTest extends TestCase
@@ -73,6 +74,24 @@ final class SodaConfigTest extends TestCase
         $soda = Soda::configure()->withPaths(['src/', 'tests/']);
 
         $this->assertSame(['src/', 'tests/'], $soda->paths());
+    }
+
+    public function testExcludeAccumulatesPathsAndIsChainable(): void
+    {
+        $config = Soda::configure();
+
+        $this->assertSame($config, $config->exclude(['generated'])->exclude(['/tmp/cache']));
+        $this->assertSame(['generated', '/tmp/cache'], $config->excludedPaths());
+        $this->assertSame([], Soda::configure()->excludedPaths());
+    }
+
+    #[TestWith([''])]
+    #[TestWith([42])]
+    public function testExcludeRejectsInvalidPaths(mixed $path): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Soda::configure()->exclude([$path]);
     }
 
     public function testFromPhpConfiguratorFileLoadsInstance(): void

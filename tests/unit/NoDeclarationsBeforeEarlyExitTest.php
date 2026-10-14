@@ -23,6 +23,8 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'interface method without a body' => ['interface Contract { public function run(): void; }', 0];
+        yield 'abstract method without a body' => ['abstract class Worker { abstract public function run(): void; }', 0];
         yield 'work skipped by the guard' => ['function run(bool $ready, array $items): void { $result = compute($items); if (!$ready) { return; } useIt($result); }', 1];
         yield 'throw guard' => ['function run(bool $ready): int { $result = compute(); if (!$ready) { throw new \RuntimeException("not ready"); } return $result; }', 1];
         yield 'continue guard inside a loop' => ['function run(array $items): void { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }', 1];

@@ -62,6 +62,30 @@ CLI paths still work and override the need for configured paths:
 vendor/bin/soda quality src tests
 ```
 
+## Exclusions
+
+Keep generated code and caches out of daily checks in the same configuration:
+
+```php
+return Soda::configure()
+    ->withPaths([__DIR__.'/app', __DIR__.'/packages', __DIR__.'/bootstrap'])
+    ->exclude([
+        __DIR__.'/packages/Octopus/Generated',
+        __DIR__.'/bootstrap/cache',
+    ])
+    ->with(RuleCatalog::standard());
+```
+
+`exclude()` accepts non-empty paths and can be called repeatedly. Absolute paths
+apply directly; relative paths expand against each analysis root, just like
+`--exclude`. For multiple roots, absolute paths avoid ambiguity. A directory
+exclusion does not exclude siblings whose names merely share its prefix.
+
+The `quality` command combines configuration exclusions with `--exclude`, including
+when source paths or `--config` are supplied explicitly. Vendor exclusions remain
+automatic. If no source files remain, the command reports `No files found to scan`
+and exits with status `1`.
+
 ## Rules
 
 Rules are plain objects. Thresholds and options live in constructors:

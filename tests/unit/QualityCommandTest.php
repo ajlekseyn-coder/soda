@@ -337,6 +337,69 @@ final class QualityCommandTest extends TestCase
         }
     }
 
+    #[TestWith([false, false])]
+    #[TestWith([true, false])]
+    #[TestWith([true, true])]
+    public function testConfigAndCliExclusionsAreCombined(bool $requestedPaths, bool $explicitConfig): void
+    {
+        $project = $this->minimalConfiguredProject('soda-config-exclusions');
+        $cwd = getcwd();
+        foreach (['generated', 'cache', 'cli-excluded', 'generated-code'] as $directory) {
+            mkdir($project['dir'].'/'.$directory);
+            file_put_contents($project['dir'].'/'.$directory.'/Example.php', "<?php\n");
+        }
+        $config = file_get_contents($project['soda']);
+        file_put_contents($project['soda'], str_replace(
+            '->with([])',
+            "->exclude(['generated', __DIR__.'/cache'])->with([])",
+            $config,
+        ));
+        $stub = new class extends Runner
+        {
+            /** @var list<non-empty-string> */
+            public array $files = [];
+
+            #[\Override]
+            public function check(array $files, array $checks): QualityResult
+            {
+                $this->files = $files;
+
+                return new QualityResult(collect([]));
+            }
+        };
+
+        try {
+            chdir($project['dir']);
+            $container = new Application;
+            $container->instance(Runner::class, $stub);
+            $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
+            $artisan->setAutoExit(false);
+            $artisan->add($container->make(QualityCommand::class));
+            $arguments = ['command' => 'quality', '--exclude' => ['cli-excluded']];
+            if ($requestedPaths) {
+                $arguments['path'] = [$project['dir']];
+            }
+            if ($explicitConfig) {
+                $arguments['--config'] = $project['soda'];
+            }
+            $input = new ArrayInput($arguments);
+
+            $this->assertSame(0, $artisan->run($input, new OutputStyle($input, new BufferedOutput)));
+            $this->assertEqualsCanonicalizing([
+                realpath($project['php']),
+                realpath($project['soda']),
+                realpath($project['dir'].'/generated-code/Example.php'),
+            ], $stub->files);
+        } finally {
+            chdir($cwd);
+            foreach (['generated', 'cache', 'cli-excluded', 'generated-code'] as $directory) {
+                unlink($project['dir'].'/'.$directory.'/Example.php');
+                rmdir($project['dir'].'/'.$directory);
+            }
+            $this->cleanupMinimalConfiguredProject($project);
+        }
+    }
+
     public function testQualityRunsOnMinimalTempProject(): void
     {
         $dir = sys_get_temp_dir().'/soda-quality-e2e-'.uniqid();

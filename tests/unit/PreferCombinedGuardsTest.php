@@ -23,6 +23,8 @@ final class PreferCombinedGuardsTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'interface method without a body' => ['interface Contract { public function run(): void; }', 0];
+        yield 'abstract method without a body' => ['abstract class Worker { abstract public function run(): void; }', 0];
         yield 'plain returns' => ['function check(bool $finished, bool $cancelled): void { if ($finished) { return; } if ($cancelled) { return; } work(); }', 1];
         yield 'same thrown expression' => ['function check(int $value): void { if ($value < 0) { throw new \InvalidArgumentException("bad"); } if ($value > 100) { throw new \InvalidArgumentException("bad"); } work(); }', 1];
         yield 'same break in a loop' => ['function check(array $items): void { foreach ($items as $item) { if ($item->hidden) { break; } if ($item->gone) { break; } work($item); } }', 1];

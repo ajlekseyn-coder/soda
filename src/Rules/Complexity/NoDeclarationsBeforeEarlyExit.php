@@ -52,7 +52,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
         $lists = new StatementLists;
         foreach ($finder->findInstanceOf($facts->nodes, FunctionLike::class) as $scope) {
             $statements = $scope->getStmts();
-            if ($statements === []) {
+            if ($statements === null || $statements === []) {
                 continue;
             }
 

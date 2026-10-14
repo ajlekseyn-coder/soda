@@ -33,6 +33,9 @@ return Soda::configure()
     ]);
 ```
 
+Exclude generated directories or caches with `->exclude([__DIR__.'/generated'])`.
+Configuration exclusions and CLI `--exclude` values are combined.
+
 Then run:
 
 ```bash

@@ -86,17 +86,11 @@ final class QualityCommand extends Command
      */
     private function analyze(array $requested, string $root): ?QualityResult
     {
-        $directories = $requested;
-
         try {
             $configOption = $this->option('config');
             $configPath = is_string($configOption) && $configOption !== '' ? $configOption : null;
-            $loader = new ConfigLoader;
-            $config = null;
-            if ($directories === []) {
-                $config = $loader->resolve([$root], $configPath);
-                $directories = $config->paths();
-            }
+            $config = $requested === [] ? (new ConfigLoader)->resolve([$root], $configPath) : null;
+            $directories = $config?->paths() ?? $requested;
 
             if ($directories === []) {
                 $this->error('No directory specified. Add withPaths([...]) to soda.php or pass a path.');
@@ -104,14 +98,17 @@ final class QualityCommand extends Command
                 return null;
             }
 
-            $files = $this->resolveFiles($directories);
+            $files = $this->resolveFiles($directories, []);
+            $config ??= (new ConfigLoader)->resolve($files, $configPath);
+            if ($config->excludedPaths() !== []) {
+                $files = $this->resolveFiles($directories, $config->excludedPaths());
+            }
+
             if ($files === []) {
                 $this->error('No files found to scan');
 
                 return null;
             }
-
-            $config ??= $loader->resolve($files, $configPath);
 
             return $this->runner->check($files, $config->checks());
         } catch (ConfigException $configException) {
@@ -148,7 +145,10 @@ final class QualityCommand extends Command
             }
         }
 
-        return array_values(array_unique($paths));
+        return array_values(array_unique(array_map(
+            fn (string $path): string => is_dir($path) ? rtrim($path, '/\\').DIRECTORY_SEPARATOR : $path,
+            $paths,
+        )));
     }
 
     /**
@@ -163,17 +163,18 @@ final class QualityCommand extends Command
      * Expand configured or command-line paths into the PHP files to analyze.
      *
      * @param list<non-empty-string> $directories
+     * @param list<non-empty-string> $excludedPaths Configuration paths combined with CLI exclusions.
      *
      * @return list<non-empty-string>
      */
-    private function resolveFiles(array $directories): array
+    private function resolveFiles(array $directories, array $excludedPaths): array
     {
         $suffixOpt = $this->option('suffix');
         $suffixes = $suffixOpt === null ? ['.php'] : array_merge(['.php'], (array) $suffixOpt);
         /** @var list<non-empty-string> $suffixes */
         $exclude = $this->exclusionPaths(
             $directories,
-            (array) ($this->option('exclude') ?? []),
+            [...$excludedPaths, ...(array) ($this->option('exclude') ?? [])],
         );
         /** @var list<non-empty-string> $exclude */
 

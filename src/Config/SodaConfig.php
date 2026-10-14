@@ -39,6 +39,13 @@ final class SodaConfig
     private array $paths = [];
 
     /**
+     * Exclusion paths expanded against each analysis root, matching CLI exclusions.
+     *
+     * @var list<non-empty-string>
+     */
+    private array $excludedPaths = [];
+
+    /**
      * Register a single rule checker by class name.
      *
      * Prefer {@see with()} with an instance when the rule needs constructor args.
@@ -83,6 +90,32 @@ final class SodaConfig
         }
 
         return $this;
+    }
+
+    /**
+     * Exclude generated or external sources without changing the analysis roots.
+     *
+     * @param list<non-empty-string> $paths Relative paths expand against each analysis root; absolute paths apply directly.
+     */
+    public function exclude(array $paths): self
+    {
+        foreach ($paths as $path) {
+            throw_if(! is_string($path) || $path === '', \InvalidArgumentException::class, 'Each entry in exclude() must be a non-empty path.');
+
+            $this->excludedPaths[] = $path;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Exclusions combined with CLI paths before source discovery.
+     *
+     * @return list<non-empty-string>
+     */
+    public function excludedPaths(): array
+    {
+        return $this->excludedPaths;
     }
 
     /**
