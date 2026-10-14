@@ -6,6 +6,9 @@ namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Rules\Architecture\NoCatchAllExceptions;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\NameResolver;
+use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -46,6 +49,54 @@ final class NoCatchAllExceptionsTest extends TestCase
         yield 'guard then rethrow' => ['if (recoverable($error)) { return null; } throw $error;', 0];
         yield 'closure return is not catch outcome' => ['$fallback = fn () => null;', 1];
         yield 'nested closure return' => ['$fallback = function () { return null; };', 1];
+    }
+
+    #[DataProvider('contractScopes')]
+    public function testContractsExemptOnlyTheNamedDeclaredMethod(string $source, array $contracts, int $expected): void
+    {
+        $nodes = (new NodeTraverser(
+            new NameResolver,
+            new ParentConnectingVisitor,
+        ))->traverse($this->parseSnippet($source));
+        $file = new FileFacts('/handler.php', '', $nodes, []);
+
+        $this->assertCount($expected, iterator_to_array((new NoCatchAllExceptions(contracts: $contracts))->checkFile($file)));
+    }
+
+    public static function contractScopes(): \Iterator
+    {
+        yield 'exact method only' => [
+            'namespace App; class Client { function cleanup() { try { work(); } catch (\\Throwable $e) {} } function run() { try { work(); } catch (\\Throwable $e) {} } }',
+            ['App\\Client::cleanup'], 1,
+        ];
+        yield 'case insensitive method identity' => [
+            'namespace App; class Client { function cleanup() { try { work(); } catch (\\Throwable $e) {} } }',
+            ['app\\client::CLEANUP'], 0,
+        ];
+        yield 'same name in another class' => [
+            'namespace App; class Other { function cleanup() { try { work(); } catch (\\Throwable $e) {} } }',
+            ['App\\Client::cleanup'], 1,
+        ];
+        yield 'overridden method is not exempt' => [
+            'namespace App; class Client { function cleanup() { try { work(); } catch (\\Throwable $e) {} } } class Child extends Client { function cleanup() { try { work(); } catch (\\Throwable $e) {} } }',
+            ['App\\Client::cleanup'], 1,
+        ];
+        yield 'wildcards do not exempt methods' => [
+            'namespace App; class Client { function cleanup() { try { work(); } catch (\\Throwable $e) {} } }',
+            ['App\\*::cleanup'], 1,
+        ];
+        yield 'anonymous class inside a contract is not exempt' => [
+            'namespace App; class Client { function cleanup() { return new class { function cleanup() { try { work(); } catch (\\Throwable $e) {} } }; } }',
+            ['App\\Client::cleanup'], 1,
+        ];
+        yield 'nested closure is not exempt' => [
+            'namespace App; class Client { function cleanup() { return function () { try { work(); } catch (\\Throwable $e) {} }; } }',
+            ['App\\Client::cleanup'], 1,
+        ];
+        yield 'named nested function is not exempt' => [
+            'namespace App; class Client { function cleanup() { function nested() { try { work(); } catch (\\Throwable $e) {} } } }',
+            ['App\\Client::cleanup'], 1,
+        ];
     }
 
     public function testSpecificExceptionsAreAllowedWithoutAnOutcome(): void

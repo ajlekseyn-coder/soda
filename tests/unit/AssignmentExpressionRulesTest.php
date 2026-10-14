@@ -31,6 +31,20 @@ final class AssignmentExpressionRulesTest extends TestCase
             'coalescing assignment'              => ['return $value ??= calculate();', 0],
             'reference assignment'               => ['return $value =& $other;', 1],
             'property write'                     => ['return $this->value = calculate();', 0],
+            'owner array write'                  => ['return $this->items[$key] = calculate();', 0],
+            'owner static array write'           => ['return self::$items[$key] = calculate();', 0],
+            'nested owner array write'           => ['return $this->items["group"][$key] = calculate();', 0],
+            'owner array lazy cache'             => ['return $this->items["bookworm"] ??= calculate();', 0],
+            'local array lazy cache'             => ['return $items[$key] ??= calculate();', 0],
+            'enum cache key'                     => ['return $this->items[$service->value] = calculate();', 0],
+            'foreign static array write'         => ['return Other::$items[$key] = calculate();', 1],
+            'foreign instance array write'       => ['return $other->items[$key] = calculate();', 1],
+            'array append'                       => ['return $this->items[] = calculate();', 1],
+            'dynamic cache key'                  => ['return $this->items[key()] ??= calculate();', 1],
+            'assignment in cache key'            => ['return $this->items[$key = nextKey()] ??= calculate();', 1],
+            'assignment in cache value'          => ['return $this->items[$key] ??= $value = calculate();', 1],
+            'cache on called receiver'           => ['return cache()->items[$key] ??= calculate();', 1],
+            'dynamic cache property'             => ['return $this->{$name}[$key] ??= calculate();', 1],
             'array write'                        => ['return $values[0] = calculate();', 1],
             'destructuring'                      => ['return [$first, $second] = calculate();', 1],
             'parentheses'                        => ['return ($value = calculate());', 1],
@@ -51,6 +65,15 @@ final class AssignmentExpressionRulesTest extends TestCase
             'comparison'                         => ['return $value === calculate();', 0],
             'increment is separate policy'       => ['return ++$value;', 0],
         ];
+    }
+
+    public function testArrayCachesRespectDisabledExceptions(): void
+    {
+        $source = '<?php function cached() { return $this->items[$key] ??= calculate(); }';
+        self::assertCount(1, $this->findings(new NoAssignmentInReturn(allowLazyInitialization: false), $source));
+
+        $source = '<?php function cached() { return $this->items[$key] = calculate(); }';
+        self::assertCount(1, $this->findings(new NoAssignmentInReturn(allowOwnerStateReturn: false), $source));
     }
 
     #[DataProvider('assignmentChains')]

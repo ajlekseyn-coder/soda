@@ -37,7 +37,19 @@ function recorded(): int
 {
     return $this->last = calculate();
 }
+
+function client(string $name): Client
+{
+    return $this->clients[$name] ??= new Client($name);
+}
+
+function discovered(Service $service): Node
+{
+    return $this->nodes[$service->value] = discover($service);
+}
 ```
+
+Array entries follow the same policy as their containing storage: a direct write to `$this` or `self`/`static` state is accepted, and lazy initialization also accepts local array caches. Keys must be literal strings or integers, named variables, or named property reads such as `$service->value`. Append targets, calls or assignments in keys, and further assignments in the value remain reported. The existing options also apply to array entries.
 
 ## Options
 

@@ -30,6 +30,10 @@ final class ReturnAssignmentSyntax
      */
     private static function isOwnerProperty(Expr $target): bool
     {
+        if ($target instanceof Expr\ArrayDimFetch) {
+            return self::isStableTarget($target) && self::isOwnerProperty($target->var);
+        }
+
         $isOwnerStatic = $target instanceof Expr\StaticPropertyFetch && $target->class instanceof Name
             && $target->class->isSpecialClassName();
         $isOwnerInstance = $target instanceof Expr\PropertyFetch;
@@ -101,6 +105,10 @@ final class ReturnAssignmentSyntax
      */
     public static function isStableTarget(Expr $target): bool
     {
+        if ($target instanceof Expr\ArrayDimFetch) {
+            return self::isStableTarget($target->var) && self::isStableKey($target->dim);
+        }
+
         if ($target instanceof Expr\Variable) {
             return is_string($target->name);
         }
@@ -110,5 +118,21 @@ final class ReturnAssignmentSyntax
         }
 
         return $target instanceof Expr\StaticPropertyFetch && $target->class instanceof Name && $target->name instanceof Node\VarLikeIdentifier;
+    }
+
+    /**
+     * Cache keys may read named values, but cannot invoke code or change state.
+     */
+    private static function isStableKey(?Expr $key): bool
+    {
+        if ($key instanceof Node\Scalar\String_ || $key instanceof Node\Scalar\Int_) {
+            return true;
+        }
+
+        if ($key instanceof Expr\PropertyFetch) {
+            return $key->name instanceof Identifier && self::isStableKey($key->var);
+        }
+
+        return $key instanceof Expr\Variable && is_string($key->name);
     }
 }

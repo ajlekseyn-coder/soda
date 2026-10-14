@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Architecture;
 
+use Cosmira\Soda\Analysis\CallableIdentity;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
@@ -16,6 +17,13 @@ use PhpParser\NodeFinder;
 final class NoCatchAllExceptions extends Check
 {
     /**
+     * Preserve declared cleanup contracts that deliberately retain an earlier failure.
+     *
+     * @param list<string> $contracts Exact qualified Class::method identities; masks and inherited overrides do not match.
+     */
+    public function __construct(private readonly array $contracts = []) {}
+
+    /**
      * Report each matching PHP construct at its original source position.
      *
      * @return iterable<Violation>
@@ -23,9 +31,16 @@ final class NoCatchAllExceptions extends Check
     #[\Override]
     public function checkFile(FileFacts $file): iterable
     {
+        $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
         $nodes = (new NodeFinder)->find($file->nodes, fn (Node $node): bool => $node instanceof Stmt\Catch_ && $this->isCatchAll($node) && ! $this->hasExplicitOutcome($node->stmts));
 
         foreach ($nodes as $node) {
+            $identity = CallableIdentity::enclosingMethod($node);
+            $key = $identity !== null ? strtolower($identity) : null;
+            if ($key !== null && isset($contracts[$key])) {
+                continue;
+            }
+
             yield new Violation(
                 rule: $this->id(),
                 file: $file->path,

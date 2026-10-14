@@ -89,3 +89,21 @@ return Soda::configure()
 - [max_empty_catch_blocks](max_empty_catch_blocks.md) — caps the number of empty catch bodies per callable.
 - [no_redundant_rethrow](no_redundant_rethrow.md) — flags catch blocks that only rethrow what they caught.
 - [no_error_suppression](no_error_suppression.md) — flags the `@` operator, the other common way of hiding failures.
+
+### Exact cleanup contracts
+
+Some cleanup methods deliberately preserve an earlier application failure even
+when cancellation or error reporting fails. Declare these boundaries explicitly:
+
+```php
+new NoCatchAllExceptions(contracts: [
+    'App\\Clients\\ServiceClient::endCallbackScope',
+    'App\\Clients\\ServiceClient::attemptCleanup',
+]);
+```
+
+Contracts match the exact declaring class and method, case-insensitively like PHP
+method identities. Wildcards are not supported. Neighboring methods, methods in
+other classes, overridden methods in subclasses, and nested anonymous-class
+methods remain checked. The empty default contract list preserves normal checks.
+Only this rule is affected; other checks still analyze the method.
