@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Analysis\Naming\CompoundIdentifierWords;
+use Cosmira\Soda\Tests\CheckFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +16,18 @@ final class CompoundIdentifierWordsTest extends TestCase
     #[DataProvider('identifierProvider')]
     public function testSplitsSemanticWordsWithoutExplodingAcronyms(string $name, array $expected): void
     {
-        $this->assertSame($expected, CompoundIdentifierWords::split($name));
+        $path = tempnam(sys_get_temp_dir(), 'soda-compound-name-');
+        self::assertIsString($path);
+        // The suffix makes even a single-word identifier observable in the naming facts.
+        file_put_contents($path, '<?php function run() { $'.$name.'_suffix = 1; }');
+
+        try {
+            $occurrences = CheckFixture::collect($path, required: ['naming'])['metrics']['compoundVariableNames'];
+            self::assertCount(1, $occurrences);
+            self::assertSame([...$expected, 'suffix'], $occurrences[0]->words);
+        } finally {
+            unlink($path);
+        }
     }
 
     /** @return iterable<string, array{string, list<string>}> */

@@ -11,6 +11,24 @@ use Cosmira\Soda\Reporting\Violation;
 final class MaxLayerDominancePercentage extends Check
 {
     /**
+     * Files without a recognized role still contribute to the directory total.
+     */
+    private const PLAIN_ROLE = 'Plain';
+
+    /**
+     * Files declaring several recognized roles form a separate category.
+     */
+    private const MIXED_ROLE = 'Mixed';
+
+    /**
+     * Conventional architectural roles; arbitrary base classes are not layers.
+     */
+    private const ROLES = [
+        'Controller', 'Service', 'Repository', 'Model', 'Job', 'Command',
+        'Event', 'Listener', 'Policy', 'Middleware', 'Resource', 'Request',
+    ];
+
+    /**
      * Use the already parsed syntax tree.
      *
      * @return list<string>
@@ -39,12 +57,85 @@ final class MaxLayerDominancePercentage extends Check
             return;
         }
 
-        foreach (DirectoryRoles::aggregate($project->files) as $directory => $summary) {
+        foreach ($this->aggregate($project->files) as $directory => $summary) {
             $violation = $this->violationForDirectory($directory, $summary);
             if ($violation instanceof Violation) {
                 yield $violation;
             }
         }
+    }
+
+    /**
+     * Count file roles within each directory while retaining unclassified files in its total.
+     *
+     * @param array<string, array<string, mixed>> $files
+     *
+     * @return array<string, array{file: string, fileCount: int, roleCounts: array<string, int>}>
+     */
+    private function aggregate(array $files): array
+    {
+        $directories = [];
+        foreach ($files as $file => $metrics) {
+            $directory = dirname($file);
+            $directories[$directory] ??= [
+                'file'       => $file,
+                'fileCount'  => 0,
+                'roleCounts' => [],
+            ];
+
+            $row = $directories[$directory];
+            $row['fileCount']++;
+            $role = $this->fileRole($metrics['classes'] ?? []);
+            $counts = $row['roleCounts'];
+            $counts[$role] = ($counts[$role] ?? 0) + 1;
+            $row['roleCounts'] = $counts;
+            $directories[$directory] = $row;
+        }
+
+        return $directories;
+    }
+
+    /**
+     * Infer only explicit class-name roles, retaining other files in the directory total.
+     *
+     * @param array<string, array> $classes
+     */
+    private function fileRole(array $classes): string
+    {
+        $roles = [];
+        foreach ($classes as $class => $declaration) {
+            if ($declaration['kind'] !== 'class') {
+                continue;
+            }
+
+            $role = $this->role($class);
+            if ($role !== null) {
+                $roles[] = $role;
+            }
+        }
+
+        $roles = array_unique($roles);
+        if ($roles === []) {
+            return self::PLAIN_ROLE;
+        }
+
+        $hasSingleRole = count($roles) === 1;
+
+        return $hasSingleRole ? array_pop($roles) : self::MIXED_ROLE;
+    }
+
+    /**
+     * Match a declared role suffix without inferring a layer from inheritance.
+     */
+    private function role(string $class): ?string
+    {
+        foreach (self::ROLES as $role) {
+            if (str_ends_with($class, $role)) {
+                return $role;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -60,7 +151,7 @@ final class MaxLayerDominancePercentage extends Check
         }
 
         [$dominantRole, $dominantCount] = $this->dominantRole($summary['roleCounts']);
-        $isExpectedLayer = $dominantRole === DirectoryRoles::PLAIN_ROLE || $this->isDirectoryNamedAfterRole($directory, $dominantRole);
+        $isExpectedLayer = $dominantRole === self::PLAIN_ROLE || $this->isDirectoryNamedAfterRole($directory, $dominantRole);
 
         if ($isExpectedLayer) {
             return null;
@@ -93,7 +184,7 @@ final class MaxLayerDominancePercentage extends Check
     private function shouldReportDirectory(array $summary): bool
     {
         $roles = $summary['roleCounts'];
-        unset($roles[DirectoryRoles::PLAIN_ROLE]);
+        unset($roles[self::PLAIN_ROLE]);
 
         return $summary['fileCount'] >= max(1, $this->minFiles) && count($roles) > 1;
     }
@@ -108,7 +199,7 @@ final class MaxLayerDominancePercentage extends Check
     private function dominantRole(array $roleCounts): array
     {
         arsort($roleCounts);
-        $role = array_key_first($roleCounts) ?? DirectoryRoles::PLAIN_ROLE;
+        $role = array_key_first($roleCounts) ?? self::PLAIN_ROLE;
 
         return [$role, $roleCounts[$role] ?? 0];
     }

@@ -59,7 +59,7 @@ final class MaxStatementsPerCallable extends Check
                 continue;
             }
 
-            $count = $callable instanceof Node\Expr\ArrowFunction ? 1 : (new StatementCounter)->count($statements);
+            $count = $callable instanceof Node\Expr\ArrowFunction ? 1 : array_sum(array_map($this->statementCount(...), $statements));
             if ($count <= $this->limit) {
                 continue;
             }
@@ -72,6 +72,30 @@ final class MaxStatementsPerCallable extends Check
                 message: 'Callable contains too many executable statements. Name a cohesive step when it clarifies the operation; formatting does not reduce this count.',
             );
         }
+    }
+
+    /**
+     * Nested declarations own their statements; control wrapper clauses add no instruction.
+     */
+    private function statementCount(Node $node): int
+    {
+        if ($node instanceof FunctionLike || $node instanceof Stmt\ClassLike) {
+            return 0;
+        }
+
+        $wrappers = ['Stmt_Nop', 'Stmt_Else', 'Stmt_ElseIf', 'Stmt_Catch', 'Stmt_Finally', 'Stmt_Case'];
+        $type = $node->getType();
+        $count = $node instanceof Stmt && ! in_array($type, $wrappers, true) ? 1 : 0;
+        foreach ($node->getSubNodeNames() as $name) {
+            $children = get_object_vars($node)[$name];
+            foreach (is_array($children) ? $children : [$children] as $child) {
+                if ($child instanceof Node) {
+                    $count += $this->statementCount($child);
+                }
+            }
+        }
+
+        return $count;
     }
 
     /**

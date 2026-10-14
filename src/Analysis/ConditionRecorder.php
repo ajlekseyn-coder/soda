@@ -38,7 +38,7 @@ final class ConditionRecorder
 
         $cond = ConditionExtractor::extract($node);
         if ($cond instanceof Expr) {
-            $count = BooleanOperandCounter::count($cond);
+            $count = $this->operandCount($cond);
             if ($count > 0) {
                 $key = $method;
                 $list = $this->conditionsByMethod[$key] ?? [];
@@ -49,6 +49,21 @@ final class ConditionRecorder
                 $this->conditionsByMethod[$key] = $list;
             }
         }
+    }
+
+    /**
+     * Boolean chains sum their operands; negations and other expressions remain one operand.
+     */
+    private function operandCount(Expr $expression): int
+    {
+        return match (true) {
+            $expression instanceof Expr\BinaryOp\LogicalAnd,
+            $expression instanceof Expr\BinaryOp\LogicalOr,
+            $expression instanceof Expr\BinaryOp\LogicalXor,
+            $expression instanceof Expr\BinaryOp\BooleanAnd,
+            $expression instanceof Expr\BinaryOp\BooleanOr => $this->operandCount($expression->left) + $this->operandCount($expression->right),
+            default                                        => 1,
+        };
     }
 
     /**

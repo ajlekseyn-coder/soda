@@ -230,7 +230,7 @@ final class CompoundVariableNameVisitor extends FactVisitor
             return;
         }
 
-        $words = CompoundIdentifierWords::split($variable->name);
+        $words = $this->words($variable->name);
         $isSingleWord = count($words) < 2;
         if ($isSingleWord) {
             return;
@@ -249,6 +249,42 @@ final class CompoundVariableNameVisitor extends FactVisitor
             $this->scope->class,
             $this->scope->method,
         );
+    }
+
+    /**
+     * Split camelCase and snake_case while keeping consecutive capitals as one acronym.
+     *
+     * @return list<non-empty-string>
+     */
+    private function words(string $name): array
+    {
+        $words = [];
+        $segments = preg_split('/_+/', trim($name, '_'));
+        if ($segments === false) {
+            return [];
+        }
+
+        foreach ($segments as $segment) {
+            if ($segment === '') {
+                continue;
+            }
+
+            $matches = [];
+            preg_match_all('/[A-Z]+(?=[A-Z][a-z]|$)\d*|[A-Z]?[a-z]+\d*/', $segment, $matches);
+            $segmentWords = array_shift($matches) ?? [];
+            if ($segmentWords === []) {
+                $segmentWords = [$segment];
+            }
+
+            foreach ($segmentWords as $word) {
+                $isNonemptyWord = is_string($word) && $word !== '';
+                if ($isNonemptyWord) {
+                    $words[] = strtolower($word);
+                }
+            }
+        }
+
+        return $words;
     }
 
     /**

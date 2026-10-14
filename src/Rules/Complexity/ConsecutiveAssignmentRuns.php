@@ -23,7 +23,6 @@ final class ConsecutiveAssignmentRuns
     public function collect(Node\FunctionLike $callable): array
     {
         $seen = $this->inputs($callable);
-        $collector = new LocalVariableCollector;
         $runs = [];
         $run = [];
         foreach ($callable->getStmts() ?? [] as $statement) {
@@ -41,7 +40,7 @@ final class ConsecutiveAssignmentRuns
                 $run = [];
             }
 
-            $seen += $collector->collect($statement);
+            $seen += $this->localNames($statement);
         }
 
         if ($run !== []) {
@@ -49,6 +48,55 @@ final class ConsecutiveAssignmentRuns
         }
 
         return $runs;
+    }
+
+    /**
+     * Reserve closure captures without attributing deferred bodies to the enclosing scope.
+     *
+     * @return array<string, true>
+     */
+    private function localNames(Node $node): array
+    {
+        if ($node instanceof Expr\Closure) {
+            $names = [];
+            foreach ($node->uses as $use) {
+                if (is_string($use->var->name)) {
+                    $names[$use->var->name] = true;
+                }
+            }
+
+            return $names;
+        }
+
+        if ($node instanceof Node\FunctionLike || $node instanceof Stmt\ClassLike) {
+            return [];
+        }
+
+        if ($node instanceof Expr\Variable && is_string($node->name)) {
+            return [$node->name => true];
+        }
+
+        return $this->childNames($node);
+    }
+
+    /**
+     * Traverse AST child fields while localNames applies each lexical boundary.
+     *
+     * @return array<string, true>
+     */
+    private function childNames(Node $node): array
+    {
+        $names = [];
+        foreach ($node->getSubNodeNames() as $name) {
+            $children = get_object_vars($node)[$name];
+            foreach (is_array($children) ? $children : [$children] as $child) {
+                if ($child instanceof Node) {
+                    $names += $this->localNames($child);
+                }
+            }
+        }
+
+        return $names;
     }
 
     /**
