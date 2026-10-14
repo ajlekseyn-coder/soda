@@ -6,6 +6,9 @@
 /.psalm                 export-ignore
 /.php-cs-fixer.dist.php export-ignore
 /.phpunit.result.cache  export-ignore
+/AGENTS.md              export-ignore
+/demo-app               export-ignore
+/scripts                export-ignore
 /build                  export-ignore
 /build.xml              export-ignore
 /composer.lock          export-ignore

@@ -1,64 +1,30 @@
 # Changelog
 
-## 1.0.0 — Unreleased
+## 1.0.0 — 2026-10-14
 
-First stable release of Soda under `cosmira/soda`.
+First stable release of Soda, published as `cosmira/soda` under the MIT license.
+Requires PHP 8.2 or higher.
 
-- Remove the unconditional clone ban from the standard catalog and generated configuration;
-  keep the explicit `NoObjectCloning` check compatible. Treat cloning a simple value as
-  a value expression in conditions, while retaining nested-call detection.
+- Check PHP code with a standard rule set and no initial configuration.
+- Configure named checks and constructor options in one `soda.php` file;
+  generate a starting configuration with `soda init`.
+- Inspect rules, defaults and analysis facts through `list:rules` and `list:metrics`.
+- Check size, complexity, naming, PHPDoc, parameter usage, private state,
+  composition, dependencies and owner behavior.
+- Preserve known inheritance, trait, callback and framework contracts when
+  evaluating rule findings.
+- Return actionable source locations, measured values and thresholds, with
+  JSON schema 4 reports and nonzero exit status for failed checks.
+- Extend Soda through named PHP checks, expression checks and reusable rule sets.
+- Collect cognitive complexity and cohesion measurements with documented limits.
+- Report experimental representation-churn findings separately from violations;
+  research output does not fail the quality gate.
+- Use PSR-4 autoloading and support Illuminate 11, 12 and 13 on compatible PHP versions.
 
-- Report dynamic invocation only for explicit forbidden syntax; unresolved direct
-  callbacks are not violations. Remove callback inference and framework-specific
-  continuation exceptions that are unnecessary under this policy.
-- Preserve inherited argument contracts and registered middleware termination inputs.
-- Preserve transparent parent constructor forwarding without exempting arbitrary concrete constructors.
-- Manually audit every Sandbox finding and pin the reviewed source and diagnostic corpus.
-- Recheck six pinned Laravel packages with source hashes and exact diagnostic comparison.
-- Keep nested callable/class bodies outside assignment-in-condition analysis;
-  continue checking their own conditions and outer call arguments.
-- Accept immediately invoked literal callables as explicit targets and single
-  queries used with `instanceof` or null fallback as simple conditions.
-- Do not infer boolean parameters from truthiness, casts or comparisons of data;
-  preserve checks for explicit boolean types and defaults.
-- Preserve guarded forwarding of computed values in the ask-then-tell check;
-  do not count creation of first-class callables as command execution.
-- Preserve factory hooks backed by ancestor declarations or observed bounded
-  same-object dispatch, including installed Composer dependencies.
-- Count explicit PHPDoc declaration types and template bounds as interface consumers,
-  without counting prose mentions or disconnected interface self-reference cycles.
-- Read missing ancestor signatures from installed Composer PSR-4 dependency sources
-  without executing the autoloader or dependency code.
-- Resolve unused-input contracts across analysed files, preserving known inherited
-  positions while still reporting extra implementation parameters.
-- Preserve callback positions and registered native stream hook signatures; avoid
-  treating consumed query values, internal state decisions and inline documentation
-  examples as architectural violations or disabled code (18 findings in three more Laravel packages).
-- Recognize `get_defined_vars()` as a lexical parameter read, eliminating 205 false
-  unused-input findings in Laravel Prompts v0.3.21; clarify positional callback advice.
-- Preserve array copies in `useless_variable` when alias elements or the source mutate.
-- Allow exact external signatures in `MaxArguments::contracts` without relaxing other methods.
-- Explain `mixed` for inherited untyped parameters in diagnostic advice.
-- Configure checks with named PHP classes and constructor arguments in `soda.php`.
-- Run the standard checks without configuration using `vendor/bin/soda quality src/`.
-- Generate an equivalent standard configuration with `vendor/bin/soda init`.
-- Inspect rules and metric definitions with `list:rules` and `list:metrics`.
-- Extend `Cosmira\Soda\Rules\Check` for PHP checks or `ExpressionCheck` for
-  expressions compiled by phplrt inside a named class.
-- Parse each PHP file once and run file and project checks through one executor.
-- Emit measured values, thresholds, source locations and advice in JSON schema 4.
-- Strengthen factory, transparent-wrapper, repeated-condition and boolean-parameter checks
-  against decorative metadata, local aliases and supported composition disguises.
-- Add eleven standard checks for unused inputs/state, interface contracts and consumers,
-  mode parameters, repeated type dispatch, delegation depth, module cycles, native parameter
-  types and effective class size. See the [rule reference](docs/STRUCTURAL_METRICS.md#strict-composition-and-behavior-checks)
-  for exact boundaries.
+## Migrating from development versions
 
-Requires PHP 8.3.19 or later. PHP parsing uses nikic/php-parser.
-The standard set contains 82 checks; three additional checks are opt-in.
-
-Pre-release users must update the Composer package name, PHP namespace prefix
-and internal imports. Breathing metrics and plugin classes have been removed.
-See the [migration guide](docs/MIGRATION.md) for details.
-
-Cohesion experiments are reserved for a later release and are not part of 1.0.
+Update the Composer package name from `bunnivo/soda` to `cosmira/soda` and the PHP
+namespace prefix from `Bunnivo\Soda\` to `Cosmira\Soda\`. Plugin wrappers and
+Breathing metrics have been removed. Existing explicit rule lists continue to
+run only the selected checks. See the [migration guide](docs/MIGRATION.md) for
+namespace and extension-contract changes.
