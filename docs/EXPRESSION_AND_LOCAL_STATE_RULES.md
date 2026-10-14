@@ -5,7 +5,7 @@ values, alias propagation, or application-wide meanings of strings.
 
 | Check | Default selection | Configuration | Finding |
 |---|---|---|---|
-| `NoUnneededTernary` | Standard | No arguments | Each ternary with opposite literal boolean branches |
+| `NoUnneededTernary` | Standard | No arguments | Each ternary with opposite boolean literals, or one literal and a syntactically boolean branch |
 | `NoReturnInFinally` | Standard | No arguments | Each explicit return owned by a finally block |
 | `NoReassignedParameters` | Standard | `ignoredParameters: []` | Each direct write to a by-value parameter binding |
 | `MaxConsecutiveLocalAssignments` | Standard | `limit: 8` | Each maximal direct-body run exceeding the limit |

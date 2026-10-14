@@ -1,12 +1,27 @@
 # no_unneeded_ternary
 
-📝 Reports full ternaries whose branches are opposite boolean literals.
+📝 Reports full ternaries that restate a boolean conversion or short-circuit decision.
 
 💼 This rule is enabled in the ✅ `standard` config.
 
 ## Why
 
-`$ready ? true : false` restates the condition itself; the ternary adds syntax and a second evaluation question where a cast or a negation says the same thing. The rule reports full ternaries selecting `true`/`false` literals in opposite order — same literals on both sides and non-literal branches stay accepted — and suggests `(bool) (condition)` for `$cond ? true : false` and `! (condition)` for `$cond ? false : true`. Preserve boolean conversion and evaluate the condition once when removing opposite literal branches; drop the cast only when the condition is known to return bool.
+`$ready ? true : false` restates the condition itself; a cast or a negation says the same thing. For full ternaries selecting opposite `true`/`false` literals, the rule suggests `(bool) (condition)` for `$cond ? true : false` and `! (condition)` for `$cond ? false : true`. Matching literals on both sides stay accepted. Preserve boolean conversion and evaluate the condition once; drop the cast only when the condition is known to return bool.
+
+With one literal boolean branch, a logical operator can express the decision when
+the other branch already returns bool. For example, `$condition ? true : isset($value)`
+becomes `($condition) || isset($value)`, while `$condition ? isset($value) : false`
+becomes `($condition) && isset($value)`. Inverse forms negate the condition.
+The condition is evaluated once and the non-literal branch retains its original
+short-circuit evaluation. Keep parentheses around the original expressions and
+use `&&` or `||`, rather than PHP's low-precedence `and` or `or`.
+
+Syntax proves boolean results for negation, boolean casts, `isset`, `empty`,
+`instanceof`, equality and ordering comparisons, and logical operations. Arbitrary
+variables, calls, ternaries and match expressions are not inferred to be bool.
+The integer-valued spaceship operator remains accepted, as do shorthand ternaries.
+An unknown branch may return a meaningful non-boolean value and cannot be replaced
+by a logical operator without additional proof.
 
 ## Examples
 
@@ -24,6 +39,20 @@ $inverse = ! $unknown;
 // ✅ accepted: non-literal branches and matching literals
 $price = $unknown ? 1 : 0;
 $state = $unknown ? true : true;
+```
+
+```php
+// ❌ a literal branch hides a short-circuit decision
+$present = $enabled ? isset($value) : false;
+$missing = $enabled ? false : isset($value);
+
+// ✅ the logical operators preserve both result type and branch effects
+$present = $enabled && isset($value);
+$missing = ! $enabled && isset($value);
+
+// ✅ accepted: the selected branch's type is unknown
+$result = $enabled ? $value : false;
+$result = $enabled ? true : isReady();
 ```
 
 ## Configuration

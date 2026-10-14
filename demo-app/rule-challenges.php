@@ -146,6 +146,22 @@ return [
         'iteration' => 100,
         'attack'    => 'Select true and false from an unknown condition type.',
     ],
+    'no_redundant_boolean_comparisons' => [
+        'iteration' => 100,
+        'attack'    => 'Compare predicates to literals beside strict checks of unknown values.',
+    ],
+    'no_redundant_boolean_returns' => [
+        'iteration' => 100,
+        'attack'    => 'Hide opposite boolean returns in closures or cross scope boundaries.',
+    ],
+    'no_useless_return' => [
+        'iteration' => 100,
+        'attack'    => 'Hide a trailing bare return in a closure beside meaningful outer guards.',
+    ],
+    'no_useless_concat' => [
+        'iteration' => 100,
+        'attack'    => 'Mix literal quotes beside interpolation and multiline concatenation.',
+    ],
     'no_return_in_finally' => [
         'iteration' => 8,
         'attack'    => 'Replace the pending result with a return in cleanup.',
@@ -189,6 +205,10 @@ return [
     'no_declarations_before_early_exit' => [
         'iteration' => 100,
         'attack'    => 'Prepare state before a guard so the early-exit path pays for unread work.',
+    ],
+    'prefer_combined_conditions' => [
+        'iteration' => 100,
+        'attack'    => 'Nest predicates beside commented or compound conditions.',
     ],
     'prefer_combined_guards' => [
         'iteration' => 100,

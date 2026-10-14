@@ -21,10 +21,15 @@ use Cosmira\Soda\Rules\Complexity\NoElseBranches;
 use Cosmira\Soda\Rules\Complexity\NoEmptyFinallyBlocks;
 use Cosmira\Soda\Rules\Complexity\NoIdenticalBranches;
 use Cosmira\Soda\Rules\Complexity\NoNestedTernary;
+use Cosmira\Soda\Rules\Complexity\NoRedundantBooleanComparisons;
+use Cosmira\Soda\Rules\Complexity\NoRedundantBooleanReturns;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedCompoundConditions;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedStringLiterals;
 use Cosmira\Soda\Rules\Complexity\NoReturnInFinally;
 use Cosmira\Soda\Rules\Complexity\NoUnneededTernary;
+use Cosmira\Soda\Rules\Complexity\NoUselessConcat;
+use Cosmira\Soda\Rules\Complexity\NoUselessReturn;
+use Cosmira\Soda\Rules\Complexity\PreferCombinedConditions;
 use Cosmira\Soda\Rules\Design\FragmentedOwnerBehavior;
 use Cosmira\Soda\Rules\Design\RepeatedConfigurationSequence;
 use Cosmira\Soda\Rules\Design\RepeatedForeignStateDecision;
@@ -153,6 +158,11 @@ return Soda::configure()
         new NoRepeatedStringLiterals(3),
         new NoReturnInFinally(),
         new NoUnneededTernary(),
+        new NoRedundantBooleanReturns(),
+        new NoRedundantBooleanComparisons(),
+        new PreferCombinedConditions(),
+        new NoUselessConcat(),
+        new NoUselessReturn(),
         new MaxCyclomaticComplexity(10),
         new MaxControlNesting(3),
         new MaxReturnStatements(4),

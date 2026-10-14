@@ -4,6 +4,44 @@ Metrics that measure branches, control flow nesting, returns and exception handl
 
 **Config:** Complexity rules are plain objects in `soda.php`.
 
+### no_useless_return
+
+`new NoUselessReturn()` reports a final direct bare return in a function, method
+or closure. Keep guards, nested exits, explicit values and reference contracts.
+See [examples and boundaries](rules/no_useless_return.md).
+
+### no_redundant_boolean_returns
+
+`new NoRedundantBooleanReturns()` reports opposite literal boolean returns in
+an `if` and its `else` or immediately adjacent fallback. Return a boolean
+conversion of the condition or its negation, evaluating it once. Additional
+branch work and fallbacks across lexical boundaries remain accepted.
+See [examples and PHP semantics](rules/no_redundant_boolean_returns.md).
+
+### no_redundant_boolean_comparisons
+
+`new NoRedundantBooleanComparisons()` reports equality comparisons with boolean
+literals only when PHP syntax proves the other operand already returns bool.
+Variables, arbitrary calls and integer-valued spaceship comparisons remain
+accepted. See [examples and boundaries](rules/no_redundant_boolean_comparisons.md).
+
+### no_useless_concat
+
+`new NoUselessConcat()` reports same-line concatenations of two string literals.
+Preserve decoded bytes and escaping. Multiline text layout and dynamic operands
+are accepted. See [examples and boundaries](rules/no_useless_concat.md).
+
+Rule selection and upstream sources are recorded in
+[the rule research notes](RULE_RESEARCH.md).
+
+### prefer_combined_conditions
+
+`new PreferCombinedConditions()` reports a simple `if` containing only another
+simple `if`. Combine the conditions with `&&` while retaining short-circuit order.
+Alternative branches, compound logic, extra work and explanatory inner comments
+remain accepted. See [examples and boundaries](rules/prefer_combined_conditions.md)
+and [research evidence and limitations](RULE_RESEARCH.md#scientific-evidence).
+
 ```php
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Complexity\MaxBooleanConditions;
@@ -404,7 +442,9 @@ new policies, with one finding per rule.
 
 ### no_unneeded_ternary
 
-Standard `new NoUnneededTernary()` reports opposite literal boolean branches.
+Standard `new NoUnneededTernary()` reports opposite literal boolean branches,
+or one literal branch paired with an expression whose PHP result is provably bool.
+The latter can use `&&` or `||` while preserving condition and branch evaluation.
 Use `(bool) $condition` or `! $condition` to preserve the boolean result type and
 single evaluation. Shorthand ternaries and nonliteral results are outside this
 policy. See [boolean ternaries](EXPRESSION_AND_LOCAL_STATE_RULES.md#nounneededternary).

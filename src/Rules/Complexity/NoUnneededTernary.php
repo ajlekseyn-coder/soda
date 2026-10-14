@@ -11,7 +11,7 @@ use PhpParser\Node\Expr;
 use PhpParser\NodeFinder;
 
 /**
- * Reports full ternaries selecting opposite boolean literals without guessing condition types.
+ * Reports boolean ternaries whose result is expressible by conversion, negation or short-circuiting.
  */
 final class NoUnneededTernary extends Check
 {
@@ -34,24 +34,60 @@ final class NoUnneededTernary extends Check
     }
 
     /**
-     * Report opposite literal results with advice that preserves boolean conversion.
+     * Preserve boolean conversion, condition evaluation and the selected branch's effects.
      */
     public function checkFile(FileFacts $file): iterable
     {
         foreach ((new NodeFinder)->findInstanceOf($file->nodes, Expr\Ternary::class) as $node) {
-            $positive = $this->tryBooleanLiteral($node->if);
-            $negative = $this->tryBooleanLiteral($node->else);
-            if ($positive === null || $negative === null || $positive === $negative) {
+            $replacement = $this->replacement($node);
+            if ($replacement === null) {
                 continue;
             }
 
-            $replacement = $positive ? '(bool) (condition)' : '! (condition)';
             yield new Violation(
                 rule: $this->id(), file: $file->path, value: 1, threshold: 0,
                 line: $node->getStartLine(),
-                message: 'Unneeded boolean ternary. Use '.$replacement.'; remove the cast only when the condition is known to return bool. Evaluate the condition once.',
+                message: 'Unneeded boolean ternary. Use '.$replacement.'; remove the cast only when the condition is known to return bool. Evaluate the condition once and preserve short-circuit evaluation of the selected branch.',
             );
         }
+    }
+
+    /**
+     * A non-literal branch must already return bool before a logical operator can replace selection.
+     */
+    private function replacement(Expr\Ternary $node): ?string
+    {
+        if ($node->if === null) {
+            return null;
+        }
+
+        $positive = $this->tryBooleanLiteral($node->if);
+        $negative = $this->tryBooleanLiteral($node->else);
+        if ($positive !== null && $negative !== null) {
+            if ($positive === $negative) {
+                return null;
+            }
+
+            return $positive ? '(bool) (condition)' : '! (condition)';
+        }
+
+        return $this->partialReplacement($node, $positive, $negative);
+    }
+
+    /**
+     * One literal branch supplies the identity or absorbing result of a short-circuit operator.
+     */
+    private function partialReplacement(Expr\Ternary $node, ?bool $positive, ?bool $negative): ?string
+    {
+        if ($positive !== null && $this->isBooleanExpression($node->else)) {
+            return $positive ? '(condition) || (else expression)' : '! (condition) && (else expression)';
+        }
+
+        if ($negative !== null && $node->if !== null && $this->isBooleanExpression($node->if)) {
+            return $negative ? '! (condition) || (then expression)' : '(condition) && (then expression)';
+        }
+
+        return null;
     }
 
     /**
@@ -68,5 +104,18 @@ final class NoUnneededTernary extends Check
             'false' => false,
             default => null,
         };
+    }
+
+    /**
+     * PHP syntax guarantees these result types; calls, variables and spaceship results need other proof.
+     */
+    private function isBooleanExpression(Expr $expression): bool
+    {
+        return in_array($expression->getType(), [
+            'Expr_BooleanNot', 'Expr_Cast_Bool', 'Expr_Isset', 'Expr_Empty', 'Expr_Instanceof',
+            'Expr_BinaryOp_Equal', 'Expr_BinaryOp_NotEqual', 'Expr_BinaryOp_Identical', 'Expr_BinaryOp_NotIdentical',
+            'Expr_BinaryOp_Greater', 'Expr_BinaryOp_GreaterOrEqual', 'Expr_BinaryOp_Smaller', 'Expr_BinaryOp_SmallerOrEqual',
+            'Expr_BinaryOp_BooleanAnd', 'Expr_BinaryOp_BooleanOr', 'Expr_BinaryOp_LogicalAnd', 'Expr_BinaryOp_LogicalOr', 'Expr_BinaryOp_LogicalXor',
+        ], true);
     }
 }
