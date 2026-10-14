@@ -80,9 +80,10 @@ trait UnusedMethodResolution
     private function isAncestor(string $child, string $ancestor): bool
     {
         $seen = [];
-        while (isset($this->types[$child]) && ! isset($seen[$child])) {
-            $seen[$child] = true;
-            $type = $this->types[$child];
+        $current = $child;
+        while (isset($this->types[$current]) && ! isset($seen[$current])) {
+            $seen[$current] = true;
+            $type = $this->types[$current];
             $parent = $type['parent'];
             if ($parent === $ancestor) {
                 return true;
@@ -92,7 +93,7 @@ trait UnusedMethodResolution
                 return false;
             }
 
-            $child = $parent;
+            $current = $parent;
         }
 
         return false;

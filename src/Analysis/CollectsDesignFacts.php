@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
+use Cosmira\Soda\Analysis\Architecture\Cohesion;
+use Cosmira\Soda\Analysis\Complexity\CognitiveComplexity;
 use Cosmira\Soda\Analysis\Composition\ClassBehaviorFacts;
+use Cosmira\Soda\Analysis\Design\DesignEvidence;
 use Cosmira\Soda\Analysis\Frameworks\LaravelMiddlewareContracts;
 use Cosmira\Soda\Analysis\Representation\RepresentationFacts;
-use Cosmira\Soda\Rules\Architecture\Cohesion;
-use Cosmira\Soda\Rules\Complexity\CognitiveComplexity;
-use Cosmira\Soda\Rules\Design\DesignEvidence;
-use Cosmira\Soda\Rules\Usage\ParameterInputFacts;
-use Cosmira\Soda\Rules\Usage\UnusedMethodDeclarations;
+use Cosmira\Soda\Analysis\Usage\ParameterInputFacts;
+use Cosmira\Soda\Analysis\Usage\UnusedMethodDeclarations;
 use PhpParser\Node;
 
 /**
@@ -32,33 +32,31 @@ trait CollectsDesignFacts
      */
     private static function designMetrics(array $metrics, array $nodes, ?array $required): array
     {
-        if (self::isRequired($required, 'cognitive')) {
-            $metrics = self::cognitiveMetrics($metrics, $nodes);
-        }
+        $measured = self::isRequired($required, 'cognitive') ? self::cognitiveMetrics($metrics, $nodes) : $metrics;
 
         if (self::isRequired($required, 'parameterInputs')) {
-            $metrics['parameterInputs'] = ParameterInputFacts::collect($nodes);
-            $metrics['parameterContracts'] = InheritedParameterContracts::collect($nodes);
-            $metrics['registeredMiddleware'] = LaravelMiddlewareContracts::collect($nodes);
+            $measured['parameterInputs'] = ParameterInputFacts::collect($nodes);
+            $measured['parameterContracts'] = InheritedParameterContracts::collect($nodes);
+            $measured['registeredMiddleware'] = LaravelMiddlewareContracts::collect($nodes);
         }
 
         if (self::isRequired($required, 'argumentContracts')) {
-            $metrics['argumentContracts'] = NativeStreamContract::signatures($nodes);
+            $measured['argumentContracts'] = NativeStreamContract::signatures($nodes);
         }
 
-        $metrics['ownerDesign'] = self::isRequired($required, 'ownerDesign') ? DesignEvidence::collect($nodes) : [];
+        $measured['ownerDesign'] = self::isRequired($required, 'ownerDesign') ? DesignEvidence::collect($nodes) : [];
 
-        $metrics['classBehavior'] = self::isRequired($required, 'classBehavior') ? ClassBehaviorFacts::collect($nodes) : [];
+        $measured['classBehavior'] = self::isRequired($required, 'classBehavior') ? ClassBehaviorFacts::collect($nodes) : [];
 
-        $metrics['privateState'] = self::isRequired($required, 'privateState') ? PrivateStateFacts::collect($nodes) : [];
+        $measured['privateState'] = self::isRequired($required, 'privateState') ? PrivateStateFacts::collect($nodes) : [];
 
-        $metrics['interfaceUsage'] = self::isRequired($required, 'interfaceUsage') ? InterfaceFacts::collect($nodes) : [];
+        $measured['interfaceUsage'] = self::isRequired($required, 'interfaceUsage') ? InterfaceFacts::collect($nodes) : [];
 
-        $metrics['methodUsage'] = self::isRequired($required, 'methodUsage') ? UnusedMethodDeclarations::collect($nodes) : [];
+        $measured['methodUsage'] = self::isRequired($required, 'methodUsage') ? UnusedMethodDeclarations::collect($nodes) : [];
 
-        $metrics['cohesion'] = self::isRequired($required, 'cohesion') ? (new Cohesion)->collect($nodes) : [];
+        $measured['cohesion'] = self::isRequired($required, 'cohesion') ? (new Cohesion)->collect($nodes) : [];
 
-        return self::representationMetrics($metrics, $nodes, $required);
+        return self::representationMetrics($measured, $nodes, $required);
     }
 
     /**

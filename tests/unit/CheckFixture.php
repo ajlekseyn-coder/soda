@@ -8,7 +8,7 @@ use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Config\RuleCatalog;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Naming\BooleanMethodPrefix;
 use Illuminate\Support\Collection;
 

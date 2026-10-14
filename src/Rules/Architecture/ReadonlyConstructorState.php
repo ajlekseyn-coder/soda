@@ -21,11 +21,16 @@ use PhpParser\NodeFinder;
 trait ReadonlyConstructorState
 {
     /**
+     * Defines the AST attribute key that links a node to its enclosing parent node.
+     */
+    private const string PARENT_ATTRIBUTE = 'parent';
+
+    /**
      * Recognize readonly construction state in promoted and explicit property forms.
      */
     private function isReadonlyState(Node\Param $parameter): bool
     {
-        $method = $parameter->getAttribute('parent');
+        $method = $parameter->getAttribute(self::PARENT_ATTRIBUTE);
         $isNonConstructor = ! $method instanceof Stmt\ClassMethod || strtolower($method->name->toString()) !== '__construct';
         if ($isNonConstructor) {
             return false;
@@ -35,7 +40,7 @@ trait ReadonlyConstructorState
             return $this->isAssignedReadonlyState($parameter, $method);
         }
 
-        $class = $method->getAttribute('parent');
+        $class = $method->getAttribute(self::PARENT_ATTRIBUTE);
         $isReadonly = ($parameter->flags & Stmt\Class_::MODIFIER_READONLY) !== 0
             || ($class instanceof Stmt\Class_ && $class->isReadonly());
 
@@ -76,19 +81,19 @@ trait ReadonlyConstructorState
      */
     private function isReadonlyAssignment(Node $reference, Stmt\ClassMethod $method): bool
     {
-        $assignment = $reference->getAttribute('parent');
+        $assignment = $reference->getAttribute(self::PARENT_ATTRIBUTE);
         $isDirect = $assignment instanceof Assign && $assignment->expr === $reference;
         if (! $isDirect) {
             return false;
         }
 
-        $statement = $assignment->getAttribute('parent');
-        $isTopLevel = $statement instanceof Stmt\Expression && $statement->getAttribute('parent') === $method;
+        $statement = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
+        $isTopLevel = $statement instanceof Stmt\Expression && $statement->getAttribute(self::PARENT_ATTRIBUTE) === $method;
         if (! $isTopLevel) {
             return false;
         }
 
-        return $this->isReadonlyProperty($assignment->var, $method->getAttribute('parent'));
+        return $this->isReadonlyProperty($assignment->var, $method->getAttribute(self::PARENT_ATTRIBUTE));
     }
 
     /**

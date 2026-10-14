@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Documentation;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use PhpToken;
 
 /**
@@ -55,6 +55,7 @@ final class NoConsecutiveBlockComments extends Check
                     message: 'Merge consecutive block comments into one comment; keep the description and PHPDoc tags together.',
                 );
             }
+
             $previousBlock = $block;
         }
     }

@@ -9,7 +9,7 @@ use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -61,7 +61,7 @@ final class SodaRuleTest extends TestCase
         $second = clone $first;
 
         try {
-            $result = (new Runner)->check([$file, $file], Soda::configure()->with([$first, $second]));
+            $result = (new Runner)->check([$file, $file], Soda::configure()->with([$first, $second])->checks());
             self::assertTrue($result->isPassing());
             self::assertCount(1, $first->seen);
             self::assertSame($first->seen[0], $second->seen[0]);

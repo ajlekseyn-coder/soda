@@ -89,16 +89,16 @@ final class ExternalParameterContractsTest extends TestCase
             $trait = $this->write($root, 'src/Relations.php', '<?php namespace App; trait Relations { protected function relation($a, $b, $c, $d) {} }');
             $host = $this->write($root, 'src/Model.php', '<?php namespace App; class Model extends \Vendor\Api\Model { use Relations; }');
             $config = Soda::configure()->with([new MaxArguments(3)]);
-            self::assertTrue((new Runner)->check([$trait, $host], $config)->isPassing());
-            self::assertTrue((new Runner)->check([$host, $trait], $config)->isPassing());
+            self::assertTrue((new Runner)->check([$trait, $host], $config->checks())->isPassing());
+            self::assertTrue((new Runner)->check([$host, $trait], $config->checks())->isPassing());
             file_put_contents($trait, '<?php namespace App; trait Relations { protected function relation($a, $b, $c, $d, $extra) {} }');
-            self::assertCount(1, (new Runner)->check([$trait, $host], $config)->violations);
+            self::assertCount(1, (new Runner)->check([$trait, $host], $config->checks())->violations);
         });
     }
 
     private function findings(array $paths): array
     {
-        return (new Runner)->check($paths, Soda::configure()->with([new NoUnusedParameters]))->violations->all();
+        return (new Runner)->check($paths, Soda::configure()->with([new NoUnusedParameters])->checks())->violations->all();
     }
 
     private function withProject(callable $test): void

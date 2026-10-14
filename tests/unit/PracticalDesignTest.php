@@ -38,7 +38,7 @@ final class PracticalDesignTest extends TestCase
     {
         $files = [__DIR__.'/../fixtures/design/practical.php', __DIR__.'/../fixtures/design/Expiration.php'];
         $config = Soda::configure()->with([new NoUnusedMethods, new NoComplexControlConditions, new NoTrivialDelegatingClasses, new NoBooleanParameters]);
-        self::assertCount(0, (new Runner)->check($files, $config)->violations);
+        self::assertCount(0, (new Runner)->check($files, $config->checks())->violations);
     }
 
     public function testConcernKeepsBehaviorOnItsOwner(): void

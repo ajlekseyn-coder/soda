@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
-use Cosmira\Soda\Analysis\FactCatalog;
+use Cosmira\Soda\Config\FactCatalog;
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;

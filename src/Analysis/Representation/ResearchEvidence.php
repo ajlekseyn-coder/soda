@@ -10,6 +10,11 @@ namespace Cosmira\Soda\Analysis\Representation;
 final class ResearchEvidence
 {
     /**
+     * Gap status marking an exhausted budget instead of an unresolved operation.
+     */
+    private const string STATUS_TRUNCATED = 'truncated';
+
+    /**
      * Confirmed structural paths keyed by their extraction and reconstruction declarations.
      */
     private array $candidates = [];
@@ -91,7 +96,7 @@ final class ResearchEvidence
         }
 
         if (count($this->candidates) >= $this->limits['maxCandidates']) {
-            $this->gap('truncated', 'Retained witness budget exhausted.', $candidate['reconstruction'], 'maxCandidates', $candidate['path']);
+            $this->gap(self::STATUS_TRUNCATED, 'Retained witness budget exhausted.', $candidate['reconstruction'], 'maxCandidates', $candidate['path']);
 
             return;
         }
@@ -107,7 +112,7 @@ final class ResearchEvidence
         if (count($this->excluded) >= $this->limits['maxCandidates']) {
             $last = end($path);
             $point = $last === false ? ['file' => '', 'line' => 1, 'callable' => '', 'operation' => 'excluded'] : $last;
-            $this->gap('truncated', 'Excluded witness budget exhausted.', $point, 'maxCandidates');
+            $this->gap(self::STATUS_TRUNCATED, 'Excluded witness budget exhausted.', $point, 'maxCandidates');
 
             return;
         }
@@ -122,7 +127,7 @@ final class ResearchEvidence
     public function gap(string $status, string $reason, array $point, ?string $limit = null, array $path = []): void
     {
         $this->coverage['incomplete'] = true;
-        if ($status === 'truncated') {
+        if ($status === self::STATUS_TRUNCATED) {
             $this->coverage['truncated'] = true;
         }
 

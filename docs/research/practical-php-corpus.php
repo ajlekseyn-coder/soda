@@ -24,7 +24,7 @@ foreach ($specs['projects'] as $spec) {
     }
     sort($files);
     $config = Soda::configure()->with([new NoComplexControlConditions, new NoUnusedMethods]);
-    $result = (new Runner)->check($files, $config);
+    $result = (new Runner)->check($files, $config->checks());
     $rows = [];
     foreach ($result->violations as $violation) {
         $row = $violation->toArray();

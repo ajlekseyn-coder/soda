@@ -14,6 +14,11 @@ final class RepresentationFlow
     use RepresentationExpressions;
 
     /**
+     * Suffix identifying constructor callables in their declaration identity.
+     */
+    private const string CONSTRUCTOR_SUFFIX = '::__construct';
+
+    /**
      * Indexed declarations, with source paths attached after file collection.
      */
     private array $types = [];
@@ -76,7 +81,7 @@ final class RepresentationFlow
         $this->index($project);
         foreach ($this->callables as $callable) {
             if ($this->work >= $this->maxSteps) {
-                $this->gap('truncated', 'Global interpretation budget exhausted.', $this->point($callable), 'maxSteps');
+                $this->gap(self::STATUS_TRUNCATED, 'Global interpretation budget exhausted.', $this->point($callable), self::LIMIT_STEPS);
                 break;
             }
 
@@ -136,7 +141,7 @@ final class RepresentationFlow
                 $this->quarantine($row['callable'] ?? '', $row['line'] ?? 1, 'Collector facts were truncated.');
 
                 $point = ['file' => $file, 'line' => $row['line'] ?? 1, 'callable' => $row['callable'] ?? '', 'operation' => 'collection'];
-                $this->gap('truncated', $row['reason'] ?? 'Callable fact budget exhausted.', $point, 'collector');
+                $this->gap(self::STATUS_TRUNCATED, $row['reason'] ?? 'Callable fact budget exhausted.', $point, 'collector');
             }
         }
 
@@ -167,7 +172,7 @@ final class RepresentationFlow
         $existing['eligible'] = false;
         $existing['ambiguous'] = true;
         $this->types[$id] = $existing;
-        $this->gap('unknown', 'Ambiguous duplicate type declaration.',
+        $this->gap(self::TYPE_UNKNOWN, 'Ambiguous duplicate type declaration.',
             ['file' => $file, 'line' => 1, 'callable' => $type['name'], 'operation' => 'declaration']);
     }
 
@@ -213,15 +218,15 @@ final class RepresentationFlow
      */
     private function completeFrame(array $callable, array $env, array $value, array $checkpoint): array
     {
-        $known = $value['type'] !== 'unknown';
+        $known = $value['type'] !== self::TYPE_UNKNOWN;
         if (! $known || ! $this->checkReturnContract($callable, $value)) {
-            $value = $known ? $this->unknown('Returned representation does not satisfy a proven return contract.', $this->point($callable)) : $value;
+            $rejected = $known ? $this->unknown('Returned representation does not satisfy a proven return contract.', $this->point($callable)) : $value;
             $this->evidence->rollback($checkpoint);
 
-            return $value;
+            return $rejected;
         }
 
-        if (str_ends_with($callable['id'], '::__construct')) {
+        if (str_ends_with($callable['id'], self::CONSTRUCTOR_SUFFIX)) {
             return $env['this'] ?? $value;
         }
 
@@ -233,12 +238,12 @@ final class RepresentationFlow
      */
     private function checkReturnContract(array $callable, array $value): bool
     {
-        if (str_ends_with($callable['id'], '::__construct')) {
+        if (str_ends_with($callable['id'], self::CONSTRUCTOR_SUFFIX)) {
             return true;
         }
 
         if ($callable['returnType'] === 'void') {
-            return $value['type'] === 'null';
+            return $value['type'] === self::TYPE_NULL;
         }
 
         return $this->checkParameterValue($callable['returnType'], $value);
@@ -251,7 +256,7 @@ final class RepresentationFlow
     {
         foreach ($statements as $statement) {
             if (! $this->checkStep($frame, $statement)) {
-                return $this->unknown('Interpretation budget exhausted.', $this->point($frame, $statement), 'maxSteps');
+                return $this->unknown('Interpretation budget exhausted.', $this->point($frame, $statement), self::LIMIT_STEPS);
             }
 
             $terminal = $this->statementResult($statement, $env, $frame);
@@ -260,7 +265,7 @@ final class RepresentationFlow
             }
         }
 
-        return $this->value('null');
+        return $this->value(self::TYPE_NULL);
     }
 
     /**
@@ -272,9 +277,9 @@ final class RepresentationFlow
             return $this->unknown($statement['reason'], $this->point($frame, $statement));
         }
 
-        $value = $statement['value'] === null ? $this->value('null') : $this->expression($statement['value'], $env, $frame);
+        $value = $statement['value'] === null ? $this->value(self::TYPE_NULL) : $this->expression($statement['value'], $env, $frame);
         $returned = $statement['op'] === 'return';
-        if ($value['type'] === 'unknown' || $returned) {
+        if ($value['type'] === self::TYPE_UNKNOWN || $returned) {
             return $returned ? $this->visit($value, $this->point($frame, $statement, 'return')) : $value;
         }
 
@@ -296,7 +301,7 @@ final class RepresentationFlow
             return true;
         }
 
-        $initializing = str_ends_with($frame['id'], '::__construct');
+        $initializing = str_ends_with($frame['id'], self::CONSTRUCTOR_SUFFIX);
         $receiver = $target['receiver'] ?? [];
         $ownField = $target['op'] === 'property' && $receiver['op'] === 'variable' && $receiver['name'] === 'this';
         $object = $env['this'] ?? [];
@@ -323,7 +328,7 @@ final class RepresentationFlow
 
         $env = $this->invocationBindings($callable['parameters'], $args, $frame, $site);
         if ($env === null) {
-            return $this->value('unknown');
+            return $this->value(self::TYPE_UNKNOWN);
         }
 
         if (! $this->checkParameterValues($callable['parameters'], $env)) {
@@ -412,7 +417,7 @@ final class RepresentationFlow
             return true;
         }
 
-        if (in_array($type, ['string', 'int', 'float', 'bool', 'array', 'null'], true)) {
+        if (in_array($type, [self::TYPE_STRING, self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOL, self::TYPE_ARRAY, self::TYPE_NULL], true)) {
             return $value['type'] === $type;
         }
 
@@ -472,7 +477,7 @@ final class RepresentationFlow
             }
 
             if ($trace['epoch'] !== $this->epoch || ! $this->checkCompatible($object, $trace)) {
-                $this->gap('unknown', 'Reconstruction slots, elements or effects cannot be jointly matched.', $point, null, $trace['path']);
+                $this->gap(self::TYPE_UNKNOWN, 'Reconstruction slots, elements or effects cannot be jointly matched.', $point, null, $trace['path']);
 
                 continue;
             }
@@ -490,8 +495,8 @@ final class RepresentationFlow
     {
         foreach ($trace['fields'] as $field => $descriptor) {
             $fields = $object['fields'];
-            $value = $fields[$field] ?? $this->value('unknown');
-            if ($descriptor === 'unknown' || $this->descriptor($value) !== $descriptor) {
+            $value = $fields[$field] ?? $this->value(self::TYPE_UNKNOWN);
+            if ($descriptor === self::TYPE_UNKNOWN || $this->descriptor($value) !== $descriptor) {
                 return false;
             }
 
@@ -521,7 +526,7 @@ final class RepresentationFlow
         $name = $type['name'];
         $candidate = [
             'status'               => 'structural', 'representation' => $name, 'data_dependency' => 'confirmed',
-            'concept_preservation' => 'unknown', 'compatibility' => 'confirmed', 'effects' => 'known',
+            'concept_preservation' => self::TYPE_UNKNOWN, 'compatibility' => 'confirmed', 'effects' => 'known',
             'path'                 => [...$trace['path'], $point], 'extraction' => $extraction, 'reconstruction' => $point,
             'message'              => 'Extraction and reconstruction of '.$name.' are connected through processing contracts. Meaning and boundary purpose remain unknown; inspect the operations before considering representation changes.',
         ];
@@ -534,7 +539,7 @@ final class RepresentationFlow
     private function checkStep(array $frame, array $site): bool
     {
         if ($this->work >= $this->maxSteps) {
-            $this->gap('truncated', 'Global interpretation budget exhausted.', $this->point($frame, $site), 'maxSteps');
+            $this->gap(self::STATUS_TRUNCATED, 'Global interpretation budget exhausted.', $this->point($frame, $site), self::LIMIT_STEPS);
 
             return false;
         }
@@ -550,9 +555,9 @@ final class RepresentationFlow
     private function unknown(string $reason, array $point, ?string $limit = null): array
     {
         $this->epoch++;
-        $this->gap($limit === null ? 'unknown' : 'truncated', $reason, $point, $limit);
+        $this->gap($limit === null ? self::TYPE_UNKNOWN : self::STATUS_TRUNCATED, $reason, $point, $limit);
 
-        return $this->value('unknown');
+        return $this->value(self::TYPE_UNKNOWN);
     }
 
     /**

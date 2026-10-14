@@ -88,7 +88,7 @@ PHP);
         file_put_contents($path, '<?php $result = match ($value) { 1 => "sent", 2 => "sent" };');
 
         try {
-            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard()));
+            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
             $findings = $result->violations->filter(fn ($item): bool => $item->rule === 'no_identical_branches')->values()->all();
             self::assertCount(1, $findings);
             self::assertSame($path, $findings[0]->file);

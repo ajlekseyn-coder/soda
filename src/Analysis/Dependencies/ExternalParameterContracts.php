@@ -24,6 +24,7 @@ final readonly class ExternalParameterContracts
         $sources = ComposerTypeSources::discover($files);
         $pending = array_values($types);
         $visited = array_fill_keys(array_keys($types), true);
+        $resolved = $types;
         while ($pending !== []) {
             $type = array_pop($pending);
             foreach ([...($type['parentNames'] ?? []), ...($type['traitNames'] ?? [])] as $parent) {
@@ -34,12 +35,12 @@ final readonly class ExternalParameterContracts
 
                 $visited[$key] = true;
                 $declarations = self::declarationsFor($parent, $sources);
-                $types += $declarations;
+                $resolved += $declarations;
                 array_push($pending, ...array_values($declarations));
             }
         }
 
-        return $types;
+        return $resolved;
     }
 
     /**

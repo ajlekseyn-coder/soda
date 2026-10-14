@@ -16,39 +16,76 @@ trait UnusedMethodComposition
             return $this->surfaces[$name];
         }
 
-        $surface = ['methods' => [], 'bodies' => [], 'unknown' => false];
-        if (! isset($this->types[$name]) || isset($seen[$name])) {
-            $surface['unknown'] = true;
-
-            return $surface;
+        $type = $this->types[$name] ?? null;
+        if ($type === null || isset($seen[$name])) {
+            return $this->unknownSurface();
         }
 
         $seen[$name] = true;
-        $type = $this->types[$name];
-        if ($type['parent'] !== null) {
-            $surface = $this->surface($type['parent'], $seen);
-        }
+        $surface = $this->composedSurface($name, $type, $seen);
+        $this->surfaces[$name] = $surface;
 
+        return $surface;
+    }
+
+    /**
+     * Build the surface recorded for a type whose composition cannot be resolved.
+     */
+    private function unknownSurface(): array
+    {
+        return ['methods' => [], 'bodies' => [], 'unknown' => true];
+    }
+
+    /**
+     * Compose one type surface from its parent chain, trait imports and own methods.
+     *
+     * @param array<string, mixed> $type
+     */
+    private function composedSurface(string $name, array $type, array $seen): array
+    {
+        $surface = $type['parent'] !== null ? $this->surface($type['parent'], $seen) : $this->unknownSurface();
+        $surface['unknown'] = false;
         $imports = $this->imports($type, $seen);
         $surface['unknown'] = $surface['unknown'] || $imports['unknown'] || $type['duplicate'];
-        $methods = $imports['methods'];
+        $surface['methods'] = array_replace($surface['methods'], $this->scopedMethods($name, $imports['methods']), $type['methods']);
+        $surface['bodies'] = $this->indexedBodies($surface['bodies'], $surface['methods']);
+
+        return $surface;
+    }
+
+    /**
+     * Attribute every imported method to the composing type that surfaces it.
+     *
+     * @param array<string, array<string, mixed>> $methods
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function scopedMethods(string $name, array $methods): array
+    {
         foreach ($methods as &$method) {
             $method['scope'] = $name;
         }
 
         unset($method);
 
-        $surface['methods'] = array_replace($surface['methods'], $methods, $type['methods']);
-        $bodies = $surface['bodies'];
-        foreach ($surface['methods'] as $method) {
+        return $methods;
+    }
+
+    /**
+     * Index composed methods by origin and surface for later call-site resolution.
+     *
+     * @param array<string, array<string, mixed>> $bodies
+     * @param array<string, array<string, mixed>> $methods
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function indexedBodies(array $bodies, array $methods): array
+    {
+        foreach ($methods as $method) {
             $bodies[$method['origin'].'@'.$method['scope']] = $method;
         }
 
-        $surface['bodies'] = $bodies;
-
-        $this->surfaces[$name] = $surface;
-
-        return $surface;
+        return $bodies;
     }
 
     /**

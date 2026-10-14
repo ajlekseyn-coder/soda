@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Architecture;
 
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 
 /**
  * Implements clauses alone do not constitute a consumer of a local abstraction.

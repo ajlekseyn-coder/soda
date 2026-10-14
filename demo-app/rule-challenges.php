@@ -186,4 +186,28 @@ return [
         'iteration' => 8,
         'attack'    => 'Repeat owner arithmetic while varying receiver identity.',
     ],
+    'no_declarations_before_early_exit' => [
+        'iteration' => 100,
+        'attack'    => 'Prepare state before a guard so the early-exit path pays for unread work.',
+    ],
+    'prefer_combined_guards' => [
+        'iteration' => 100,
+        'attack'    => 'Write the same exit twice in adjacent guards and let the copies drift.',
+    ],
+    'prefer_continue' => [
+        'iteration' => 100,
+        'attack'    => 'Wrap the loop remainder in a trailing if to hide the flat main path.',
+    ],
+    'prefer_includes' => [
+        'iteration' => 100,
+        'attack'    => 'Ask membership with a strpos sentinel and flip the false side.',
+    ],
+    'prefer_string_starts_ends_with' => [
+        'iteration' => 100,
+        'attack'    => 'Cut a prefix with substr and compare it with a drifted literal.',
+    ],
+    'prefer_null_coalesce_assignment' => [
+        'iteration' => 100,
+        'attack'    => 'Repeat the target on both sides of a coalesce and edit one spelling.',
+    ],
 ];

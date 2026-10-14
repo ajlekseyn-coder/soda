@@ -33,11 +33,11 @@ use Cosmira\Soda\Rules\Architecture\NoSingletonAccess;
 use Cosmira\Soda\Rules\Architecture\NoStaticMutableProperties;
 use Cosmira\Soda\Rules\Architecture\NoSubprocessExecution;
 use Cosmira\Soda\Rules\Architecture\NoSymbolTableMutation;
-use Cosmira\Soda\Rules\Check as SodaRule;
+use Cosmira\Soda\Contracts\Check as SodaRule;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInCondition;
 use Cosmira\Soda\Rules\Complexity\NoComplexControlConditions;
 use Cosmira\Soda\Rules\Complexity\NoElseBranches;
-use Cosmira\Soda\Rules\ResearchCheck;
+use Cosmira\Soda\Contracts\ResearchCheck;
 use Cosmira\Soda\Tests\CheckFixture;
 use PHPUnit\Framework\TestCase;
 

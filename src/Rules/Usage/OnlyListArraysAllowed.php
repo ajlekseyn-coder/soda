@@ -7,8 +7,8 @@ namespace Cosmira\Soda\Rules\Usage;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\SingleVisitorTraversal;
 use Cosmira\Soda\Config\FnmatchPathExclusion;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 
 /**
  * Discourages “structured array” usage. Default {@see ListOnlyArrayStrictness::Pragmatic}: chained `[$a][$b]` only.

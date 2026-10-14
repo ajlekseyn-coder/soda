@@ -22,9 +22,22 @@ final class InterfaceFacts
      */
     public static function collect(array $nodes): array
     {
-        $finder = new NodeFinder;
+        $interfaces = self::declaredInterfaces($nodes);
+        [$references, $dependencies] = self::referencedNames($nodes);
+        [$references, $dependencies] = self::documentedReferences($nodes, $references, $dependencies);
+
+        return ['declarations' => $interfaces, 'references' => $references, 'dependencies' => $dependencies];
+    }
+
+    /**
+     * Index every declared interface with its method signatures and inherited contracts.
+     *
+     * @param list<Node> $nodes
+     */
+    private static function declaredInterfaces(array $nodes): array
+    {
         $interfaces = [];
-        foreach ($finder->findInstanceOf($nodes, Stmt\Interface_::class) as $interface) {
+        foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\Interface_::class) as $interface) {
             $name = $interface->namespacedName?->toString() ?? $interface->name->toString();
             $interfaces[strtolower($name)] = [
                 'name'    => $name,
@@ -34,9 +47,21 @@ final class InterfaceFacts
             ];
         }
 
+        return $interfaces;
+    }
+
+    /**
+     * Separate free type references from dependencies owned by an interface declaration.
+     *
+     * @param list<Node> $nodes
+     *
+     * @return array{0: array<string, true>, 1: array<string, array<string, true>>}
+     */
+    private static function referencedNames(array $nodes): array
+    {
         $references = [];
         $dependencies = [];
-        foreach ($finder->findInstanceOf($nodes, Node\Name::class) as $reference) {
+        foreach ((new NodeFinder)->findInstanceOf($nodes, Node\Name::class) as $reference) {
             if (! self::isTypeReference($reference)) {
                 continue;
             }
@@ -54,7 +79,19 @@ final class InterfaceFacts
             $dependencies[$owner] = $outgoing;
         }
 
-        foreach ($finder->find($nodes, static fn (Node $node): bool => $node->getDocComment() instanceof Doc) as $node) {
+        return [$references, $dependencies];
+    }
+
+    /**
+     * Merge documented PHPDoc type references into free references and interface dependencies.
+     *
+     * @param list<Node> $nodes
+     *
+     * @return array{0: array<string, true>, 1: array<string, array<string, true>>}
+     */
+    private static function documentedReferences(array $nodes, array $references, array $dependencies): array
+    {
+        foreach ((new NodeFinder)->find($nodes, static fn (Node $node): bool => $node->getDocComment() instanceof Doc) as $node) {
             $documented = PhpDocTypeReferences::collect($node);
             $owner = self::interfaceOwner($node);
             if ($owner === null) {
@@ -66,7 +103,7 @@ final class InterfaceFacts
             $dependencies[$owner] = ($dependencies[$owner] ?? []) + $documented;
         }
 
-        return ['declarations' => $interfaces, 'references' => $references, 'dependencies' => $dependencies];
+        return [$references, $dependencies];
     }
 
     /**

@@ -6,7 +6,7 @@ namespace Cosmira\Soda\Research\ExplicitBehavior;
 
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;

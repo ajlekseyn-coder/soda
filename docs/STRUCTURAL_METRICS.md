@@ -1850,3 +1850,92 @@ stored distinct candidates. These are coverage counters, not a defect rate.
 
 An executable cross-file text example and its full source path are retained in
 [example research JSON](research/representation-consistency/implementation-example.json).
+
+### no_static_only_class
+
+Optional `new NoStaticOnlyClass()` reports named classes that declare at least one
+method, keep every method static, and declare no instance properties. Constant
+holders stay accepted; classes that extend a parent or consume traits, abstract
+classes, anonymous classes, interfaces and enums stay outside the comparison,
+because their full surface is unknown without project facts.
+
+```php
+// soda.php
+new NoStaticOnlyClass()
+```
+
+```php
+// ❌ Bad
+final class InvoiceRates
+{
+    public static function usd(): int
+    {
+        return 1;
+    }
+}
+
+// ✅ Good
+final class InvoiceRates
+{
+    public function __construct(private readonly Currency $base) {}
+
+    public function usd(): int
+    {
+        return $this->base->scale();
+    }
+}
+```
+
+### prefer_includes
+
+Standard `new PreferIncludes()` reports `strpos()` and `mb_strpos()` compared with
+`false` using `===`, `!==`, `==` or `!=`, on either side of the comparison. The
+substring question reads directly with `str_contains()` and `mb_str_contains()`.
+
+```php
+// soda.php
+new PreferIncludes()
+```
+
+```php
+// ❌ Bad
+if (strpos($template, '{{total}}') !== false) {
+    $template = $this->fill($template);
+}
+
+// ✅ Good
+if (str_contains($template, '{{total}}')) {
+    $template = $this->fill($template);
+}
+```
+
+Position checks with other meanings — extracting an offset, comparing positions,
+requiring a match at offset zero — stay outside the policy.
+
+### prefer_string_starts_ends_with
+
+Standard `new PreferStringStartsEndsWith()` reports `substr()` and `mb_substr()`
+compared with a string literal using `===`, `!==`, `==` or `!=` when the offsets
+match the literal: offset zero with a length equal to the literal length asks the
+prefix question, a negative offset with no length or a matching length asks the
+suffix question.
+
+```php
+// soda.php
+new PreferStringStartsEndsWith()
+```
+
+```php
+// ❌ Bad
+if (substr($reference, 0, 4) === 'INV-') {
+    $this->routeInvoice($reference);
+}
+
+// ✅ Good
+if (str_starts_with($reference, 'INV-')) {
+    $this->routeInvoice($reference);
+}
+```
+
+Middle substrings, comparisons with variables or other calls, and calls whose
+length does not match the literal stay outside the policy.

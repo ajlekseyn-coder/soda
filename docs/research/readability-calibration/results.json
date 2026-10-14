@@ -1,0 +1,125 @@
+{
+  "scope": "Seven readability checks only, not the full standard quality gate. Counts are policy signals, not verified runtime defects.",
+  "checks": [
+    "no_repeated_string_literals",
+    "no_assignment_in_return",
+    "no_reassigned_parameters",
+    "max_consecutive_local_assignments",
+    "no_chained_assignments",
+    "max_statements_per_callable",
+    "max_cognitive_complexity"
+  ],
+  "source_manifest": "../laravel-audit/packages.json",
+  "packages": [
+    {
+      "name": "laravel/prompts",
+      "version": "v0.3.21",
+      "source_commit": "7753c65c281c2550c7c183f14e18062073b7d821",
+      "php_files": 86,
+      "strict_counts": {
+        "max_cognitive_complexity": 10,
+        "max_consecutive_local_assignments": 1,
+        "max_statements_per_callable": 13,
+        "no_assignment_in_return": 23,
+        "no_reassigned_parameters": 19,
+        "no_repeated_string_literals": 20
+      },
+      "contextual_counts": {
+        "max_cognitive_complexity": 10,
+        "max_consecutive_local_assignments": 1,
+        "max_statements_per_callable": 13,
+        "no_assignment_in_return": 4,
+        "no_reassigned_parameters": 19,
+        "no_repeated_string_literals": 15
+      }
+    },
+    {
+      "name": "laravel/sanctum",
+      "version": "v4.3.3",
+      "source_commit": "fee27a573d1a013af3721d86153a65e0b11927e6",
+      "php_files": 20,
+      "strict_counts": {
+        "no_assignment_in_return": 1,
+        "no_reassigned_parameters": 3,
+        "no_repeated_string_literals": 2
+      },
+      "contextual_counts": {
+        "no_assignment_in_return": 1,
+        "no_reassigned_parameters": 3,
+        "no_repeated_string_literals": 1
+      }
+    },
+    {
+      "name": "laravel/scout",
+      "version": "v11.5.0",
+      "source_commit": "14bb75714813f6437adb5c07510be624cd4aef5f",
+      "php_files": 40,
+      "strict_counts": {
+        "max_cognitive_complexity": 2,
+        "max_statements_per_callable": 1,
+        "no_reassigned_parameters": 28,
+        "no_repeated_string_literals": 40
+      },
+      "contextual_counts": {
+        "max_cognitive_complexity": 2,
+        "max_statements_per_callable": 1,
+        "no_reassigned_parameters": 28,
+        "no_repeated_string_literals": 14
+      }
+    },
+    {
+      "name": "laravel/pail",
+      "version": "v1.2.7",
+      "source_commit": "2f7d27dada8effc48b8c424445a69cca7007daaa",
+      "php_files": 15,
+      "strict_counts": {
+        "max_consecutive_local_assignments": 1,
+        "no_reassigned_parameters": 7,
+        "no_repeated_string_literals": 10
+      },
+      "contextual_counts": {
+        "max_consecutive_local_assignments": 1,
+        "no_reassigned_parameters": 7,
+        "no_repeated_string_literals": 2
+      }
+    },
+    {
+      "name": "laravel/sail",
+      "version": "v1.66.0",
+      "source_commit": "ebf286104306c50c8fd060cbc57de35b9dffa779",
+      "php_files": 5,
+      "strict_counts": {
+        "max_cognitive_complexity": 1,
+        "max_statements_per_callable": 1,
+        "no_repeated_string_literals": 13
+      },
+      "contextual_counts": {
+        "max_cognitive_complexity": 1,
+        "max_statements_per_callable": 1,
+        "no_repeated_string_literals": 10
+      }
+    },
+    {
+      "name": "laravel/serializable-closure",
+      "version": "v2.0.15",
+      "source_commit": "dccd8bcb851bb03fcc005df650b708b57cc52661",
+      "php_files": 13,
+      "strict_counts": {
+        "max_cognitive_complexity": 8,
+        "max_consecutive_local_assignments": 2,
+        "max_statements_per_callable": 7,
+        "no_chained_assignments": 19,
+        "no_reassigned_parameters": 3,
+        "no_repeated_string_literals": 41
+      },
+      "contextual_counts": {
+        "max_cognitive_complexity": 8,
+        "max_consecutive_local_assignments": 2,
+        "max_statements_per_callable": 7,
+        "no_chained_assignments": 19,
+        "no_reassigned_parameters": 3,
+        "no_repeated_string_literals": 22
+      }
+    }
+  ]
+}

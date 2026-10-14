@@ -55,10 +55,11 @@ final readonly class UselessVariableMutation
      */
     private static function isRootedIn(Node $target, string $variable): bool
     {
-        while ($target instanceof ArrayDimFetch) {
-            $target = $target->var;
+        $root = $target;
+        while ($root instanceof ArrayDimFetch) {
+            $root = $root->var;
         }
 
-        return $target instanceof Variable && $target->name === $variable;
+        return $root instanceof Variable && $root->name === $variable;
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
-use Cosmira\Soda\Rules\Complexity\ComplexControlConditionVisitor;
-use Cosmira\Soda\Rules\Complexity\ElseBranchVisitor;
-use Cosmira\Soda\Rules\Naming\CompoundVariableNameVisitor;
-use Cosmira\Soda\Rules\Naming\NamingVisitor;
-use Cosmira\Soda\Rules\Structure\TellDontAskVisitor;
+use Cosmira\Soda\Analysis\Complexity\ComplexControlConditionVisitor;
+use Cosmira\Soda\Analysis\Complexity\ElseBranchVisitor;
+use Cosmira\Soda\Analysis\Naming\CompoundVariableNameVisitor;
+use Cosmira\Soda\Analysis\Naming\NamingVisitor;
+use Cosmira\Soda\Analysis\Structure\TellDontAskVisitor;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
@@ -20,6 +20,17 @@ use PhpParser\NodeVisitor\ParentConnectingVisitor;
  * @phpstan-import-type ClassFacts from FileFacts
  * @phpstan-import-type MethodFacts from FileFacts
  * @phpstan-import-type FileMetrics from FileFacts
+ * @phpstan-type ScanFacts array{
+ *   complexity: ComplexityVisitor|null,
+ *   structure: StructureVisitor,
+ *   callables: CallableMetricsVisitor|null,
+ *   conditions: ComplexControlConditionVisitor|null,
+ *   elseBranches: ElseBranchVisitor|null,
+ *   tellDontAsk: TellDontAskVisitor|null,
+ *   coupling: EfferentCouplingVisitor|null,
+ *   naming: NamingVisitor|null,
+ *   compoundNames: CompoundVariableNameVisitor|null
+ * }
  */
 final class AstFacts
 {
@@ -35,38 +46,65 @@ final class AstFacts
      */
     public static function collect(array $nodes, LogicalLineMap $lineMap, ?array $required): array
     {
-        $cyclomaticScan = self::isRequired($required, 'complexity') ? new ComplexityVisitor() : null;
-        $structureScan = new StructureVisitor($lineMap->count(), $lineMap);
-        $callableScan = self::isRequired($required, 'nesting', 'returns', 'conditions', 'tryCatch', 'emptyCatches')
-            ? new CallableMetricsVisitor() : null;
-        $complexConditionScan = self::isRequired($required, 'conditions') ? new ComplexControlConditionVisitor() : null;
-        $elseBranchScan = self::isRequired($required, 'elseBranches') ? new ElseBranchVisitor() : null;
-        $tellDontAsk = self::isRequired($required, 'askThenTell') ? new TellDontAskVisitor() : null;
-        $efferentCouplingVisitor = self::isRequired($required, 'coupling') ? new EfferentCouplingVisitor() : null;
-        $namingVisitor = self::isRequired($required, 'naming') ? new NamingVisitor() : null;
-        $compoundNames = self::isRequired($required, 'naming') ? new CompoundVariableNameVisitor() : null;
+        $scans = self::traverseScans($nodes, $lineMap, $required);
 
-        $traverser = new NodeTraverser(new NameResolver(), new ParentConnectingVisitor(), ...array_filter([
-            $cyclomaticScan, $structureScan, $callableScan,
-            $complexConditionScan, $elseBranchScan, $tellDontAsk,
-            $efferentCouplingVisitor, $namingVisitor, $compoundNames,
-        ]));
-        $traverser->traverse($nodes);
-
-        $metrics = $structureScan->metrics();
-
-        $metrics['classes'] = self::classMetrics($metrics['classes'], $efferentCouplingVisitor);
-
-        $metrics['naming'] = ($namingVisitor?->facts() ?? []);
-        $metrics['compoundVariableNames'] = ($compoundNames?->occurrences() ?? []);
-        $metrics['emptyCatches'] = ($callableScan?->emptyCatches() ?? []);
-        $metrics['elseBranches'] = ($elseBranchScan?->occurrences() ?? []);
-        $metrics['complexControlConditions'] = ($complexConditionScan?->occurrences() ?? []);
-        $metrics['askThenTell'] = ($tellDontAsk?->violations() ?? []);
-
-        $metrics['methods'] = self::methodMetrics($metrics['methods'], $cyclomaticScan, $callableScan);
+        $metrics = self::scannedMetrics($scans);
 
         return self::designMetrics($metrics, $nodes, $required);
+    }
+
+    /**
+     * Construct only the requested visitors and run them once over resolved syntax.
+     *
+     * @param list<Node>        $nodes
+     * @param list<string>|null $required
+     *
+     * @return ScanFacts
+     */
+    private static function traverseScans(array $nodes, LogicalLineMap $lineMap, ?array $required): array
+    {
+        $scans = [
+            'complexity'     => self::isRequired($required, 'complexity') ? new ComplexityVisitor() : null,
+            'structure'      => new StructureVisitor($lineMap->count(), $lineMap),
+            'callables'      => self::isRequired($required, 'nesting', 'returns', 'conditions', 'tryCatch', 'emptyCatches')
+                ? new CallableMetricsVisitor() : null,
+            'conditions'     => self::isRequired($required, 'conditions') ? new ComplexControlConditionVisitor() : null,
+            'elseBranches'   => self::isRequired($required, 'elseBranches') ? new ElseBranchVisitor() : null,
+            'tellDontAsk'    => self::isRequired($required, 'askThenTell') ? new TellDontAskVisitor() : null,
+            'coupling'       => self::isRequired($required, 'coupling') ? new EfferentCouplingVisitor() : null,
+            'naming'         => self::isRequired($required, 'naming') ? new NamingVisitor() : null,
+            'compoundNames'  => self::isRequired($required, 'naming') ? new CompoundVariableNameVisitor() : null,
+        ];
+
+        $traverser = new NodeTraverser(new NameResolver(), new ParentConnectingVisitor(), ...array_filter($scans));
+        $traverser->traverse($nodes);
+
+        return $scans;
+    }
+
+    /**
+     * Assemble the structural metrics with each executed scan's optional measurements.
+     *
+     * @param ScanFacts $scans
+     *
+     * @return FileMetrics
+     */
+    private static function scannedMetrics(array $scans): array
+    {
+        $metrics = $scans['structure']->metrics();
+
+        $metrics['classes'] = self::classMetrics($metrics['classes'], $scans['coupling']);
+
+        $metrics['naming'] = ($scans['naming']?->facts() ?? []);
+        $metrics['compoundVariableNames'] = ($scans['compoundNames']?->occurrences() ?? []);
+        $metrics['emptyCatches'] = ($scans['callables']?->emptyCatches() ?? []);
+        $metrics['elseBranches'] = ($scans['elseBranches']?->occurrences() ?? []);
+        $metrics['complexControlConditions'] = ($scans['conditions']?->occurrences() ?? []);
+        $metrics['askThenTell'] = ($scans['tellDontAsk']?->violations() ?? []);
+
+        $metrics['methods'] = self::methodMetrics($metrics['methods'], $scans['complexity'], $scans['callables']);
+
+        return $metrics;
     }
 
     /**

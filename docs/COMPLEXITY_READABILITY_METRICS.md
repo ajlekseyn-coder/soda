@@ -433,3 +433,101 @@ three times in one class-like owner, with a default minimum length of three byte
 Defaults, constants and metadata are excluded. Intentional repeated strings can
 be configured with `ignoredStrings`. See [repeated literals](EXPRESSION_AND_LOCAL_STATE_RULES.md#norepeatedstringliterals)
 for exact ownership, counting and threshold semantics.
+
+### no_declarations_before_early_exit
+
+Standard `new NoDeclarationsBeforeEarlyExit()` reports statement-level assignments
+declared before a guard clause whose every branch ends with `return`, `throw`,
+`break` or `continue`, when the declared variable is unread between the declaration
+and the guard (including inside the guard itself) but read somewhere after it.
+One diagnostic points at the declaration line and names the guard line. Reads
+inside the guard condition or body keep the declaration in place; closure captures
+count as reads. Loops take part through `continue` and `break` guards in their bodies.
+
+```php
+// Reported: the report is computed even when the caller is gone.
+$report = $this->compile($request);
+if (! $request->user()->canSeeReports()) {
+    return abort(403);
+}
+return $report;
+
+// Accepted: the guard comes first, the work follows.
+if (! $request->user()->canSeeReports()) {
+    return abort(403);
+}
+return $this->compile($request);
+```
+
+There is no automatic fix: keep evaluation order and reference semantics when
+moving a declaration below its guard.
+
+### prefer_combined_guards
+
+Standard `new PreferCombinedGuards()` reports adjacent `if` statements without
+`else` whose body is exactly one `return`, `throw`, `break` or `continue` and whose
+exits match by kind and printed expression. One diagnostic per pair points at the
+second guard. Combining the conditions with `||` preserves condition evaluation
+order and short-circuit behavior.
+
+```php
+// Reported: the same exit is written twice.
+if ($build->failed) {
+    return;
+}
+if ($build->cancelled) {
+    return;
+}
+
+// Accepted: one guard answers one question.
+if ($build->failed || $build->cancelled) {
+    return;
+}
+```
+
+Exits whose expressions assign while returning or throwing, bodies with more than
+one statement, `elseif` chains and non-adjacent guards are excluded.
+
+### prefer_continue
+
+Standard `new PreferContinue()` reports the trailing `if` of a `for`, `foreach`,
+`while` or `do-while` body when it has no `else` or `elseif` and its body does not
+already end with `return`, `throw`, `break` or `continue`. Negating the condition
+and ending the guarded branch with `continue` keeps the main iteration path flat.
+
+```php
+// Reported: the interesting iterations sit one level deeper.
+foreach ($items as $item) {
+    $this->mark($item);
+    if ($item->isActive) {
+        $this->store($item);
+    }
+}
+
+// Accepted: the skip is explicit.
+foreach ($items as $item) {
+    if (! $item->isActive) {
+        continue;
+    }
+    $this->store($item);
+}
+```
+
+### prefer_null_coalesce_assignment
+
+Standard `new PreferNullCoalesceAssignment()` reports assignments whose right side
+is a null coalesce whose left operand prints exactly like the assignment target:
+`$value = $value ?? $fallback`, `$cache['key'] = $cache['key'] ?? []` and property
+fetches all qualify. The `??=` operator assigns the fallback in one step and
+evaluates the target once.
+
+```php
+// Reported: the target is spelled twice.
+$this->scope = $this->scope ?? 'web';
+
+// Accepted: one operator carries the fallback.
+$this->scope ??= 'web';
+```
+
+Targets evaluated through calls stay outside the comparison, because the merged
+operator would evaluate them once instead of twice.

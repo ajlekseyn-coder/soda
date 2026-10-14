@@ -1,0 +1,55 @@
+{
+    "scope": "Unchanged methods; syntax-only tests. Upstream source hashes match the pinned Laravel audit manifest.",
+    "examples": [
+        {
+            "package": "laravel/prompts",
+            "version": "v0.3.21",
+            "source_commit": "7753c65c281c2550c7c183f14e18062073b7d821",
+            "path": "src/AutoCompletePrompt.php",
+            "source_sha256": "36629d4c2eab956cc00cacaa5cb97d7d03011f2f603b807ffa19d9d0316c762b",
+            "method": "matches",
+            "fixture_class": "AutoCompleteExample",
+            "method_code_sha256": "2bd8dad37223c04de55891cb90059d6713d871f52b80e9ac0ed30306f9ef454d"
+        },
+        {
+            "package": "laravel/prompts",
+            "version": "v0.3.21",
+            "source_commit": "7753c65c281c2550c7c183f14e18062073b7d821",
+            "path": "src/ConfirmPrompt.php",
+            "source_sha256": "ac1941c4ad2ecbede6ca58fcadac31e999be9b4ca5409d5bdaf3899da0f05f67",
+            "method": "__construct",
+            "fixture_class": "ConfirmExample",
+            "method_code_sha256": "ec4696f12bfdf0057aaf937d78495169a54abd4da09cff32c25b6fb7367d5987"
+        },
+        {
+            "package": "laravel/prompts",
+            "version": "v0.3.21",
+            "source_commit": "7753c65c281c2550c7c183f14e18062073b7d821",
+            "path": "src/Concerns/Themes.php",
+            "source_sha256": "f13e6d932f8d99202040f6cab49717985233e2f74b86b6197417b88794829c9b",
+            "method": "theme",
+            "fixture_class": "ThemeExample",
+            "method_code_sha256": "762b9ec1dbac5aad32badeaceaccfc2a1dda265627579918c4d94e3b4e27e74f"
+        },
+        {
+            "package": "laravel/prompts",
+            "version": "v0.3.21",
+            "source_commit": "7753c65c281c2550c7c183f14e18062073b7d821",
+            "path": "src/DataTablePrompt.php",
+            "source_sha256": "cdfa9b6f314e240ff24d87caf36da32d24b1ce37b84f518a3df5b5615aceea66",
+            "method": "filteredRows",
+            "fixture_class": "DataTableExample",
+            "method_code_sha256": "2fc4ad15fe839239d0cd91eacc3d64758f1f81faedb152885bbb99fb8e18a107"
+        },
+        {
+            "package": "laravel/sanctum",
+            "version": "v4.3.3",
+            "source_commit": "fee27a573d1a013af3721d86153a65e0b11927e6",
+            "path": "src/HasApiTokens.php",
+            "source_sha256": "7400600b832dc377ac5f51d051a917775f6efc0d2176a1de7bd7826499ae6509",
+            "method": "generateTokenString",
+            "fixture_class": "TokenExample",
+            "method_code_sha256": "4bf44bdf9ff5b639b92e70668c0249c64714645389c6a4f175871427a33864c4"
+        }
+    ]
+}

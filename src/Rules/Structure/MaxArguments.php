@@ -10,8 +10,8 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\InheritedParameterContracts;
 use Cosmira\Soda\Analysis\NativeStreamContract;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use Cosmira\Soda\Rules\ExpressionCheck;
 
 final class MaxArguments extends ExpressionCheck
@@ -74,12 +74,40 @@ final class MaxArguments extends ExpressionCheck
      */
     public function checkProject(ProjectFacts $project): iterable
     {
+        $contracts = $this->inheritedContracts($project);
+        $arities = $this->originArities($project, $contracts);
+
+        foreach ($project->files as $path => $facts) {
+            foreach ($this->findings(new FileFacts($path, '', [], $facts)) as $finding) {
+                if ($this->isAboveArity($finding, $contracts, $arities)) {
+                    yield $finding;
+                }
+            }
+        }
+    }
+
+    /**
+     * Merge the project parameter contracts and resolve inherited external signatures.
+     *
+     * @return InheritedParameterContracts
+     */
+    private function inheritedContracts(ProjectFacts $project): InheritedParameterContracts
+    {
         $types = [];
         foreach ($project->files as $facts) {
             $types += $facts['parameterContracts'] ?? [];
         }
 
-        $contracts = new InheritedParameterContracts(ExternalParameterContracts::resolve($types, array_keys($project->files)));
+        return new InheritedParameterContracts(ExternalParameterContracts::resolve($types, array_keys($project->files)));
+    }
+
+    /**
+     * Measure the strongest accepted argument count behind each method origin.
+     *
+     * @return array<string, int>
+     */
+    private function originArities(ProjectFacts $project, InheritedParameterContracts $contracts): array
+    {
         $arities = [];
         foreach ((new BehaviorComposition)->project($project) as $class => $surface) {
             foreach ($surface['methods'] as $name => $method) {
@@ -88,19 +116,22 @@ final class MaxArguments extends ExpressionCheck
             }
         }
 
-        foreach ($project->files as $path => $facts) {
-            foreach ($this->findings(new FileFacts($path, '', [], $facts)) as $finding) {
-                $identity = strtolower($finding->method ?? '');
-                $method = str_contains($identity, '::') ? substr($identity, strpos($identity, '::') + 2) : null;
-                $forwarded = $method === '__construct' ? $contracts->forwardedConstructorArity($finding->class) : 0;
-                $arity = max($arities[$identity] ?? 0, $contracts->arity($finding->class, $method), $forwarded);
-                if ($finding->value <= $arity) {
-                    continue;
-                }
+        return $arities;
+    }
 
-                yield $finding;
-            }
-        }
+    /**
+     * Compare a finding against inherited, composed and forwarded constructor arity.
+     *
+     * @param array<string, int> $arities
+     */
+    private function isAboveArity(Violation $finding, InheritedParameterContracts $contracts, array $arities): bool
+    {
+        $identity = strtolower($finding->method ?? '');
+        $method = str_contains($identity, '::') ? substr($identity, strpos($identity, '::') + 2) : null;
+        $forwarded = $method === '__construct' ? $contracts->forwardedConstructorArity($finding->class) : 0;
+        $arity = max($arities[$identity] ?? 0, $contracts->arity($finding->class, $method), $forwarded);
+
+        return $finding->value > $arity;
     }
 
     /**

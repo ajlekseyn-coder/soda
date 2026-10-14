@@ -23,6 +23,13 @@ final class ParameterReassignmentVisitor extends NodeVisitorAbstract
     private array $scopes = [];
 
     /**
+     * Approved entry assignments within the current callable, never inherited by captures.
+     *
+     * @var list<array<int, true>>
+     */
+    private array $normalizations = [];
+
+    /**
      * Direct parameter writes found during this traversal.
      *
      * @var list<array{name: string, line: int}>
@@ -30,16 +37,29 @@ final class ParameterReassignmentVisitor extends NodeVisitorAbstract
     private array $writes = [];
 
     /**
+     * Entry normalizations resolved against source function declarations.
+     */
+    private readonly ParameterInputNormalization $normalizer;
+
+    /**
      * Configure exact parameter names that are intentionally rebound.
      *
      * @param list<string> $ignoredParameters Names without a dollar prefix.
+     * @param list<string> $declaredFunctions Known namespace functions, preventing builtin fallback.
      */
     public function __construct(
         /**
          * Explicit parameter-name exceptions applied to each lexical callable.
          */
         private readonly array $ignoredParameters,
-    ) {}
+        /**
+         * Accept the narrow entry-normalization prefix for actual inputs.
+         */
+        private readonly bool $allowInputNormalization = true,
+        array $declaredFunctions = [],
+    ) {
+        $this->normalizer = new ParameterInputNormalization($declaredFunctions);
+    }
 
     /**
      * Enter lexical owners before inspecting their writes.
@@ -48,13 +68,23 @@ final class ParameterReassignmentVisitor extends NodeVisitorAbstract
     {
         if ($node instanceof Node\Stmt\ClassLike) {
             $this->scopes[] = [];
+            $this->normalizations[] = [];
 
             return null;
         }
 
         if ($node instanceof Node\FunctionLike) {
-            $this->scopes[] = $this->parameters($node);
+            $parameters = $this->parameters($node);
+            $this->scopes[] = $parameters;
+            $this->normalizations[] = $this->allowInputNormalization
+                ? $this->normalizer->assignments($node, $parameters) : [];
 
+            return null;
+        }
+
+        $allowed = $this->normalizations === [] ? [] : $this->normalizations[array_key_last($this->normalizations)];
+        $identity = spl_object_id($node);
+        if (isset($allowed[$identity])) {
             return null;
         }
 
@@ -120,6 +150,7 @@ final class ParameterReassignmentVisitor extends NodeVisitorAbstract
     {
         if ($node instanceof Node\FunctionLike || $node instanceof Node\Stmt\ClassLike) {
             array_pop($this->scopes);
+            array_pop($this->normalizations);
         }
 
         return null;

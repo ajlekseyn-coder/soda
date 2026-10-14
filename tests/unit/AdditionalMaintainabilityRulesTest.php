@@ -9,7 +9,7 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Architecture\ForbiddenDependencies;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Complexity\MaxStatementsPerCallable;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -153,7 +153,7 @@ PHP;
         try {
             foreach ([20, 21] as $count) {
                 file_put_contents($path, '<?php function work() { '.str_repeat('execute();', $count).' }');
-                $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard()));
+                $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
                 $findings = $result->violations->filter(fn ($finding): bool => $finding->rule === 'max_statements_per_callable')->values()->all();
                 self::assertCount($count === 20 ? 0 : 1, $findings);
                 if ($count === 21) {
@@ -176,7 +176,7 @@ PHP;
                 new ForbiddenDependencies(['App\Analysis' => ['App\Commands']]),
                 new MaxStatementsPerCallable(1),
             ]);
-            $result = (new Runner)->check([$path], $config);
+            $result = (new Runner)->check([$path], $config->checks());
             self::assertCount(2, $result->violations);
             foreach ($result->violations as $finding) {
                 self::assertSame($path, $finding->toArray()['file']);

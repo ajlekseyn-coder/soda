@@ -41,7 +41,7 @@ final class LaravelMiddlewareContractsTest extends TestCase
                 $files[] = $file;
             }
 
-            return (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard()))->violations
+            return (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks())->violations
                 ->filter(static fn ($finding): bool => $finding->rule === 'no_unused_parameters')->values()->all();
         } finally {
             foreach ($files as $file) {

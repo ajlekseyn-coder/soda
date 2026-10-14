@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FactCollector;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 
 final class FiveRuleFixture
 {

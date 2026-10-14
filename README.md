@@ -117,7 +117,11 @@ source evidence. See [configuration, examples, and boundaries](docs/OWNER_BEHAVI
 The standard set also includes `NoUnneededTernary` (opposite literal boolean
 branches) and `NoReturnInFinally` (returns that can override pending results or
 exceptions), `NoReassignedParameters`, `MaxConsecutiveLocalAssignments(8)` and
-`NoRepeatedStringLiterals(3)`. All five run by default.
+`NoRepeatedStringLiterals(3)`. All five run by default. Repeated-literal checks exclude literal array keys,
+parameter checks accept a narrow entry normalization, and return-assignment checks
+accept direct lazy initialization with `??=`, named owner-state returns and concise
+arrow state callbacks. Each exception has a strict-mode option. See the
+[calibration against Soda and pinned Laravel sources](docs/research/readability-calibration/README.md).
 See [Expressions and local state](docs/EXPRESSION_AND_LOCAL_STATE_RULES.md) for
 configuration, examples, scope boundaries and intentional exceptions.
 
@@ -159,4 +163,4 @@ See [module restrictions](docs/STRUCTURAL_METRICS.md#forbidden_dependencies-opt-
 for matching semantics and analysis boundaries.
 
 The standard bundle includes `NoEmptyFinallyBlocks`, `MaxCognitiveComplexity(15)`,
-`MaxEfferentCoupling(10)`, and `NoDependencyCycles()`.
+`MaxEfferentCoupling(15)`, and `NoDependencyCycles()`.

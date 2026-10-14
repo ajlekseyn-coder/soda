@@ -6,8 +6,8 @@ namespace Cosmira\Soda\Rules\Usage;
 
 use Cosmira\Soda\Analysis\Composition\BehaviorComposition;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 
 /**
  * A private declaration or a write does not establish a useful state responsibility.

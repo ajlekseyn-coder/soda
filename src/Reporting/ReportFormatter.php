@@ -26,6 +26,16 @@ final readonly class ReportFormatter
     private const int SEPARATOR_WIDTH = 60;
 
     /**
+     * Defines the closing console markup tag used by this formatter.
+     */
+    private const string TAG_CLOSE = '</>';
+
+    /**
+     * Defines the research status assigned to paths whose contract could not be resolved.
+     */
+    private const string UNKNOWN_STATUS = 'unknown';
+
+    /**
      * Initialize the configured values and collaborators for this instance.
      *
      * @param RuleMetadata $ruleMetadata Supplies labels and policy metadata for reported rule identifiers.
@@ -41,7 +51,7 @@ final readonly class ReportFormatter
     {
         $output->writeln([
             '<fg=bright-blue;options=bold>Soda Quality</>',
-            '<fg=gray>'.str_repeat('-', self::SEPARATOR_WIDTH).'</>',
+            '<fg=gray>'.str_repeat('-', self::SEPARATOR_WIDTH).self::TAG_CLOSE,
         ]);
         $output->newLine();
 
@@ -54,7 +64,7 @@ final readonly class ReportFormatter
             $output->newLine();
 
             $this->writeViolationsGrouped($output, $result->violations, $projectRoot);
-            $output->writeln('<fg=gray>'.str_repeat('-', self::SEPARATOR_WIDTH).'</>');
+            $output->writeln('<fg=gray>'.str_repeat('-', self::SEPARATOR_WIDTH).self::TAG_CLOSE);
             $output->newLine();
         }
 
@@ -79,36 +89,78 @@ final readonly class ReportFormatter
     private function writeResearch(OutputStyle $output, QualityResult $result, string $projectRoot): void
     {
         foreach ($result->research as $id => $report) {
-            $candidates = $report['candidates'] ?? [];
-            $partial = $report['partial'] ?? [];
-            $coverage = $report['coverage'] ?? [];
-            $unknown = count(array_filter($partial, fn (array $path): bool => ($path['status'] ?? null) === 'unknown'));
-            $truncated = count(array_filter($partial, fn (array $path): bool => ($path['status'] ?? null) === 'truncated'));
-            $output->writeln('<fg=yellow;options=bold>Research (nongating): '.OutputFormatter::escape($id).'</>');
-            $output->writeln(sprintf(
-                '  %d candidates; %d partial paths (unknown: %d; truncated: %d)',
-                count($candidates), count($partial), $unknown, $truncated,
-            ));
-            if (($coverage['incomplete'] ?? false) === true) {
-                $output->writeln('  Coverage incomplete; absence of candidates does not establish absence of churn.');
-            }
-            foreach ($coverage['limitations'] ?? [] as $limitation) {
-                $output->writeln('  Coverage: '.OutputFormatter::escape($limitation));
-            }
-            foreach ($candidates as $candidate) {
-                $output->writeln('  Candidate: '.OutputFormatter::escape($candidate['message'] ?? 'Inspect the connected data path and its contracts.'));
-                $output->writeln('    Concept preservation: '.OutputFormatter::escape($candidate['concept_preservation'] ?? 'unknown').'; manual review required.');
-                foreach ($candidate['path'] ?? [] as $point) {
-                    $this->writeResearchLocation($output, $point, $projectRoot);
-                }
-            }
-            foreach ($partial as $path) {
-                $output->writeln('  '.OutputFormatter::escape(($path['status'] ?? 'unknown').': '.($path['reason'] ?? 'Incomplete path evidence.')));
-                if (isset($path['file'])) {
-                    $this->writeResearchLocation($output, $path, $projectRoot);
-                }
-            }
+            $this->writeResearchReport($output, $id, $report, $projectRoot);
             $output->newLine();
+        }
+    }
+
+    /**
+     * Render one research report with its summary line, coverage and collected evidence.
+     *
+     * @param array<string, mixed> $report
+     */
+    private function writeResearchReport(OutputStyle $output, string $id, array $report, string $projectRoot): void
+    {
+        $candidates = $report['candidates'] ?? [];
+        $partial = $report['partial'] ?? [];
+        $coverage = $report['coverage'] ?? [];
+        $unknown = count(array_filter($partial, fn (array $path): bool => ($path['status'] ?? null) === self::UNKNOWN_STATUS));
+        $truncated = count(array_filter($partial, fn (array $path): bool => ($path['status'] ?? null) === 'truncated'));
+
+        $output->writeln('<fg=yellow;options=bold>Research (nongating): '.OutputFormatter::escape($id).self::TAG_CLOSE);
+        $output->writeln(sprintf(
+            '  %d candidates; %d partial paths (unknown: %d; truncated: %d)',
+            count($candidates), count($partial), $unknown, $truncated,
+        ));
+        $this->writeResearchCoverage($output, $coverage);
+        $this->writeResearchCandidates($output, $candidates, $projectRoot);
+        $this->writeResearchPaths($output, $partial, $projectRoot);
+    }
+
+    /**
+     * Report coverage limitations that qualify how the research conclusions may be read.
+     *
+     * @param array<string, mixed> $coverage
+     */
+    private function writeResearchCoverage(OutputStyle $output, array $coverage): void
+    {
+        if (($coverage['incomplete'] ?? false) === true) {
+            $output->writeln('  Coverage incomplete; absence of candidates does not establish absence of churn.');
+        }
+
+        foreach ($coverage['limitations'] ?? [] as $limitation) {
+            $output->writeln('  Coverage: '.OutputFormatter::escape($limitation));
+        }
+    }
+
+    /**
+     * List resolved churn candidates with their concept preservation and path points.
+     *
+     * @param list<array<string, mixed>> $candidates
+     */
+    private function writeResearchCandidates(OutputStyle $output, array $candidates, string $projectRoot): void
+    {
+        foreach ($candidates as $candidate) {
+            $output->writeln('  Candidate: '.OutputFormatter::escape($candidate['message'] ?? 'Inspect the connected data path and its contracts.'));
+            $output->writeln('    Concept preservation: '.OutputFormatter::escape($candidate['concept_preservation'] ?? self::UNKNOWN_STATUS).'; manual review required.');
+            foreach ($candidate['path'] ?? [] as $point) {
+                $this->writeResearchLocation($output, $point, $projectRoot);
+            }
+        }
+    }
+
+    /**
+     * List partial evidence paths that could not be resolved into full candidates.
+     *
+     * @param list<array<string, mixed>> $partial
+     */
+    private function writeResearchPaths(OutputStyle $output, array $partial, string $projectRoot): void
+    {
+        foreach ($partial as $path) {
+            $output->writeln('  '.OutputFormatter::escape(($path['status'] ?? self::UNKNOWN_STATUS).': '.($path['reason'] ?? 'Incomplete path evidence.')));
+            if (isset($path['file'])) {
+                $this->writeResearchLocation($output, $path, $projectRoot);
+            }
         }
     }
 
@@ -136,7 +188,7 @@ final readonly class ReportFormatter
 
         foreach ($byFile as $file => $list) {
             $rel = $this->shortenPath($file, $projectRoot);
-            $output->writeln('<fg=cyan;options=bold>'.OutputFormatter::escape($rel).'</>');
+            $output->writeln('<fg=cyan;options=bold>'.OutputFormatter::escape($rel).self::TAG_CLOSE);
 
             foreach ($list as $v) {
                 $this->writeViolationDetail($output, $v);
@@ -189,7 +241,7 @@ final readonly class ReportFormatter
 
         $lineCol = $hasLine ? (string) $v->line : '—';
         $scope = $v->method ?? $v->class;
-        $locLine = '<options=bold>Line '.$lineCol.'</>';
+        $locLine = '<options=bold>Line '.$lineCol.self::TAG_CLOSE;
         if ($scope !== null) {
             $locLine .= ' <fg=gray>('.OutputFormatter::escape($scope).')</>';
         }
@@ -202,7 +254,7 @@ final readonly class ReportFormatter
 
         $advice = $this->ruleMetadata->advice($v->rule);
         if ($advice !== null) {
-            $output->writeln('    <fg=gray>↳ '.OutputFormatter::escape($advice).'</>');
+            $output->writeln('    <fg=gray>↳ '.OutputFormatter::escape($advice).self::TAG_CLOSE);
         }
     }
 

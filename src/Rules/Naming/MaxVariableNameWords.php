@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Naming;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\Naming\CompoundVariableNameOccurrence;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use InvalidArgumentException;
 
 /**

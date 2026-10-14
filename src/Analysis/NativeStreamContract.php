@@ -15,6 +15,11 @@ use PhpParser\NodeFinder;
 final readonly class NativeStreamContract
 {
     /**
+     * Attribute key under which the parser stores the syntactic parent node.
+     */
+    private const string PARENT = 'parent';
+
+    /**
      * Index proven native hook signatures for metric checks in the same file.
      */
     public static function signatures(array $nodes): array
@@ -22,7 +27,7 @@ final readonly class NativeStreamContract
         $signatures = [];
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\ClassMethod::class) as $method) {
             $arity = self::arity($method);
-            $owner = $method->getAttribute('parent');
+            $owner = $method->getAttribute(self::PARENT);
             if ($arity === 0 || ! $owner instanceof Stmt\Class_) {
                 continue;
             }
@@ -44,7 +49,7 @@ final readonly class NativeStreamContract
         }
 
         $arity = self::hookArity($callable->name->toString());
-        $owner = $callable->getAttribute('parent');
+        $owner = $callable->getAttribute(self::PARENT);
         if ($arity === 0 || ! $owner instanceof Stmt\Class_) {
             return 0;
         }
@@ -89,9 +94,9 @@ final readonly class NativeStreamContract
             return false;
         }
 
-        $parent = $call->getAttribute('parent');
+        $parent = $call->getAttribute(self::PARENT);
         while ($parent instanceof Node && ! $parent instanceof Stmt\ClassLike) {
-            $parent = $parent->getAttribute('parent');
+            $parent = $parent->getAttribute(self::PARENT);
         }
 
         return $parent === $owner;

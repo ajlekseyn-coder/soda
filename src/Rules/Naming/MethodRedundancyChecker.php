@@ -28,6 +28,16 @@ final readonly class MethodRedundancyChecker
     private const array METHOD_PREFIX_GET = ['get', 'find', 'list', 'all', 'fetch', 'load'];
 
     /**
+     * Defines collection marker word used by this policy.
+     */
+    private const string COLLECTION_MARKER = 'all';
+
+    /**
+     * Defines finding type method used by this policy.
+     */
+    private const string FINDING_TYPE_METHOD = 'method';
+
+    /**
      * Initialize the configured values and collaborators for this instance.
      *
      * @param float $similarityThreshold Minimum percentage similarity required to flag repeated naming.
@@ -181,7 +191,7 @@ final readonly class MethodRedundancyChecker
         $fullLower = strtolower($fullName);
 
         return in_array($lower, self::METHOD_PREFIX_GET, true)
-            && (str_contains($fullLower, 'all') || str_contains($fullLower, 'list') || $lower === 'all');
+            && (str_contains($fullLower, self::COLLECTION_MARKER) || str_contains($fullLower, 'list') || $lower === self::COLLECTION_MARKER);
     }
 
     /**
@@ -232,7 +242,7 @@ final readonly class MethodRedundancyChecker
         return ($cannotCompare)
             ? null
             : [
-                'type'       => 'method',
+                'type'       => self::FINDING_TYPE_METHOD,
                 'current'    => $methodData['methodName'].'('.$paramShortName.' $...)',
                 'suggested'  => $firstWord.'('.$paramShortName.' $...)',
                 'reason'     => '"'.$paramShortName.'" already conveyed by parameter type',
@@ -256,7 +266,7 @@ final readonly class MethodRedundancyChecker
 
         return $this->doesRepeatClassContext($firstWord, $entity, $nameAfterPrefix)
             ? [
-                'type'       => 'method',
+                'type'       => self::FINDING_TYPE_METHOD,
                 'current'    => $methodData['methodName'].'()',
                 'suggested'  => $firstWord.'()',
                 'reason'     => '"'.$entity.'" redundant (class context)',
@@ -284,13 +294,13 @@ final readonly class MethodRedundancyChecker
             return null;
         }
 
-        $hasAll = in_array('All', $words, true) || in_array('all', $words, true);
-        $suggested = $hasAll ? 'all' : $firstWord;
+        $hasAll = in_array('All', $words, true) || in_array(self::COLLECTION_MARKER, $words, true);
+        $suggested = $hasAll ? self::COLLECTION_MARKER : $firstWord;
         $returnDisplay = $this->isGenericReturn($returnShortName) ? 'array' : $returnShortName.'[]';
         $hasReturnType = ! $this->isGenericReturn($returnShortName);
 
         return [
-            'type'       => 'method',
+            'type'       => self::FINDING_TYPE_METHOD,
             'current'    => $methodName.'(): '.$returnDisplay,
             'suggested'  => $suggested.'(): '.$returnDisplay,
             'reason'     => $hasReturnType

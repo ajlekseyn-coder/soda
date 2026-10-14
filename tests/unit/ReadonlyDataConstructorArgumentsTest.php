@@ -177,7 +177,7 @@ PHP);
                 ? Analyzer::analyze([$file], $config)
                 : (new Runner)->check([$file], Soda::configure()->with([
                     new MaxArguments(3, new MaxPropertiesPerClass(5)),
-                ]));
+                ])->checks());
 
             return $result->violations
                 ->where('rule', 'max_arguments')

@@ -227,7 +227,7 @@ PHP);
         file_put_contents($path, $source);
 
         try {
-            return (new Runner)->check([$path], Soda::configure()->with([new RepresentationChurn]))->research['representation_churn'];
+            return (new Runner)->check([$path], Soda::configure()->with([new RepresentationChurn])->checks())->research['representation_churn'];
         } finally {
             unlink($path);
         }

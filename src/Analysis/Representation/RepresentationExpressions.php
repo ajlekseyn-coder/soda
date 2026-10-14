@@ -10,12 +10,72 @@ namespace Cosmira\Soda\Analysis\Representation;
 trait RepresentationExpressions
 {
     /**
+     * Native type name of an unresolved value contract.
+     */
+    private const string TYPE_UNKNOWN = 'unknown';
+
+    /**
+     * Native type name of a text value.
+     */
+    private const string TYPE_STRING = 'string';
+
+    /**
+     * Native type name of an integer value.
+     */
+    private const string TYPE_INT = 'int';
+
+    /**
+     * Native type name of a floating point value.
+     */
+    private const string TYPE_FLOAT = 'float';
+
+    /**
+     * Native type name of a boolean value.
+     */
+    private const string TYPE_BOOL = 'bool';
+
+    /**
+     * Native type name of a native container value.
+     */
+    private const string TYPE_ARRAY = 'array';
+
+    /**
+     * Native type name of an object value with declared fields.
+     */
+    private const string TYPE_OBJECT = 'object';
+
+    /**
+     * Native type name of an absent value.
+     */
+    private const string TYPE_NULL = 'null';
+
+    /**
+     * Budget name of the interpreted operation work limit.
+     */
+    private const string LIMIT_STEPS = 'maxSteps';
+
+    /**
+     * Research gap status marking an exhausted budget.
+     */
+    private const string STATUS_TRUNCATED = 'truncated';
+
+    /**
+     * Core profile kind of a container reversal.
+     */
+    private const string PROFILE_REVERSE = 'reverse';
+
+    /**
+     * Core profile kind of a container reindexing.
+     */
+    private const string PROFILE_VALUES = 'values';
+
+    /**
      * Evaluate one scalar IR expression without executing application code.
      */
     private function expression(array $node, array &$env, array $frame): array
     {
         if (! $this->checkStep($frame, $node)) {
-            return $this->unknown('Expression work budget exhausted.', $this->point($frame, $node), 'maxSteps');
+            return $this->unknown('Expression work budget exhausted.', $this->point($frame, $node), self::LIMIT_STEPS);
         }
 
         return $this->evaluateExpression($node, $env, $frame);
@@ -34,7 +94,7 @@ trait RepresentationExpressions
             'new'      => $this->construct($node, $env, $frame),
             'binary'   => $this->binary($node, $env, $frame),
             'cast'     => $this->cast($node, $env, $frame),
-            'array'    => $this->arrayValue($node, $env, $frame),
+            self::TYPE_ARRAY => $this->arrayValue($node, $env, $frame),
             default    => $this->unsupportedExpression($node, $frame),
         };
     }
@@ -64,21 +124,21 @@ trait RepresentationExpressions
         $declaration = $types[$type ?? ''] ?? null;
         if ($this->work >= $this->maxSteps) {
             $location = $declaration['file'] ?? '';
-            $this->gap('truncated', 'Entry state budget exhausted.', ['file' => $location, 'line' => 1, 'callable' => $origin, 'operation' => 'entry state'], 'maxSteps');
+            $this->gap(self::STATUS_TRUNCATED, 'Entry state budget exhausted.', ['file' => $location, 'line' => 1, 'callable' => $origin, 'operation' => 'entry state'], self::LIMIT_STEPS);
 
-            return $this->value('unknown');
+            return $this->value(self::TYPE_UNKNOWN);
         }
 
         $this->work++;
         if ($type === null || $depth > 4) {
-            return $this->value('unknown');
+            return $this->value(self::TYPE_UNKNOWN);
         }
 
         if ($declaration === null) {
-            return $this->value(in_array($type, ['string', 'int', 'float', 'bool', 'array', 'null'], true) ? $type : 'unknown');
+            return $this->value(in_array($type, [self::TYPE_STRING, self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOL, self::TYPE_ARRAY, self::TYPE_NULL], true) ? $type : self::TYPE_UNKNOWN);
         }
 
-        $object = [...$this->value('object'), 'class' => $type, 'origin' => $origin.':'.++$this->serial,
+        $object = [...$this->value(self::TYPE_OBJECT), 'class' => $type, 'origin' => $origin.':'.++$this->serial,
             'exact'                                   => $declaration['final'], 'fields' => []];
         $fields = [];
         $properties = $declaration['eligible'] ? $declaration['properties'] : [];
@@ -96,7 +156,7 @@ trait RepresentationExpressions
      */
     private function value(string $type): array
     {
-        return ['type' => $type, 'traces' => [], 'history' => [], 'descriptor' => $type === 'array' ? 'unknown' : $type];
+        return ['type' => $type, 'traces' => [], 'history' => [], 'descriptor' => $type === self::TYPE_ARRAY ? self::TYPE_UNKNOWN : $type];
     }
 
     /**
@@ -104,8 +164,8 @@ trait RepresentationExpressions
      */
     private function descriptor(array $value): string
     {
-        if ($value['type'] === 'object') {
-            return ($value['exact'] ?? false) ? 'object:'.$value['class'] : 'unknown';
+        if ($value['type'] === self::TYPE_OBJECT) {
+            return ($value['exact'] ?? false) ? 'object:'.$value['class'] : self::TYPE_UNKNOWN;
         }
 
         return $value['descriptor'];
@@ -133,7 +193,7 @@ trait RepresentationExpressions
         $fields = array_map(fn (array $field): string => $this->descriptor($field), $receiver['fields']);
         $trace = ['origin' => $receiver['origin'], 'representation' => $receiver['class'], 'field' => $node['name'],
             'fields'       => $fields, 'extraction' => $point, 'path' => [...$receiver['history'], $point],
-            'processed'    => false, 'concept' => 'unknown', 'epoch' => $this->epoch];
+            'processed'    => false, 'concept' => self::TYPE_UNKNOWN, 'epoch' => $this->epoch];
         $value['traces'] = [...$value['traces'], $trace];
 
         return $this->visit($value, $point);
@@ -215,7 +275,7 @@ trait RepresentationExpressions
             $object = $this->invoke($callable, $args, $object, $frame, $node);
         }
 
-        if ($object['type'] !== 'object') {
+        if ($object['type'] !== self::TYPE_OBJECT) {
             return $object;
         }
 
@@ -239,7 +299,7 @@ trait RepresentationExpressions
             return $this->unknown('Core profile argument binding is unknown.', $this->point($frame, $node));
         }
 
-        $source = $bound[$contract['source']] ?? $this->value('unknown');
+        $source = $bound[$contract['source']] ?? $this->value(self::TYPE_UNKNOWN);
         $point = $this->point($frame, $node, 'profile php-core-v1:'.$node['name']);
 
         return $this->profileValue($contract['kind'], $source, $bound, $point);
@@ -250,9 +310,9 @@ trait RepresentationExpressions
      */
     private function coreContract(string $name): ?array
     {
-        $text = ['kind' => 'string', 'min' => 1, 'max' => 1, 'names' => ['string'], 'source' => 'string'];
-        $trim = [...$text, 'max' => 2, 'names' => ['string', 'characters']];
-        $array = ['kind' => 'array', 'min' => 1, 'max' => 1, 'names' => ['array'], 'source' => 'array'];
+        $text = ['kind' => self::TYPE_STRING, 'min' => 1, 'max' => 1, 'names' => [self::TYPE_STRING], 'source' => self::TYPE_STRING];
+        $trim = [...$text, 'max' => 2, 'names' => [self::TYPE_STRING, 'characters']];
+        $array = ['kind' => self::TYPE_ARRAY, 'min' => 1, 'max' => 1, 'names' => [self::TYPE_ARRAY], 'source' => self::TYPE_ARRAY];
         $contracts = [
             'trim'          => $trim, 'ltrim' => $trim, 'rtrim' => $trim,
             'strtolower'    => $text, 'strtoupper' => $text,
@@ -260,8 +320,8 @@ trait RepresentationExpressions
             'strlen'        => [...$text, 'kind' => 'changed:int'],
             'md5'           => [...$text, 'kind' => 'changed:string'], 'sha1' => [...$text, 'kind' => 'changed:string'],
             'hash'          => ['kind' => 'hash', 'min' => 2, 'max' => 2, 'names' => ['algo', 'data'], 'source' => 'data'],
-            'array_reverse' => [...$array, 'kind' => 'reverse', 'max' => 2, 'names' => ['array', 'preserve_keys']],
-            'array_values'  => [...$array, 'kind' => 'values'], 'array_filter' => $array,
+            'array_reverse' => [...$array, 'kind' => self::PROFILE_REVERSE, 'max' => 2, 'names' => ['array', 'preserve_keys']],
+            'array_values'  => [...$array, 'kind' => self::PROFILE_VALUES], 'array_filter' => $array,
         ];
 
         return $contracts[$name] ?? null;
@@ -295,17 +355,17 @@ trait RepresentationExpressions
      */
     private function profileValue(string $kind, array $source, array $bound, array $point): array
     {
-        $arrayOperation = in_array($kind, ['array', 'reverse', 'values'], true);
-        $expected = $arrayOperation ? 'array' : 'string';
+        $arrayOperation = in_array($kind, [self::TYPE_ARRAY, self::PROFILE_REVERSE, self::PROFILE_VALUES], true);
+        $expected = $arrayOperation ? self::TYPE_ARRAY : self::TYPE_STRING;
         if ($source['type'] !== $expected || ! $this->hasProfileInputs($bound, $arrayOperation)) {
             return $this->unknown('Core profile input representation is unresolved.', $point);
         }
 
         $changed = str_starts_with($kind, 'changed:') || $kind === 'hash';
-        $changedType = $kind === 'changed:int' ? 'int' : 'string';
+        $changedType = $kind === 'changed:int' ? self::TYPE_INT : self::TYPE_STRING;
         $type = $changed ? $changedType : $source['type'];
         $value = [...$source, 'type' => $type];
-        if ($source['type'] !== 'array') {
+        if ($source['type'] !== self::TYPE_ARRAY) {
             $value['descriptor'] = $type;
         }
 
@@ -319,14 +379,14 @@ trait RepresentationExpressions
      */
     private function profileDescriptor(array $value, string $kind, array $bound): array
     {
-        if ($kind === 'values') {
-            $value['descriptor'] = $value['descriptor'] === 'unknown' ? 'unknown' : preg_replace('/keys=[^;]+/', 'keys=int', $value['descriptor']);
+        if ($kind === self::PROFILE_VALUES) {
+            $value['descriptor'] = $value['descriptor'] === self::TYPE_UNKNOWN ? self::TYPE_UNKNOWN : preg_replace('/keys=[^;]+/', 'keys=int', $value['descriptor']);
         }
 
         $preserveKeys = $bound['preserve_keys'] ?? [];
         $losesKeyContract = ($preserveKeys['literal'] ?? false) !== true;
-        if ($kind === 'reverse' && $losesKeyContract) {
-            $value['descriptor'] = 'unknown';
+        if ($kind === self::PROFILE_REVERSE && $losesKeyContract) {
+            $value['descriptor'] = self::TYPE_UNKNOWN;
         }
 
         return $value;
@@ -338,8 +398,8 @@ trait RepresentationExpressions
     private function hasProfileInputs(array $bound, bool $arrayOperation): bool
     {
         foreach ($bound as $name => $value) {
-            $arrayType = $name === 'array' ? 'array' : 'bool';
-            $expected = $arrayOperation ? $arrayType : 'string';
+            $arrayType = $name === self::TYPE_ARRAY ? self::TYPE_ARRAY : self::TYPE_BOOL;
+            $expected = $arrayOperation ? $arrayType : self::TYPE_STRING;
             if ($value['type'] !== $expected) {
                 return false;
             }
@@ -363,7 +423,7 @@ trait RepresentationExpressions
             return $this->unknown('Binary operand or integer overflow contract is unresolved.', $this->point($frame, $node));
         }
 
-        $type = $node['operator'] === '.' ? 'string' : 'float';
+        $type = $node['operator'] === '.' ? self::TYPE_STRING : self::TYPE_FLOAT;
         $value = [...$this->value($type), 'traces' => [...$left['traces'], ...$right['traces']], 'history' => [...$left['history'], ...$right['history']]];
 
         return $this->processed($value, $this->point($frame, $node, 'binary '.$node['operator']));
@@ -375,11 +435,11 @@ trait RepresentationExpressions
     private function checkBinaryOperands(string $operator, array $left, array $right): bool
     {
         if ($operator === '.') {
-            return $left['type'] === 'string' && $right['type'] === 'string';
+            return $left['type'] === self::TYPE_STRING && $right['type'] === self::TYPE_STRING;
         }
 
-        $numeric = in_array($left['type'], ['int', 'float'], true) && in_array($right['type'], ['int', 'float'], true);
-        $floating = $left['type'] === 'float' || $right['type'] === 'float';
+        $numeric = in_array($left['type'], [self::TYPE_INT, self::TYPE_FLOAT], true) && in_array($right['type'], [self::TYPE_INT, self::TYPE_FLOAT], true);
+        $floating = $left['type'] === self::TYPE_FLOAT || $right['type'] === self::TYPE_FLOAT;
 
         return $numeric && $floating;
     }
@@ -390,7 +450,7 @@ trait RepresentationExpressions
     private function cast(array $node, array &$env, array $frame): array
     {
         $value = $this->expression($node['value'], $env, $frame);
-        if (! in_array($value['type'], ['string', 'int', 'float', 'bool'], true) || ! in_array($node['type'], ['string', 'int', 'float', 'bool'], true)) {
+        if (! in_array($value['type'], [self::TYPE_STRING, self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOL], true) || ! in_array($node['type'], [self::TYPE_STRING, self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOL], true)) {
             return $this->unknown('Cast contract or object conversion is unresolved.', $this->point($frame, $node));
         }
 
@@ -405,11 +465,11 @@ trait RepresentationExpressions
      */
     private function arrayValue(array $node, array &$env, array $frame): array
     {
-        $value = $this->value('array');
+        $value = $this->value(self::TYPE_ARRAY);
         $keys = [];
         $elements = [];
         foreach ($node['items'] as $item) {
-            $key = $item['key'] === null ? $this->value('int') : $this->expression($item['key'], $env, $frame);
+            $key = $item['key'] === null ? $this->value(self::TYPE_INT) : $this->expression($item['key'], $env, $frame);
             $element = $this->expression($item['value'], $env, $frame);
             $keys[] = $key['type'];
             $elements[] = $this->descriptor($element);
@@ -418,7 +478,7 @@ trait RepresentationExpressions
 
         sort($keys);
         sort($elements);
-        $value['descriptor'] = in_array('unknown', $elements, true) ? 'unknown' : 'array;keys='.implode('|', array_unique($keys)).';elements='.implode('|', array_unique($elements));
+        $value['descriptor'] = in_array(self::TYPE_UNKNOWN, $elements, true) ? self::TYPE_UNKNOWN : 'array;keys='.implode('|', array_unique($keys)).';elements='.implode('|', array_unique($elements));
 
         return $value;
     }
@@ -449,7 +509,7 @@ trait RepresentationExpressions
 
         foreach ($value['traces'] as &$trace) {
             if (count($trace['path']) >= $this->maxSteps) {
-                $this->gap('truncated', 'Witness path budget exhausted.', $point, 'maxSteps');
+                $this->gap(self::STATUS_TRUNCATED, 'Witness path budget exhausted.', $point, self::LIMIT_STEPS);
 
                 continue;
             }

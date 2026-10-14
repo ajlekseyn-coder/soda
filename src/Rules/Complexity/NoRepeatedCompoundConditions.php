@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Complexity;
 
+use Cosmira\Soda\Analysis\Complexity\CompoundConditionFingerprint;
+use Cosmira\Soda\Analysis\Complexity\CompoundConditionScope;
 use Cosmira\Soda\Analysis\Composition\BehaviorComposition;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use InvalidArgumentException;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;

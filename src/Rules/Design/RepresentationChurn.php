@@ -6,7 +6,7 @@ namespace Cosmira\Soda\Rules\Design;
 
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Analysis\Representation\RepresentationFlow;
-use Cosmira\Soda\Rules\ResearchCheck;
+use Cosmira\Soda\Contracts\ResearchCheck;
 use InvalidArgumentException;
 
 /**

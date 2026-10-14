@@ -6,8 +6,8 @@ namespace Cosmira\Soda\Rules\Structure;
 
 use Cosmira\Soda\Analysis\Composition\BehaviorComposition;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 
 /**
  * Limits consecutive transparent calls, rather than the size of each individual method.

@@ -29,5 +29,5 @@ foreach (NoComplexControlConditionsTest::conditions() as $index => [$condition, 
 }
 sort($files);
 $rules = [new NoComplexControlConditions, new NoElseBranches, new NoAssignmentInCondition];
-$result = (new Runner)->check($files, Soda::configure()->with($rules));
+$result = (new Runner)->check($files, Soda::configure()->with($rules)->checks());
 file_put_contents($argv[1], json_encode(['files' => count($files), 'violations' => $result->violations->map(fn ($v) => $v->toArray())->all()], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));

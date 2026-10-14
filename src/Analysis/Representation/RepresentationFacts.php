@@ -23,6 +23,16 @@ final class RepresentationFacts
     private const int MAX_FACTS = 512;
 
     /**
+     * Collection reason marking a same-file redeclaration of one identity.
+     */
+    private const string DUPLICATE_DECLARATION = 'Ambiguous duplicate declaration.';
+
+    /**
+     * Collection reason marking a conditional or nested declaration.
+     */
+    private const string CONDITIONAL_DECLARATION = 'Conditional or nested declaration.';
+
+    /**
      * Index scalar declarations and preserve explicit gaps for unsafe declarations.
      *
      * @param list<Node> $nodes
@@ -34,23 +44,30 @@ final class RepresentationFacts
         $types = [];
         $callables = [];
         $truncated = [];
-        $duplicates = [];
         $unconditional = self::unconditional($nodes);
-        $finder = new NodeFinder;
-        foreach ($finder->findInstanceOf($nodes, Stmt\Class_::class) as $type) {
+        self::classes($nodes, $unconditional, $types, $callables, $truncated);
+        self::functions($nodes, $unconditional, $callables, $truncated);
+
+        return ['types' => $types, 'callables' => $callables, 'truncated' => $truncated];
+    }
+
+    /**
+     * Index named class declarations and make duplicate type identities ambiguous.
+     *
+     * @param list<Node>       $nodes
+     * @param array<int, true> $unconditional
+     */
+    private static function classes(array $nodes, array $unconditional, array &$types, array &$callables, array &$truncated): void
+    {
+        $duplicates = [];
+        foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\Class_::class) as $type) {
             if ($type->name === null) {
                 continue;
             }
 
             $row = self::type($type);
             $id = strtolower($row['name']);
-            $declarationId = spl_object_id($type);
-            $reason = isset($unconditional[$declarationId]) ? null : 'Conditional or nested declaration.';
-            if (isset($types[$id])) {
-                $reason = 'Ambiguous duplicate declaration.';
-                $duplicates[$id] = true;
-            }
-
+            $reason = self::declarationReason($type, $unconditional, $types, $id, $duplicates);
             if ($reason !== null) {
                 $row['eligible'] = false;
             }
@@ -63,9 +80,25 @@ final class RepresentationFacts
         }
 
         self::rejectDuplicateTypes($callables, $duplicates);
-        self::functions($nodes, $unconditional, $callables, $truncated);
+    }
 
-        return ['types' => $types, 'callables' => $callables, 'truncated' => $truncated];
+    /**
+     * Keep duplicated and conditional declarations uncertain before indexing their members.
+     *
+     * @param array<int, true>    $unconditional
+     * @param array<string, true> $duplicates
+     */
+    private static function declarationReason(Stmt\Class_ $type, array $unconditional, array $types, string $id, array &$duplicates): ?string
+    {
+        if (isset($types[$id])) {
+            $duplicates[$id] = true;
+
+            return self::DUPLICATE_DECLARATION;
+        }
+
+        $declarationId = spl_object_id($type);
+
+        return isset($unconditional[$declarationId]) ? null : self::CONDITIONAL_DECLARATION;
     }
 
     /**
@@ -79,7 +112,7 @@ final class RepresentationFacts
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\Function_::class) as $function) {
             $name = $function->namespacedName?->toString() ?? $function->name->toString();
             $declarationId = spl_object_id($function);
-            $reason = isset($unconditional[$declarationId]) ? null : 'Conditional or nested declaration.';
+            $reason = isset($unconditional[$declarationId]) ? null : self::CONDITIONAL_DECLARATION;
             self::store($callables, self::callable($function, $name, null, $truncated), $reason);
         }
     }
@@ -91,7 +124,7 @@ final class RepresentationFacts
     {
         foreach ($callables as $id => $callable) {
             if ($callable['class'] !== null && isset($duplicates[$callable['class']])) {
-                $callable['statements'] = [self::barrier('Ambiguous duplicate declaration.', $callable['line'])];
+                $callable['statements'] = [self::barrier(self::DUPLICATE_DECLARATION, $callable['line'])];
                 $callables[$id] = $callable;
             }
         }
@@ -128,12 +161,9 @@ final class RepresentationFacts
     private static function store(array &$callables, array $callable, ?string $reason): void
     {
         $id = $callable['id'];
-        if (isset($callables[$id])) {
-            $reason = 'Ambiguous duplicate declaration.';
-        }
-
-        if ($reason !== null) {
-            $callable['statements'] = [self::barrier($reason, $callable['line'])];
+        $barrier = isset($callables[$id]) ? self::DUPLICATE_DECLARATION : $reason;
+        if ($barrier !== null) {
+            $callable['statements'] = [self::barrier($barrier, $callable['line'])];
         }
 
         $callables[$id] = $callable;

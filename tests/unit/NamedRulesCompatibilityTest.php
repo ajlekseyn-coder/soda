@@ -8,7 +8,7 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\FileIterator\Facade;
 
@@ -17,7 +17,7 @@ final class NamedRulesCompatibilityTest extends TestCase
     public function testFullAndSelectiveCollectorsProduceIdenticalDiagnostics(): void
     {
         $files = (new Facade)->getFilesAsArray([dirname(__DIR__, 2).'/demo-app'], ['.php']);
-        $selective = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard()));
+        $selective = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
         $allFacts = new class extends Check
         {
             public function id(): string
@@ -25,7 +25,7 @@ final class NamedRulesCompatibilityTest extends TestCase
                 return 'request_all_facts';
             }
         };
-        $full = (new Runner)->check($files, Soda::configure()->with([...RuleCatalog::standard(), $allFacts]));
+        $full = (new Runner)->check($files, Soda::configure()->with([...RuleCatalog::standard(), $allFacts])->checks());
         self::assertEquals($selective->violations->all(), $full->violations->all());
     }
 
@@ -33,7 +33,7 @@ final class NamedRulesCompatibilityTest extends TestCase
     {
         $root = dirname(__DIR__, 2);
         $files = (new Facade)->getFilesAsArray([$root.'/demo-app'], ['.php']);
-        $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard()));
+        $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
         $report = (new QualityJsonReportFormatter)->format($result);
         $actual = $report['violations'];
         foreach ($actual as &$row) {

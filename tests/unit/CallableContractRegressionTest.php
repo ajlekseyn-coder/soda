@@ -7,7 +7,7 @@ namespace Cosmira\Soda;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Architecture\NoDynamicInvocation;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Structure\MaxArguments;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -63,7 +63,7 @@ final class CallableContractRegressionTest extends TestCase
                 $files[] = $file;
             }
 
-            return (new Runner)->check($files, Soda::configure()->with([$rule]))->violations->filter(static fn ($finding): bool => $finding->rule === $rule->id())->values()->all();
+            return (new Runner)->check($files, Soda::configure()->with([$rule])->checks())->violations->filter(static fn ($finding): bool => $finding->rule === $rule->id())->values()->all();
         } finally {
             foreach ($files as $file) {
                 unlink($file);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Structure\Delegation;
 
+use Cosmira\Soda\Analysis\Structure\Delegation\TrivialDelegatingMethodProbe;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;

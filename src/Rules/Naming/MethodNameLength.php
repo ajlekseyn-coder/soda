@@ -6,8 +6,8 @@ namespace Cosmira\Soda\Rules\Naming;
 
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\LaravelMigrationConvention;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\NodeFinder;
 

@@ -29,6 +29,11 @@ use SebastianBergmann\Complexity\CyclomaticComplexityCalculatingVisitor;
 final class ComplexityVisitor extends FactVisitor
 {
     /**
+     * Attribute key under which the parser stores the syntactic parent node.
+     */
+    private const string PARENT = 'parent';
+
+    /**
      * Cyclomatic complexity scores indexed by callable name.
      *
      * @var array<string, positive-int>
@@ -47,7 +52,7 @@ final class ComplexityVisitor extends FactVisitor
         }
 
         if ($node instanceof ClassMethod) {
-            $isDeclaration = $node->getAttribute('parent') instanceof Interface_ || $node->isAbstract();
+            $isDeclaration = $node->getAttribute(self::PARENT) instanceof Interface_ || $node->isAbstract();
             if ($isDeclaration) {
                 return;
             }
@@ -81,10 +86,10 @@ final class ComplexityVisitor extends FactVisitor
      */
     private function methodName(ClassMethod $node): string
     {
-        $parent = $node->getAttribute('parent');
+        $parent = $node->getAttribute(self::PARENT);
 
         assert($parent instanceof Class_ || $parent instanceof Trait_ || $parent instanceof Enum_);
-        $isAnonymousClass = $parent->getAttribute('parent') instanceof New_;
+        $isAnonymousClass = $parent->getAttribute(self::PARENT) instanceof New_;
 
         if ($isAnonymousClass) {
             return 'anonymous class';

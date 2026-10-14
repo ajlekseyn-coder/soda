@@ -237,8 +237,8 @@ final class RepeatedForeignStateUpdateTest extends TestCase
         }
 
         $config = Soda::configure()->with([new RepeatedForeignStateUpdate]);
-        $this->assertCount(1, (new Runner)->check([$directory.'state-update-before.php'], $config)->violations);
-        $this->assertCount(0, (new Runner)->check([$directory.'state-update-after.php'], $config)->violations);
+        $this->assertCount(1, (new Runner)->check([$directory.'state-update-before.php'], $config->checks())->violations);
+        $this->assertCount(0, (new Runner)->check([$directory.'state-update-after.php'], $config->checks())->violations);
     }
 
     private function wallet(): string
@@ -266,7 +266,7 @@ PHP;
         $files = $this->files($sources);
 
         try {
-            return (new Runner)->check($files, Soda::configure()->with([$rule ?? new RepeatedForeignStateUpdate]))->violations->all();
+            return (new Runner)->check($files, Soda::configure()->with([$rule ?? new RepeatedForeignStateUpdate])->checks())->violations->all();
         } finally {
             array_map(unlink(...), $files);
         }

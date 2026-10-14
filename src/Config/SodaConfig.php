@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Config;
 
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 
 /**
  * Configuration container for `soda.php`.

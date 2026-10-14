@@ -20,6 +20,11 @@ use PhpParser\Node\Stmt\Trait_;
 final class ClassFactsExtractor
 {
     /**
+     * Attribute key carrying the name resolver's fully qualified name.
+     */
+    private const string RESOLVED_NAME = 'resolvedName';
+
+    /**
      * Build structural facts for a class or trait from its declaration.
      *
      * @return ClassFacts
@@ -63,7 +68,7 @@ final class ClassFactsExtractor
             return null;
         }
 
-        $resolved = $node->extends->getAttribute('resolvedName');
+        $resolved = $node->extends->getAttribute(self::RESOLVED_NAME);
 
         return $resolved instanceof Name ? $resolved->toString() : $node->extends->toString();
     }
@@ -98,7 +103,7 @@ final class ClassFactsExtractor
     private static function resolvedNames(array $names): array
     {
         return array_map(static function (Name $name): string {
-            $resolved = $name->getAttribute('resolvedName');
+            $resolved = $name->getAttribute(self::RESOLVED_NAME);
 
             return $resolved instanceof Name ? $resolved->toString() : $name->toString();
         }, $names);
@@ -148,7 +153,7 @@ final class ClassFactsExtractor
 
         foreach ($node->getTraitUses() as $traitUse) {
             foreach ($traitUse->traits as $trait) {
-                $resolved = $trait->getAttribute('resolvedName');
+                $resolved = $trait->getAttribute(self::RESOLVED_NAME);
                 if ($resolved instanceof Name) {
                     $names[] = $resolved->toString();
 

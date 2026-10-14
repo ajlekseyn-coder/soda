@@ -7,7 +7,7 @@ use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Research\MaxDisconnectedMethodGroups;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Complexity\MaxCognitiveComplexity;
 use Cosmira\Soda\Rules\Complexity\NoEmptyFinallyBlocks;
 use Cosmira\Soda\Rules\Complexity\NoRedundantRethrow;
@@ -85,7 +85,7 @@ foreach ($manifest['projects'] as $spec) {
     ]);
     memory_reset_peak_usage();
     $started = hrtime(true);
-    $result = (new Runner)->check($files, $config);
+    $result = (new Runner)->check($files, $config->checks());
     $seconds = (hrtime(true) - $started) / 1e9;
     $peak = memory_get_peak_usage(true);
     $violations = $result->violations->map(fn ($violation) => $violation->toArray())->all();

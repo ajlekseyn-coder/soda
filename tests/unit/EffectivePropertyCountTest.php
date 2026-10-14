@@ -152,7 +152,7 @@ PHP]));
      */
     private function propertyViolations(array $files): array
     {
-        return (new Runner)->check($files, Soda::configure()->with([new MaxPropertiesPerClass(5)]))->violations
+        return (new Runner)->check($files, Soda::configure()->with([new MaxPropertiesPerClass(5)])->checks())->violations
             ->where('rule', 'max_properties_per_class')
             ->values()
             ->all();

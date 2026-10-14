@@ -22,7 +22,7 @@ final class RepresentationChurnTest extends TestCase
 
     private function report(array $files, ?RepresentationChurn $rule = null): array
     {
-        $result = (new Runner)->check($files, Soda::configure()->with([$rule ?? new RepresentationChurn]));
+        $result = (new Runner)->check($files, Soda::configure()->with([$rule ?? new RepresentationChurn])->checks());
         self::assertTrue($result->isPassing(), 'Research candidates must not fail quality checks.');
         self::assertCount(0, $result->violations);
         self::assertArrayHasKey('representation_churn', $result->research);

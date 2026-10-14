@@ -10,7 +10,7 @@ use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Commands\QualityCommand;
 use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Config\RuleCatalog;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Complexity\NoRepeatedCompoundConditions;
 use Cosmira\Soda\Rules\Structure\NoTrivialFactories;
 use Illuminate\Console\OutputStyle;

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Verification;
 
-use Cosmira\Soda\Analysis\Runner as QualityAnalyser;
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Usage\NoUnusedMethods;
 use PHPUnit\Framework\Attributes\Group;
@@ -69,7 +70,7 @@ final class QualityPipelinePerformanceTest extends TestCase
         $start = hrtime(true);
 
         try {
-            $result = (new QualityAnalyser)->check($files, Soda::configure()->with([new NoUnusedMethods]));
+            $result = (new Runner)->check($files, Soda::configure()->with([new NoUnusedMethods])->checks());
             self::assertTrue($result->isPassing());
             self::assertLessThan(8.0, (hrtime(true) - $start) / 1_000_000_000);
             self::assertLessThan(64 * 1024 * 1024, memory_get_peak_usage(true) - $before);

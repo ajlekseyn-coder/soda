@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Config\RuleExpression;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 
 abstract class ExpressionCheck extends Check

@@ -7,7 +7,7 @@ namespace Cosmira\Soda;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
 use Cosmira\Soda\Reporting\RuleMetadata;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use PHPUnit\Framework\TestCase;
 
 final class RuleCatalogTest extends TestCase
@@ -33,7 +33,7 @@ final class RuleCatalogTest extends TestCase
             self::assertStringContainsString('new '.(new \ReflectionClass($rule))->getShortName().'(', $init);
         }
         self::assertStringContainsString('new MaxCognitiveComplexity(15)', $init);
-        self::assertStringContainsString('new MaxEfferentCoupling(10)', $init);
+        self::assertStringContainsString('new MaxEfferentCoupling(15)', $init);
     }
 
     public function testMetadataMatchesRuleMetadataDefault(): void
@@ -138,7 +138,7 @@ final class RuleCatalogTest extends TestCase
         $expected = array_column(RuleCatalog::standardDefinitions(), 'class');
         $actual = array_map(fn ($check) => $check::class, RuleCatalog::standard());
         $this->assertSame($expected, $actual);
-        $this->assertCount(98, $actual);
+        $this->assertCount(104, $actual);
         $ids = array_map(fn ($check) => $check->id(), RuleCatalog::standard());
         $this->assertContains('max_cognitive_complexity', $ids);
         $this->assertNotContains('no_redundant_rethrow', $ids);

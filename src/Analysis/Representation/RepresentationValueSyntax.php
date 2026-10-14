@@ -19,6 +19,11 @@ use PhpParser\Node\Expr;
 trait RepresentationValueSyntax
 {
     /**
+     * Canonical native name of PHP's null literal value.
+     */
+    private const string NATIVE_NULL = 'null';
+
+    /**
      * Normalize native contracts after name resolution; leave late static binding unknown.
      */
     private static function nativeType(Node|string|null $type, ?string $class): ?string
@@ -88,11 +93,11 @@ trait RepresentationValueSyntax
     private static function constant(Expr\ConstFetch $node): array
     {
         $name = strtolower($node->name->toString());
-        if (! in_array($name, ['null', 'true', 'false'], true)) {
+        if (! in_array($name, [self::NATIVE_NULL, 'true', 'false'], true)) {
             return self::unknown($node->getType(), $node->getStartLine());
         }
 
-        return ['op' => 'literal', 'value' => $name === 'null' ? null : $name === 'true', 'type' => $name === 'null' ? 'null' : 'bool', 'line' => $node->getStartLine()];
+        return ['op' => 'literal', 'value' => $name === self::NATIVE_NULL ? null : $name === 'true', 'type' => $name === self::NATIVE_NULL ? self::NATIVE_NULL : 'bool', 'line' => $node->getStartLine()];
     }
 
     /**
@@ -134,7 +139,7 @@ trait RepresentationValueSyntax
 
         if ($node instanceof Expr\Cast) {
             $types = ['Expr_Cast_String' => 'string', 'Expr_Cast_Int' => 'int', 'Expr_Cast_Double' => 'float',
-                'Expr_Cast_Bool'         => 'bool', 'Expr_Cast_Array' => 'array', 'Expr_Cast_Object' => 'object', 'Expr_Cast_Unset' => 'null'];
+                'Expr_Cast_Bool'         => 'bool', 'Expr_Cast_Array' => 'array', 'Expr_Cast_Object' => 'object', 'Expr_Cast_Unset' => self::NATIVE_NULL];
 
             return ['op' => 'cast', 'type' => $types[$node->getType()] ?? 'unknown', 'value' => self::expression($node->expr, $class, $remaining), 'line' => $line];
         }

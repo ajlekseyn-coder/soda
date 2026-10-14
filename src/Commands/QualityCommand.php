@@ -64,9 +64,28 @@ final class QualityCommand extends Command
         $directories = (array) $this->argument('path');
 
         $root = getcwd();
-        $hasRoot = $root !== false && $root !== '';
-        $root = ($hasRoot) ? $root : '/';
+        $root = ($root !== false && $root !== '') ? $root : '/';
 
+        $result = $this->analyse($directories, $root);
+        if ($result === null) {
+            return self::FAILURE;
+        }
+
+        (new ReportFormatter(RuleMetadata::default()))->write($this->output, $result, $root);
+        $this->writeReportJson($result);
+        $this->writeResearchJson($result);
+
+        return $result->isPassing() ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Load configuration, expand the requested inputs and run every configured check.
+     *
+     * @param list<non-empty-string> $requested
+     */
+    private function analyse(array $requested, string $root): ?QualityResult
+    {
+        $directories = $requested;
         try {
             $configPath = $this->resolveConfigPath();
             $loader = new ConfigLoader;
@@ -79,30 +98,24 @@ final class QualityCommand extends Command
             if ($directories === []) {
                 $this->error('No directory specified. Add withPaths([...]) to soda.php or pass a path.');
 
-                return self::FAILURE;
+                return null;
             }
 
             $files = $this->resolveFiles($directories);
-
             if ($files === []) {
                 $this->error('No files found to scan');
 
-                return self::FAILURE;
+                return null;
             }
 
             $config ??= $loader->resolve($files, $configPath);
-            $result = ($this->qualityAnalysis ?? new Runner)->check($files, $config);
+
+            return ($this->qualityAnalysis ?? new Runner)->check($files, $config->checks());
         } catch (ConfigException $configException) {
             $this->error($configException->getMessage());
 
-            return self::FAILURE;
+            return null;
         }
-
-        (new ReportFormatter(RuleMetadata::default()))->write($this->output, $result, $root);
-        $this->writeReportJson($result);
-        $this->writeResearchJson($result);
-
-        return $result->isPassing() ? self::SUCCESS : self::FAILURE;
     }
 
     /**

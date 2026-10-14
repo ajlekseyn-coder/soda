@@ -12,9 +12,9 @@ use Cosmira\Soda\Commands\QualityCommand;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\SodaConfig;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Design\RepresentationChurn;
-use Cosmira\Soda\Rules\ResearchCheck;
+use Cosmira\Soda\Contracts\ResearchCheck;
 use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Events\Dispatcher;
@@ -47,7 +47,7 @@ final class ResearchReportingTest extends TestCase
                 return $this->report;
             }
         };
-        $result = (new Runner)->check([], (new SodaConfig)->with([$check]));
+        $result = (new Runner)->check([], (new SodaConfig)->with([$check])->checks());
 
         $this->assertTrue($result->isPassing());
         $this->assertSame(['representation_churn' => $report], $result->research);
@@ -80,7 +80,7 @@ final class ResearchReportingTest extends TestCase
                 return [new Violation(rule: 'ordinary', file: '/project/Example.php', value: 1, threshold: 0)];
             }
         };
-        $result = (new Runner)->check([], (new SodaConfig)->with([$research, $ordinary]));
+        $result = (new Runner)->check([], (new SodaConfig)->with([$research, $ordinary])->checks());
 
         $this->assertFalse($result->isPassing());
         $this->assertCount(1, $result->violations);
@@ -106,7 +106,7 @@ final class ResearchReportingTest extends TestCase
         {
             public function __construct(private QualityResult $result) {}
 
-            public function check(array $files, SodaConfig $config): QualityResult
+            public function check(array $files, array $checks): QualityResult
             {
                 return $this->result;
             }

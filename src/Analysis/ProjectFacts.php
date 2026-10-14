@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
-use Cosmira\Soda\Rules\Architecture\Cohesion;
+use Cosmira\Soda\Analysis\Architecture\Cohesion;
 
 /**
  * @phpstan-import-type ClassFacts from FileFacts

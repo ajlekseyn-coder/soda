@@ -106,7 +106,7 @@ PHP);
         try {
             $result = (new Runner(new FactCollector($parser)))->check([$file, $file], Soda::configure()->with([
                 new MaxArguments(1), new MaxFileLoc(1), new NoUnusedMethods,
-            ]));
+            ])->checks());
             $this->assertCount(2, $result->violations);
         } finally {
             unlink($file);

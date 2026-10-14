@@ -10,7 +10,7 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Design\FragmentedOwnerBehavior;
 use Cosmira\Soda\Rules\Design\RepeatedConfigurationSequence;
 use Cosmira\Soda\Rules\Design\RepeatedForeignStateDecision;
@@ -350,7 +350,7 @@ PHP]));
     public function testAllFiveRulesRecognizeTheDocumentedScenarioThroughRunner(): void
     {
         $path = __DIR__.'/../fixtures/design/owner-opportunities.php';
-        $result = (new Runner)->check([$path], Soda::configure()->with($this->rules()));
+        $result = (new Runner)->check([$path], Soda::configure()->with($this->rules())->checks());
         $actual = $result->violations->map(fn ($violation): string => $violation->rule)->sort()->values()->all();
         $expected = array_map(fn (Check $rule): string => $rule->id(), $this->rules());
         sort($expected);
@@ -384,7 +384,7 @@ PHP]));
         $this->assertSame(\OwnerOpportunities\daily('today'), \OwnerRefactored\daily('today'));
         $this->assertSame(\OwnerOpportunities\monthly('month'), \OwnerRefactored\monthly('month'));
         $this->assertSame(\OwnerOpportunities\annual('year'), \OwnerRefactored\annual('year'));
-        $result = (new Runner)->check([$directory.'owner-refactored.php'], Soda::configure()->with($this->rules()));
+        $result = (new Runner)->check([$directory.'owner-refactored.php'], Soda::configure()->with($this->rules())->checks());
         $this->assertCount(0, $result->violations);
     }
 
@@ -393,7 +393,7 @@ PHP]));
         $files = $this->files([$this->archive('Post'), $this->archive('Comment')]);
 
         try {
-            $result = (new Runner)->check($files, Soda::configure()->with([new RepeatedOwnerConcern]));
+            $result = (new Runner)->check($files, Soda::configure()->with([new RepeatedOwnerConcern])->checks());
             $this->assertCount(1, $result->violations);
             $row = $result->violations->first()->toArray();
             $this->assertSame('repeated_owner_concern', $row['rule']);

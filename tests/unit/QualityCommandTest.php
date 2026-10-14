@@ -262,7 +262,7 @@ final class QualityCommandTest extends TestCase
             public function __construct(private QualityResult $out) {}
 
             #[\Override]
-            public function check(array $files, SodaConfig $config): QualityResult
+            public function check(array $files, array $checks): QualityResult
             {
                 return $this->out;
             }
@@ -303,7 +303,7 @@ final class QualityCommandTest extends TestCase
             public function __construct(private readonly QualityResult $out) {}
 
             #[\Override]
-            public function check(array $files, SodaConfig $config): QualityResult
+            public function check(array $files, array $checks): QualityResult
             {
                 $this->files = $files;
 

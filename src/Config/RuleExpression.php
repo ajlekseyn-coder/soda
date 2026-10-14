@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Config;
 
 use Closure;
-use Cosmira\Soda\Analysis\FactCatalog;
 use Phplrt\Contracts\Parser\ParserInterface;
 use Phplrt\Lexer\Token\Token;
 use Phplrt\Parser\Exception\ParserRuntimeException;
@@ -19,6 +18,11 @@ final class RuleExpression
      * Reuses the immutable compiled grammar across rule instances.
      */
     private static ?ParserInterface $parser = null;
+
+    /**
+     * Defines glob matching operator used by this policy.
+     */
+    private const string MATCHES_OPERATOR = 'matches';
 
     /**
      * Selects the file, class or method rows evaluated by this predicate.
@@ -103,8 +107,8 @@ final class RuleExpression
         $numeric = $type === 'number';
         $operators = match ($type) {
             'number'       => ['==', '!=', '>', '>=', '<', '<='],
-            'string'       => ['==', '!=', 'matches'],
-            'dependencies' => ['matches'],
+            'string'       => ['==', '!=', self::MATCHES_OPERATOR],
+            'dependencies' => [self::MATCHES_OPERATOR],
         };
         $inArray = in_array($operator, $operators, true);
         if (! $inArray) {
@@ -122,7 +126,7 @@ final class RuleExpression
             throw_unless(array_key_exists($field, $row), \LogicException::class, sprintf("Missing rule fact '%s'.", $field));
 
             $actual = $numeric ? (float) $row[$field] : $row[$field];
-            if ($operator === 'matches') {
+            if ($operator === self::MATCHES_OPERATOR) {
                 foreach ((array) $actual as $candidate) {
                     if (fnmatch($value, $candidate, FNM_NOESCAPE)) {
                         return true;

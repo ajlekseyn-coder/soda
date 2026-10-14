@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
-use Cosmira\Soda\Rules\Naming\CompoundVariableNameOccurrence;
+use Cosmira\Soda\Analysis\Naming\CompoundVariableNameOccurrence;
 use PhpParser\Node;
 
 /**
@@ -48,10 +48,10 @@ use PhpParser\Node;
  *   receiver: string, question: string, command: string
  * }
  *
- * @phpstan-import-type CognitiveRow from \Cosmira\Soda\Rules\Complexity\CognitiveComplexity
- * @phpstan-import-type ComplexCondition from \Cosmira\Soda\Rules\Complexity\ComplexControlConditionVisitor
- * @phpstan-import-type ElseBranch from \Cosmira\Soda\Rules\Complexity\ElseBranchVisitor
- * @phpstan-import-type Declaration from \Cosmira\Soda\Rules\Usage\UnusedMethodDeclarations
+ * @phpstan-import-type CognitiveRow from \Cosmira\Soda\Analysis\Complexity\CognitiveComplexity
+ * @phpstan-import-type ComplexCondition from \Cosmira\Soda\Analysis\Complexity\ComplexControlConditionVisitor
+ * @phpstan-import-type ElseBranch from \Cosmira\Soda\Analysis\Complexity\ElseBranchVisitor
+ * @phpstan-import-type Declaration from \Cosmira\Soda\Analysis\Usage\UnusedMethodDeclarations
  *
  * @phpstan-type FileMetrics array{
  *   representationFlow?: array{types: array<string, array>, callables: array<string, array>, truncated: list<array>},

@@ -11,8 +11,9 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\Frameworks\LaravelMiddlewareContracts;
 use Cosmira\Soda\Analysis\InheritedParameterContracts;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Analysis\Usage\ParameterInputFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 
 /**
  * Reports unused inputs while preserving positions required by known parent contracts.

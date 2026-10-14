@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Design;
 
+use Cosmira\Soda\Analysis\Design\DesignEvidence;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use InvalidArgumentException;
 
 /**

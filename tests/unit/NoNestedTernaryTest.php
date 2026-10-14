@@ -60,7 +60,7 @@ final class NoNestedTernaryTest extends TestCase
         file_put_contents($path, '<?php $result = $premium ? ($annual ? 100 : 10) : 20;');
 
         try {
-            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard()));
+            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
             $findings = $result->violations->filter(fn ($item): bool => $item->rule === 'no_nested_ternary')->values()->all();
             self::assertCount(1, $findings);
             self::assertSame($path, $findings[0]->file);

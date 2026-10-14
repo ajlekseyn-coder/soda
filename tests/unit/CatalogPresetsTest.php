@@ -6,7 +6,7 @@ namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\SodaConfig;
-use Cosmira\Soda\Rules\Check as RuleChecker;
+use Cosmira\Soda\Contracts\Check as RuleChecker;
 use Cosmira\Soda\Rules\Complexity\MaxCyclomaticComplexity as MethodRules;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInCondition;
 use Cosmira\Soda\Rules\Complexity\NoComplexControlConditions;

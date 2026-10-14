@@ -77,7 +77,7 @@ PHP;
 
         try {
             $rule = new ($entry['class'])(...$entry['arguments']);
-            $result = (new Runner)->check([$path], Soda::configure()->with([$rule]));
+            $result = (new Runner)->check([$path], Soda::configure()->with([$rule])->checks());
             self::assertCount(1, $result->violations);
         } finally {
             unlink($path);

@@ -19,6 +19,18 @@ final class PropertyMetrics
     public static function keys(Class_|Trait_ $node): array
     {
         $declaringType = $node->namespacedName?->toString() ?? 'anonymous';
+        $keys = [...self::declaredKeys($node, $declaringType), ...self::promotedKeys($node, $declaringType)];
+
+        return array_values(array_unique($keys));
+    }
+
+    /**
+     * Qualify private property declarations with the type that owns their storage.
+     *
+     * @return list<string>
+     */
+    private static function declaredKeys(Class_|Trait_ $node, string $declaringType): array
+    {
         $keys = [];
         foreach ($node->getProperties() as $property) {
             foreach ($property->props as $item) {
@@ -27,29 +39,34 @@ final class PropertyMetrics
             }
         }
 
+        return $keys;
+    }
+
+    /**
+     * Qualify promoted constructor fields that declare an explicit visibility modifier.
+     *
+     * @return list<string>
+     */
+    private static function promotedKeys(Class_|Trait_ $node, string $declaringType): array
+    {
+        $keys = [];
         foreach ($node->getMethods() as $method) {
-            $isNonConstructor = strtolower($method->name->toString()) !== '__construct';
-            if ($isNonConstructor) {
+            if (strtolower($method->name->toString()) !== '__construct') {
                 continue;
             }
 
             foreach ($method->params as $parameter) {
-                if ($parameter->flags === 0) {
+                $name = is_string($parameter->var->name) ? $parameter->var->name : null;
+                if ($parameter->flags === 0 || $name === null) {
                     continue;
                 }
 
-                $isString = is_string($parameter->var->name);
-                if (! $isString) {
-                    continue;
-                }
-
-                $name = $parameter->var->name;
                 $isPrivate = ($parameter->flags & Class_::MODIFIER_PRIVATE) !== 0;
                 $keys[] = $isPrivate ? $declaringType.'::$'.$name : '$'.$name;
             }
         }
 
-        return array_values(array_unique($keys));
+        return $keys;
     }
 
     /**

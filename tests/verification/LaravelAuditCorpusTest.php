@@ -58,7 +58,7 @@ final class LaravelAuditCorpusTest extends TestCase
             self::assertSame($expectedHashes, $hashes, $package['name'].' source snapshot changed; re-audit required');
             sort($files);
             $actual = [];
-            $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard()));
+            $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
             foreach ((new QualityJsonReportFormatter)->format($result)['violations'] as $diagnostic) {
                 $diagnostic['file'] = substr($diagnostic['file'], strlen($root) + 1);
                 $actual[] = $this->canonical($diagnostic);

@@ -171,8 +171,7 @@ final class MaxLayerDominancePercentageTest extends TestCase
                 $files,
                 Soda::configure()->with([
                     new MaxLayerDominancePercentage(50, 4),
-                ]),
-            );
+                ])->checks());
         } finally {
             foreach ($files as $file) {
                 unlink($file);

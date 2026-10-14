@@ -109,7 +109,7 @@ final class RepresentationFlowPerformanceTest extends TestCase
         $budget = 250;
 
         try {
-            $result = (new Runner)->check($files, Soda::configure()->with([new RepresentationChurn(maxSteps: $budget)]));
+            $result = (new Runner)->check($files, Soda::configure()->with([new RepresentationChurn(maxSteps: $budget)])->checks());
             self::assertTrue($result->isPassing());
             self::assertCount(0, $result->violations);
             $report = $result->research['representation_churn'];

@@ -48,7 +48,7 @@ PHP);
 
         try {
             $ids = ['no_unneeded_ternary', 'no_return_in_finally', 'no_reassigned_parameters', 'max_consecutive_local_assignments', 'no_repeated_string_literals'];
-            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard()));
+            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
             $findings = $result->violations->filter(static fn ($finding): bool => in_array($finding->rule, $ids, true))->values()->all();
             self::assertSame($ids, array_column($findings, 'rule'));
             self::assertSame([0, 0, 0, 8, 2], array_column($findings, 'threshold'));
@@ -91,7 +91,7 @@ PHP);
                 self::assertNotEmpty($findings[0]['message']);
                 array_push($expected, ...$findings);
             }
-            $result = (new Runner)->check([$path], Soda::configure()->with($rules));
+            $result = (new Runner)->check([$path], Soda::configure()->with($rules)->checks());
             self::assertSame($expected, $result->violations->map(static fn ($finding): array => $finding->toArray())->all());
             $report = (new QualityJsonReportFormatter)->format($result);
             $json = json_decode(json_encode($report, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
@@ -117,7 +117,7 @@ PHP);
 
         try {
             $config = require $path;
-            self::assertCount(98, $config->checks());
+            self::assertCount(104, $config->checks());
             self::assertSame([dirname($path).'/src'], $config->paths());
         } finally {
             unlink($path);

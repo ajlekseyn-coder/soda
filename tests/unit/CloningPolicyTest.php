@@ -20,7 +20,7 @@ final class CloningPolicyTest extends TestCase
         file_put_contents($path, '<?php '.$source);
 
         try {
-            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard()));
+            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
             self::assertNotContains('no_object_cloning', $result->violations->pluck('rule')->all());
             self::assertCount($nestedConditions, $result->violations->where('rule', 'no_complex_control_conditions'));
         } finally {

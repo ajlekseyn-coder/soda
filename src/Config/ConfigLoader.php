@@ -62,19 +62,20 @@ final class ConfigLoader
      */
     private function firstConfigInAncestors(string $directory): ?string
     {
+        $current = $directory;
         for ($depth = 0; $depth < self::MAX_DEPTH; $depth++) {
-            $path = $directory.'/soda.php';
-            $isReadableConfig = is_readable($path) && $this->isExactFilename($directory);
+            $path = $current.'/soda.php';
+            $isReadableConfig = is_readable($path) && $this->isExactFilename($current);
             if ($isReadableConfig) {
                 return $path;
             }
 
-            $parent = dirname($directory);
-            if ($parent === $directory) {
+            $parent = dirname($current);
+            if ($parent === $current) {
                 break;
             }
 
-            $directory = $parent;
+            $current = $parent;
         }
 
         return null;

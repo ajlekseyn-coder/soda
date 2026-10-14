@@ -91,6 +91,6 @@ final class ExceptionChecksTest extends TestCase
         }
         self::assertContains('no_empty_finally_blocks', $ids);
         self::assertContains('no_empty_finally_blocks', $section);
-        self::assertCount(98, $ids);
+        self::assertCount(104, $ids);
     }
 }

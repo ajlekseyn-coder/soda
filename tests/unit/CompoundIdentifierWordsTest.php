@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Rules\Naming\CompoundIdentifierWords;
+use Cosmira\Soda\Analysis\Naming\CompoundIdentifierWords;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

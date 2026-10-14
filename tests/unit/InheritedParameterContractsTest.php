@@ -118,7 +118,7 @@ final class InheritedParameterContractsTest extends TestCase
                 file_put_contents($path, $source);
             }
 
-            $result = (new Runner)->check($paths, Soda::configure()->with([new NoUnusedParameters]));
+            $result = (new Runner)->check($paths, Soda::configure()->with([new NoUnusedParameters])->checks());
 
             return $result->violations->all();
         } finally {

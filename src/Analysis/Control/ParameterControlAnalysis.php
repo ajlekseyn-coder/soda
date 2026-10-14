@@ -74,24 +74,25 @@ final class ParameterControlAnalysis
      */
     private function scan(array $nodes, array $origins): array
     {
+        $current = $origins;
         foreach ($nodes as $node) {
             if (! $node instanceof Node || $node instanceof Node\FunctionLike || $node instanceof Stmt\ClassLike) {
                 continue;
             }
 
-            $this->record($node, $origins);
+            $this->record($node, $current);
             $expression = $node instanceof Stmt\Expression ? $node->expr : $node;
             if ($expression instanceof Expr\Assign && $expression->var instanceof Expr\Variable && is_string($expression->var->name)) {
-                $this->scan([$expression->expr], $origins);
-                $origins[$expression->var->name] = $this->origins($expression->expr, $origins);
+                $this->scan([$expression->expr], $current);
+                $current[$expression->var->name] = $this->origins($expression->expr, $current);
 
                 continue;
             }
 
-            $origins = $this->branches($node, $origins);
+            $current = $this->branches($node, $current);
         }
 
-        return $origins;
+        return $current;
     }
 
     /**

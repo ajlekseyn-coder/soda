@@ -39,7 +39,7 @@ final class NoRepeatedStringLiteralsTest extends TestCase
             ["send('你好'); send('你好'); send('你好');", 1],
             ["send('я'); send('я'); send('я');", 0],
             ["send('a'.'b'); send('a'.'b'); send('a'.'b');", 0],
-            ["send(['status' => 1, 'status' => 2, 'status' => 3]);", 1],
+            ["send(['status' => 1, 'status' => 2, 'status' => 3]);", 0],
             ['send("\xFF\xFF\xFF"); send("\xFF\xFF\xFF"); send("\xFF\xFF\xFF");', 1],
         ];
     }
@@ -88,6 +88,13 @@ PHP;
         $finding = FiveRuleFixture::findings(new NoRepeatedStringLiterals, $source)[0];
         self::assertSame(3, $finding->value);
         self::assertStringContainsString('"ready"', $finding->message);
+    }
+
+    public function testArrayKeysAreExcludedUntilExplicitlyIncluded(): void
+    {
+        $source = '<?php class Worker { function run() { send(["status" => 1, "status" => 2, "status" => 3]); } }';
+        self::assertSame([], FiveRuleFixture::findings(new NoRepeatedStringLiterals, $source));
+        self::assertCount(1, FiveRuleFixture::findings(new NoRepeatedStringLiterals(includeArrayKeys: true), $source));
     }
 
     public function testThresholdsExceptionsAndEvidence(): void

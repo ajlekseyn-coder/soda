@@ -50,14 +50,15 @@ final class PrivateStateAccess
      */
     private static function isWriteOnly(Node $node): bool
     {
-        $parent = $node->getAttribute('parent');
-        while ($parent instanceof Expr\ArrayDimFetch && $parent->var === $node) {
-            $node = $parent;
-            $parent = $node->getAttribute('parent');
+        $current = $node;
+        $parent = $current->getAttribute('parent');
+        while ($parent instanceof Expr\ArrayDimFetch && $parent->var === $current) {
+            $current = $parent;
+            $parent = $current->getAttribute('parent');
         }
 
         $isAssignment = $parent instanceof Expr\Assign || $parent instanceof Expr\AssignRef;
 
-        return $isAssignment && $parent->var === $node;
+        return $isAssignment && $parent->var === $current;
     }
 }

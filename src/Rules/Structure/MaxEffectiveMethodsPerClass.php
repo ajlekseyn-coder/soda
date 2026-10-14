@@ -6,8 +6,8 @@ namespace Cosmira\Soda\Rules\Structure;
 
 use Cosmira\Soda\Analysis\Composition\ComposedClassMetrics;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 
 /**
  * Limits class composition without rewarding movement into traits.

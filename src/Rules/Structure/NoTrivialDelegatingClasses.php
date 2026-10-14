@@ -7,8 +7,8 @@ namespace Cosmira\Soda\Rules\Structure;
 use Cosmira\Soda\Analysis\Composition\BehaviorComposition;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use Cosmira\Soda\Rules\Structure\Delegation\TrivialDelegatingClassAnalyser;
 
 /**

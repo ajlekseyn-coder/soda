@@ -6,8 +6,8 @@ namespace Cosmira\Soda\Rules\Architecture;
 
 use Cosmira\Soda\Analysis\Control\ParameterControlAnalysis;
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use PhpParser\Node;
 use PhpParser\NodeFinder;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis\Composition;
 
-use Cosmira\Soda\Rules\Architecture\Cohesion;
+use Cosmira\Soda\Analysis\Architecture\Cohesion;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
@@ -106,10 +106,8 @@ final class ClassBehaviorFacts
      */
     private static function typeName(?Node $type): ?string
     {
-        if ($type instanceof Node\NullableType) {
-            $type = $type->type;
-        }
+        $resolved = $type instanceof Node\NullableType ? $type->type : $type;
 
-        return $type instanceof Node\Name ? strtolower($type->toString()) : null;
+        return $resolved instanceof Node\Name ? strtolower($resolved->toString()) : null;
     }
 }

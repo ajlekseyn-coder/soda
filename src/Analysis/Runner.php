@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
-use Cosmira\Soda\Config\ConfigLoader;
-use Cosmira\Soda\Config\SodaConfig;
+use Cosmira\Soda\Contracts\Check;
+use Cosmira\Soda\Contracts\ResearchCheck;
 use Cosmira\Soda\Reporting\QualityResult;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
-use Cosmira\Soda\Rules\ResearchCheck;
 use PhpParser\Error;
 
 class Runner
@@ -22,47 +20,94 @@ class Runner
     public function __construct(private readonly FactCollector $collector = new FactCollector()) {}
 
     /**
-     * Load configuration and use one path for file and project checks.
-     *
-     * @param list<non-empty-string> $files
-     */
-    public function analyse(array $files, ?string $configPath = null): QualityResult
-    {
-        return $this->check($files, (new ConfigLoader)->resolve($files, $configPath));
-    }
-
-    /**
      * Execute configured rules over each parsed file, then the scalar project facts.
      *
      * @param list<non-empty-string> $files
+     * @param list<Check>            $checks
      */
-    public function check(array $files, SodaConfig $config): QualityResult
+    public function check(array $files, array $checks): QualityResult
     {
-        $checks = $config->checks();
         $required = $this->requiredAnalyses($checks);
         $project = new ProjectFacts();
+        $violations = $this->analyseFiles($files, $checks, $required, $project);
+
+        [$projectViolations, $research] = $this->analyseProject($checks, $project);
+        array_push($violations, ...$projectViolations);
+
+        return new QualityResult($violations, $research);
+    }
+
+    /**
+     * Parse every requested file, run the file checks and accumulate shared project facts.
+     *
+     * @param list<non-empty-string> $files
+     * @param list<Check>            $checks
+     * @param list<string>|null      $required
+     *
+     * @return list<Violation>
+     */
+    private function analyseFiles(array $files, array $checks, ?array $required, ProjectFacts $project): array
+    {
         $violations = [];
         foreach (array_unique($files) as $path) {
-            try {
-                $file = $this->collector->collect($path, $required);
-                foreach ($checks as $check) {
-                    array_push($violations, ...$check->checkFile($file));
-                }
-
-                $project->add($file);
-                unset($file);
-            } catch (ParserException|Error $error) {
-                $cause = $error instanceof Error ? $error : $error->getPrevious();
-                $violations[] = new Violation(
-                    rule: 'parse_error', file: $path, value: 1, threshold: 0,
-                    line: $cause instanceof Error ? max(1, $cause->getStartLine()) : null,
-                    message: $error->getMessage(),
-                );
-            }
+            array_push($violations, ...$this->analyseFile($path, $checks, $required, $project));
         }
 
-        $research = [];
+        return $violations;
+    }
+
+    /**
+     * Analyse one file and record its facts, or report an unparseable source instead.
+     *
+     * @param list<Check>       $checks
+     * @param list<string>|null $required
+     *
+     * @return list<Violation>
+     */
+    private function analyseFile(string $path, array $checks, ?array $required, ProjectFacts $project): array
+    {
+        try {
+            $file = $this->collector->collect($path, $required);
+            $violations = [];
+            foreach ($checks as $check) {
+                array_push($violations, ...$check->checkFile($file));
+            }
+
+            $project->add($file);
+            unset($file);
+
+            return $violations;
+        } catch (ParserException|Error $error) {
+            return [$this->parseErrorViolation($path, $error)];
+        }
+    }
+
+    /**
+     * Build the diagnostic raised when a file cannot be parsed at all.
+     */
+    private function parseErrorViolation(string $path, ParserException|Error $error): Violation
+    {
+        $cause = $error instanceof Error ? $error : $error->getPrevious();
+
+        return new Violation(
+            rule: 'parse_error', file: $path, value: 1, threshold: 0,
+            line: $cause instanceof Error ? max(1, $cause->getStartLine()) : null,
+            message: $error->getMessage(),
+        );
+    }
+
+    /**
+     * Resolve shared classes, then run project checks and collect opt-in research reports.
+     *
+     * @param list<Check> $checks
+     *
+     * @return array{0: list<Violation>, 1: array<string, mixed>}
+     */
+    private function analyseProject(array $checks, ProjectFacts $project): array
+    {
         $project->resolveClasses();
+        $violations = [];
+        $research = [];
         foreach ($checks as $check) {
             if ($check instanceof ResearchCheck) {
                 $research[$check->id()] = $check->researchProject($project);
@@ -73,7 +118,7 @@ class Runner
             }
         }
 
-        return new QualityResult($violations, $research);
+        return [$violations, $research];
     }
 
     /**

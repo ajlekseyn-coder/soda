@@ -6,10 +6,10 @@ namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\FileFacts;
-use Cosmira\Soda\Analysis\Runner as QualityAnalyser;
+use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Config\ConfigException;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check as SodaRule;
+use Cosmira\Soda\Contracts\Check as SodaRule;
 use Cosmira\Soda\Rules\ExpressionCheck;
 use PHPUnit\Framework\TestCase;
 

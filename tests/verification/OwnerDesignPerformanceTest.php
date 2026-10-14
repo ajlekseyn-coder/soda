@@ -43,7 +43,7 @@ final class OwnerDesignPerformanceTest extends TestCase
         $start = hrtime(true);
 
         try {
-            $result = (new Runner)->check($files, $config);
+            $result = (new Runner)->check($files, $config->checks());
             $this->assertCount(1, $result->violations);
             $this->assertSame(300, $result->violations->first()->value);
             $this->assertLessThan(8.0, (hrtime(true) - $start) / 1_000_000_000);
@@ -72,7 +72,7 @@ final class OwnerDesignPerformanceTest extends TestCase
         $start = hrtime(true);
 
         try {
-            $result = (new Runner)->check($files, Soda::configure()->with([new RepeatedForeignStateUpdate]));
+            $result = (new Runner)->check($files, Soda::configure()->with([new RepeatedForeignStateUpdate])->checks());
             $this->assertCount(1, $result->violations);
             $this->assertSame(300, $result->violations->first()->value);
             $this->assertLessThan(8.0, (hrtime(true) - $start) / 1_000_000_000);

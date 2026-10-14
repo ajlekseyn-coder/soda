@@ -24,6 +24,16 @@ final class ClassStringLiterals extends NodeVisitorAbstract
     private array $groups = [];
 
     /**
+     * Keep data-shape keys outside the ordinary repeated-value policy.
+     */
+    public function __construct(
+        /**
+         * Include literal array keys in the strict repeated-expression policy.
+         */
+        private readonly bool $includeArrayKeys = false,
+    ) {}
+
+    /**
      * Scan class behavior while excluding nested classes and declarative defaults.
      *
      * @return list<array{value: string, lines: list<int>}>
@@ -45,7 +55,7 @@ final class ClassStringLiterals extends NodeVisitorAbstract
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;
         }
 
-        if ($node instanceof Node\Scalar\String_) {
+        if ($node instanceof Node\Scalar\String_ && ! $this->isArrayKey($node)) {
             $key = 'literal:'.$node->value;
             $group = $this->groups[$key] ?? ['value' => $node->value, 'lines' => []];
             $lines = $group['lines'];
@@ -55,6 +65,21 @@ final class ClassStringLiterals extends NodeVisitorAbstract
         }
 
         return null;
+    }
+
+    /**
+     * Exclude only the literal key itself, preserving values and computed key expressions.
+     */
+    private function isArrayKey(Node\Scalar\String_ $node): bool
+    {
+        if ($this->includeArrayKeys) {
+            return false;
+        }
+
+        $parent = $node->getAttribute('parent');
+
+        return ($parent instanceof Node\ArrayItem && $parent->key === $node)
+            || ($parent instanceof Node\Expr\ArrayDimFetch && $parent->dim === $node);
     }
 
     /**

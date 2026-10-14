@@ -180,7 +180,7 @@ final class LaravelFalsePositiveRegressionTest extends TestCase
                 $class = $entry['class'];
                 $checks[] = new $class(...$entry['arguments']);
             }
-            $result = (new Runner)->check([$path], Soda::configure()->with($checks));
+            $result = (new Runner)->check([$path], Soda::configure()->with($checks)->checks());
 
             return array_map(static fn ($violation) => $violation->rule, $result->violations->all());
         } finally {

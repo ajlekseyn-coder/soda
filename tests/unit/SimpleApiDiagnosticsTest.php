@@ -16,9 +16,9 @@ final class SimpleApiDiagnosticsTest extends TestCase
     {
         $root = dirname(__DIR__).'/fixtures/design/';
         $config = Soda::configure()->with([new NoNumericArrayIndex, new MethodsFollowCallOrder]);
-        $accepted = (new Runner)->check([$root.'simple-api.php'], $config);
+        $accepted = (new Runner)->check([$root.'simple-api.php'], $config->checks());
         self::assertSame([], $accepted->violations->all());
-        $review = (new Runner)->check([$root.'reviewable-api.php'], $config);
+        $review = (new Runner)->check([$root.'reviewable-api.php'], $config->checks());
         $rules = $review->violations->pluck('rule')->all();
         sort($rules);
         self::assertSame(['methods_follow_call_order', 'no_numeric_array_index'], $rules);

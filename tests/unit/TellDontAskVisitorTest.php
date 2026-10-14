@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Rules\Structure\TellDontAskVisitor;
+use Cosmira\Soda\Analysis\Structure\TellDontAskVisitor;
 use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PHPUnit\Framework\TestCase;
 

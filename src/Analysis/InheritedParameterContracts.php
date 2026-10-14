@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Analysis;
 
 use Cosmira\Soda\Analysis\Composition\FactoryDispatchPatterns;
-use Cosmira\Soda\Rules\Usage\ParameterUseAnalysis;
+use Cosmira\Soda\Analysis\Usage\ParameterUseAnalysis;
 use PhpParser\Node;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
@@ -17,6 +17,11 @@ use PhpParser\NodeFinder;
 final readonly class InheritedParameterContracts
 {
     /**
+     * Method name reserved by PHP for object construction contracts.
+     */
+    private const string CONSTRUCTOR = '__construct';
+
+    /**
      * Store signatures and parent edges without retaining AST nodes.
      */
     public static function collect(array $nodes): array
@@ -27,41 +32,82 @@ final readonly class InheritedParameterContracts
                 continue;
             }
 
-            $parents = $class instanceof Stmt\Class_ ? [...($class->extends instanceof Name ? [$class->extends] : []), ...$class->implements] : [];
-            if ($class instanceof Stmt\Interface_) {
-                $parents = $class->extends;
-            }
-
-            $methods = [];
-            foreach ($class->getMethods() as $method) {
-                $methods[strtolower($method->name->toString())] = [
-                    'arity'               => count($method->params), 'private' => $method->isPrivate(),
-                    'constructorContract' => $class instanceof Stmt\Interface_ || $method->isAbstract(),
-                    'forwardsParent'      => ForwardedParentConstructor::doesForward($method),
-                    'reads'               => array_keys(array_filter($method->params, static fn (Node\Param $input): bool => (new ParameterUseAnalysis($input))->isUsed($method))),
-                ];
-            }
-
             $name = strtolower($class->namespacedName?->toString() ?? $class->name->toString());
-            $parentNames = array_map(static fn (Name $parent): string => $parent->toString(), $parents);
-            $traitNames = [];
-            foreach ($class->getTraitUses() as $use) {
-                foreach ($use->traits as $trait) {
-                    $traitNames[] = $trait->toString();
-                }
-            }
-
-            $types[$name] = [
-                'parentClass'     => self::parentClass($class),
-                'traitNames'      => $traitNames,
-                'parentNames'     => $parentNames,
-                'parents'         => array_map(strtolower(...), $parentNames),
-                'methods'         => $methods,
-                'factoryDispatch' => FactoryDispatchPatterns::collect($class),
-            ];
+            $types[$name] = self::declaration($class);
         }
 
         return $types;
+    }
+
+    /**
+     * Summarize one class-like declaration as scalar facts without retaining nodes.
+     */
+    private static function declaration(Stmt\ClassLike $class): array
+    {
+        $methods = [];
+        foreach ($class->getMethods() as $method) {
+            $methods[strtolower($method->name->toString())] = self::methodSignature($class, $method);
+        }
+
+        $parentNames = array_map(static fn (Name $parent): string => $parent->toString(), self::parents($class));
+
+        return [
+            'parentClass'     => self::parentClass($class),
+            'traitNames'      => self::traitNames($class),
+            'parentNames'     => $parentNames,
+            'parents'         => array_map(strtolower(...), $parentNames),
+            'methods'         => $methods,
+            'factoryDispatch' => FactoryDispatchPatterns::collect($class),
+        ];
+    }
+
+    /**
+     * Collect direct ancestors, distinguishing interface extension from class inheritance.
+     *
+     * @return list<Name>
+     */
+    private static function parents(Stmt\ClassLike $class): array
+    {
+        if ($class instanceof Stmt\Interface_) {
+            return $class->extends;
+        }
+
+        if ($class instanceof Stmt\Class_) {
+            return [...($class->extends instanceof Name ? [$class->extends] : []), ...$class->implements];
+        }
+
+        return [];
+    }
+
+    /**
+     * Summarize one method signature, including which inputs its body reads.
+     */
+    private static function methodSignature(Stmt\ClassLike $class, Node\Stmt\ClassMethod $method): array
+    {
+        return [
+            'arity'               => count($method->params),
+            'private'             => $method->isPrivate(),
+            'constructorContract' => $class instanceof Stmt\Interface_ || $method->isAbstract(),
+            'forwardsParent'      => ForwardedParentConstructor::doesForward($method),
+            'reads'               => array_keys(array_filter($method->params, static fn (Node\Param $input): bool => (new ParameterUseAnalysis($input))->isUsed($method))),
+        ];
+    }
+
+    /**
+     * Collect the plain names of traits imported by this declaration.
+     *
+     * @return list<string>
+     */
+    private static function traitNames(Stmt\ClassLike $class): array
+    {
+        $traitNames = [];
+        foreach ($class->getTraitUses() as $use) {
+            foreach ($use->traits as $trait) {
+                $traitNames[] = $trait->toString();
+            }
+        }
+
+        return $traitNames;
     }
 
     /**
@@ -98,7 +144,7 @@ final readonly class InheritedParameterContracts
     {
         $declaration = $this->types[strtolower($class ?? '')] ?? [];
         $methods = $declaration['methods'] ?? [];
-        $constructor = $methods['__construct'] ?? [];
+        $constructor = $methods[self::CONSTRUCTOR] ?? [];
         if (! ($constructor['forwardsParent'] ?? false)) {
             return 0;
         }
@@ -107,7 +153,7 @@ final readonly class InheritedParameterContracts
         $seen = [];
         while ($parent !== null && ! isset($seen[$parent])) {
             $seen[$parent] = true;
-            $signature = $this->signature($parent, '__construct', []);
+            $signature = $this->signature($parent, self::CONSTRUCTOR, []);
             if ($signature !== []) {
                 return ($signature['private'] ?? true) ? 0 : $signature['arity'];
             }
@@ -124,24 +170,23 @@ final readonly class InheritedParameterContracts
      */
     public function isUsedByOverride(?string $class, ?string $method, int $position): bool
     {
-        if ($class === null || $method === null || strtolower($method) === '__construct') {
+        if ($class === null || $method === null || strtolower($method) === self::CONSTRUCTOR) {
             return false;
         }
 
-        $class = strtolower($class);
-        $method = strtolower($method);
-        $ownType = $this->types[$class] ?? [];
+        $owner = strtolower($class);
+        $name = strtolower($method);
+        $ownType = $this->types[$owner] ?? [];
         $ownMethods = $ownType['methods'] ?? [];
-        $ownSignature = $ownMethods[$method] ?? [];
+        $ownSignature = $ownMethods[$name] ?? [];
         if ($ownSignature['private'] ?? true) {
             return false;
         }
 
-        foreach ($this->types as $name => $type) {
-            $methods = $type['methods'] ?? [];
-            $signature = $methods[$method] ?? [];
+        foreach ($this->types as $typeName => $type) {
+            $signature = ($type['methods'] ?? [])[$name] ?? [];
             $readsInput = ! ($signature['private'] ?? true) && in_array($position, $signature['reads'] ?? [], true);
-            if ($readsInput && $this->hasAncestor($name, $class)) {
+            if ($readsInput && $this->hasAncestor($typeName, $owner)) {
                 return true;
             }
         }
@@ -217,7 +262,7 @@ final readonly class InheritedParameterContracts
         foreach ($declaration['parents'] ?? [] as $parent) {
             $signature = $this->signature($parent, $method, []);
             $isContract = ! ($signature['private'] ?? true);
-            if ($method === '__construct') {
+            if ($method === self::CONSTRUCTOR) {
                 $isContract = $isContract && ($signature['constructorContract'] ?? false);
             }
 

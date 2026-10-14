@@ -25,6 +25,11 @@ use PhpParser\Node\Stmt\Trait_;
 final class StructureVisitor extends FactVisitor
 {
     /**
+     * Attribute key referencing the enclosing syntax node of a declaration.
+     */
+    private const string PARENT = 'parent';
+
+    /**
      * Accumulated file, namespace, class, and method structural facts.
      *
      * @var FileMetrics
@@ -78,7 +83,7 @@ final class StructureVisitor extends FactVisitor
      */
     private function handleType(Class_|Trait_ $node): void
     {
-        $isAnonymousClass = $node->getAttribute('parent') instanceof New_;
+        $isAnonymousClass = $node->getAttribute(self::PARENT) instanceof New_;
         if ($isAnonymousClass) {
             return;
         }
@@ -93,7 +98,17 @@ final class StructureVisitor extends FactVisitor
         }
 
         $this->result['classes_count']++;
-        $classes = $this->result['classes'];
+        $this->storeClass($name, $this->classRow($node));
+        $this->updateNamespace($name);
+    }
+
+    /**
+     * Compose the structural fact row of one named class or trait declaration.
+     *
+     * @return array
+     */
+    private function classRow(Class_|Trait_ $node): array
+    {
         $row = ClassFactsExtractor::extract($node, $this->logicalLineMap);
         $row['concrete_method_names'] = array_values(array_map(fn (ClassMethod $method): string => $method->name->toLowerString(), array_filter($node->getMethods(), fn (ClassMethod $method): bool => ! $method->isAbstract())));
         $row['trait_method_aliases'] = TraitAdaptations::methodAliases($node);
@@ -103,6 +118,18 @@ final class StructureVisitor extends FactVisitor
         $row['public_trait_aliases'] = TraitAdaptations::publicTraitAliasNames($node);
         $row['hidden_trait_methods'] = TraitAdaptations::nonPublicTraitMethodNames($node);
 
+        return $this->classParents($node, $row);
+    }
+
+    /**
+     * Attach resolved inheritance facts that only concrete classes declare.
+     *
+     * @param array $row Structural facts collected so far for the declaration.
+     *
+     * @return array
+     */
+    private function classParents(Class_|Trait_ $node, array $row): array
+    {
         if ($node instanceof Class_) {
             $parent = ClassFactsExtractor::parentType($node);
             if ($parent !== null) {
@@ -112,10 +139,19 @@ final class StructureVisitor extends FactVisitor
             $row['interface_names'] = ClassFactsExtractor::implementedInterfaceNames($node);
         }
 
+        return $row;
+    }
+
+    /**
+     * Record one class fact row under its resolved qualified name.
+     *
+     * @param array $row Structural facts of the class or trait declaration.
+     */
+    private function storeClass(string $name, array $row): void
+    {
+        $classes = $this->result['classes'];
         $classes[$name] = $row;
         $this->result['classes'] = $classes;
-
-        $this->updateNamespace($name);
     }
 
     /**
@@ -156,28 +192,37 @@ final class StructureVisitor extends FactVisitor
      */
     private function handleClassMethod(ClassMethod $node): void
     {
-        $isInterfaceMember = $node->getAttribute('parent') instanceof Interface_;
-        if ($isInterfaceMember) {
+        if ($this->isSkippedMethod($node)) {
             return;
         }
 
-        if (AnonymousClassBoundary::isDirectMember($node)) {
-            return;
-        }
-
-        if ($node->isAbstract()) {
-            return;
-        }
-
-        $owner = $node->getAttribute('parent');
+        $owner = $node->getAttribute(self::PARENT);
         $class = $owner instanceof ClassLike ? $owner->namespacedName?->toString() : null;
         if ($class === null) {
             return;
         }
 
+        $this->recordMethod($node, $class);
+        $this->incrementClassMethods($class);
+    }
+
+    /**
+     * Interface members, anonymous-class members and abstract declarations carry no body facts.
+     */
+    private function isSkippedMethod(ClassMethod $node): bool
+    {
+        return $node->getAttribute(self::PARENT) instanceof Interface_
+            || AnonymousClassBoundary::isDirectMember($node)
+            || $node->isAbstract();
+    }
+
+    /**
+     * Store the per-method fact row, including readonly data field evidence.
+     */
+    private function recordMethod(ClassMethod $node, string $class): void
+    {
         $name = $class.'::'.$node->name->toString();
         $loc = $this->linesBetween($node->getStartLine(), $node->getEndLine());
-
         $methods = $this->result['methods'];
         $methods[$name] = ['line' => $node->getStartLine(), 'loc' => $loc, 'args' => count($node->params)];
         $readonlyDataFields = PropertyMetrics::readonlyDataFields($node);
@@ -188,14 +233,22 @@ final class StructureVisitor extends FactVisitor
         }
 
         $this->result['methods'] = $methods;
+    }
 
+    /**
+     * Count the method against its declaring class when the class row already exists.
+     */
+    private function incrementClassMethods(string $class): void
+    {
         $classes = $this->result['classes'];
-        if (isset($classes[$class])) {
-            $row = $classes[$class];
-            $row['methods']++;
-            $classes[$class] = $row;
-            $this->result['classes'] = $classes;
+        if (! isset($classes[$class])) {
+            return;
         }
+
+        $row = $classes[$class];
+        $row['methods']++;
+        $classes[$class] = $row;
+        $this->result['classes'] = $classes;
     }
 
     /**

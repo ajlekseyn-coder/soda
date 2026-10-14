@@ -6,6 +6,7 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\ConfigException;
+use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Reporting\QualityResult;
 
 /**
@@ -49,8 +50,8 @@ final class QualityAnalysisBuilder
      */
     public function analyse(?Runner $engine = null): QualityResult
     {
-        $engine ??= new Runner;
+        $config = (new ConfigLoader)->resolve($this->paths, $this->configPath);
 
-        return $engine->analyse($this->paths, $this->configPath);
+        return ($engine ?? new Runner)->check($this->paths, $config->checks());
     }
 }

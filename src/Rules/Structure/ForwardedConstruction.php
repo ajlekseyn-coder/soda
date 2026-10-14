@@ -56,19 +56,20 @@ final readonly class ForwardedConstruction
      */
     private static function returnedExpression(?Expr $expression, array &$statements): ?Expr
     {
-        while ($expression instanceof Expr\Variable && $statements !== []) {
+        $returned = $expression;
+        while ($returned instanceof Expr\Variable && $statements !== []) {
             $last = end($statements);
             $assignment = $last instanceof Stmt\Expression ? $last->expr : null;
             $isLocal = $assignment instanceof Expr\Assign && $assignment->var instanceof Expr\Variable;
-            if (! $isLocal || $assignment->var->name !== $expression->name) {
+            if (! $isLocal || $assignment->var->name !== $returned->name) {
                 break;
             }
 
             array_pop($statements);
-            $expression = $assignment->expr;
+            $returned = $assignment->expr;
         }
 
-        return $expression;
+        return $returned;
     }
 
     /**

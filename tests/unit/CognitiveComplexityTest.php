@@ -6,7 +6,7 @@ namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Config\RuleExpression;
-use Cosmira\Soda\Rules\Complexity\CognitiveComplexity;
+use Cosmira\Soda\Analysis\Complexity\CognitiveComplexity;
 use Cosmira\Soda\Rules\Complexity\MaxCognitiveComplexity;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Structure;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use Cosmira\Soda\Rules\ExpressionCheck;
 
 final class MaxTraitsPerClass extends ExpressionCheck

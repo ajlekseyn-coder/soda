@@ -62,11 +62,71 @@ final class StronglyConnectedComponents
     }
 
     /**
+     * Breadth-first search gives a shortest cycle through the component's first module.
+     *
+     * @param array<string, list<string>> $graph
+     * @param non-empty-list<string>      $component
+     *
+     * @return list<string>
+     */
+    public static function cyclePath(array $graph, array $component): array
+    {
+        $start = $component[0];
+        $members = array_fill_keys($component, true);
+        $parents = [$start => null];
+        $queue = [$start];
+        $counter = 1;
+        for ($index = 0; $index < $counter; $index++) {
+            $node = $queue[$index];
+            foreach ($graph[$node] ?? [] as $target) {
+                if (! isset($members[$target])) {
+                    continue;
+                }
+
+                if ($target === $start) {
+                    return self::closePath($parents, $node, $start);
+                }
+
+                if (! array_key_exists($target, $parents)) {
+                    $parents[$target] = $node;
+                    $queue[] = $target;
+                    $counter = count($queue);
+                }
+            }
+        }
+
+        throw new \LogicException('A strongly connected module component must contain a cycle.');
+    }
+
+    /**
+     * Reconstruct actual graph edges, then repeat the starting module to close the cycle.
+     *
+     * @param array<string, string|null> $parents
+     *
+     * @return list<string>
+     */
+    private static function closePath(array $parents, string $node, string $start): array
+    {
+        $path = [$start];
+        $current = $node;
+        while ($current !== $start) {
+            $path[] = $current;
+            $current = $parents[$current];
+        }
+
+        $path[] = $start;
+
+        return array_reverse($path);
+    }
+
+    /**
      * Visit outgoing edges, then remove a completed strongly connected component from the stack.
      */
     private function visit(string $node, array $graph): void
     {
-        $this->indices[$node] = $this->low[$node] = $this->next++;
+        $discovered = $this->next++;
+        $this->indices[$node] = $discovered;
+        $this->low[$node] = $discovered;
         $this->stack[] = $node;
         $this->active[$node] = true;
         foreach ($graph[$node] ?? [] as $target) {

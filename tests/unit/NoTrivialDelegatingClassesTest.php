@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\FileFacts;
-use Cosmira\Soda\Analysis\Runner as QualityAnalyser;
+use Cosmira\Soda\QualityAnalyser;
 use Cosmira\Soda\Rules\Structure\Delegation\TrivialDelegatingClassAnalyser;
 use Cosmira\Soda\Rules\Structure\Delegation\TrivialDelegatingClassFinding;
 use Cosmira\Soda\Rules\Structure\NoTrivialDelegatingClasses;

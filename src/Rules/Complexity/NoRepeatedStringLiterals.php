@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Complexity;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use Cosmira\Soda\Rules\Check;
 use InvalidArgumentException;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\NodeFinder;
@@ -34,6 +34,10 @@ final class NoRepeatedStringLiterals extends Check
          * Exact decoded strings explicitly accepted by the project.
          */
         private readonly array $ignoredStrings = [],
+        /**
+         * Include literal array keys when enforcing the strict expression policy.
+         */
+        private readonly bool $includeArrayKeys = false,
     ) {
         throw_if($minOccurrences < 2, InvalidArgumentException::class, 'String occurrence threshold must be at least two.');
         throw_if($minLength < 1, InvalidArgumentException::class, 'Minimum string byte length must be positive.');
@@ -65,7 +69,7 @@ final class NoRepeatedStringLiterals extends Check
      */
     public function checkFile(FileFacts $file): iterable
     {
-        $collector = new ClassStringLiterals;
+        $collector = new ClassStringLiterals($this->includeArrayKeys);
         foreach ((new NodeFinder)->findInstanceOf($file->nodes, ClassLike::class) as $class) {
             foreach ($collector->collect($class) as $group) {
                 $lines = $group['lines'];

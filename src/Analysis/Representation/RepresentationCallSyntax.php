@@ -22,6 +22,11 @@ use PhpParser\Node\Stmt;
 trait RepresentationCallSyntax
 {
     /**
+     * Operation name marking resolved call syntax in the scalar IR.
+     */
+    private const string CALL = 'call';
+
+    /**
      * Retain exact method names and receiver expressions; dynamic invocation remains unknown.
      */
     private static function methodCall(Expr\MethodCall $node, ?string $class, int &$remaining): array
@@ -30,7 +35,7 @@ trait RepresentationCallSyntax
             return self::unknown($node->getType(), $node->getStartLine());
         }
 
-        return ['op' => 'call', 'receiver' => self::expression($node->var, $class, $remaining), 'class' => null, 'name' => $node->name->toLowerString(),
+        return ['op' => self::CALL, 'receiver' => self::expression($node->var, $class, $remaining), 'class' => null, 'name' => $node->name->toLowerString(),
             'kind'   => 'method', 'args' => self::arguments($node->args, $class, $remaining), 'line' => $node->getStartLine()];
     }
 
@@ -43,7 +48,7 @@ trait RepresentationCallSyntax
             return self::unknown($node->getType(), $node->getStartLine());
         }
 
-        return ['op' => 'call', 'receiver' => null, 'class' => self::nativeType($node->class, $class), 'name' => $node->name->toLowerString(),
+        return ['op' => self::CALL, 'receiver' => null, 'class' => self::nativeType($node->class, $class), 'name' => $node->name->toLowerString(),
             'kind'   => 'static', 'args' => self::arguments($node->args, $class, $remaining), 'line' => $node->getStartLine()];
     }
 
@@ -58,7 +63,7 @@ trait RepresentationCallSyntax
 
         $name = $node->name->getAttribute('namespacedName') ?? $node->name;
 
-        return ['op' => 'call', 'receiver' => null, 'class' => null, 'name' => strtolower($name->toString()),
+        return ['op' => self::CALL, 'receiver' => null, 'class' => null, 'name' => strtolower($name->toString()),
             'kind'   => 'function', 'args' => self::arguments($node->args, $class, $remaining), 'line' => $node->getStartLine()];
     }
 

@@ -51,7 +51,7 @@ final class SandboxAuditCorpusTest extends TestCase
         $framework = $sources['framework'];
         self::assertSame($framework['sha256'], hash_file('sha256', $root.'/vendor/laravel/framework/'.$framework['file']));
         sort($files);
-        $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard()));
+        $result = (new Runner)->check($files, Soda::configure()->with(RuleCatalog::standard())->checks());
         $actual = (new QualityJsonReportFormatter)->format($result)['violations'];
         foreach ($actual as &$diagnostic) {
             $diagnostic['file'] = substr($diagnostic['file'], strlen($root) + 1);

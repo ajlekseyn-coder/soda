@@ -9,7 +9,7 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Config\SodaInitFileEmitter;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInReturn;
 use Cosmira\Soda\Rules\Complexity\NoChainedAssignments;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -28,9 +28,9 @@ final class AssignmentExpressionRulesTest extends TestCase
         return [
             'ordinary assignment'                => ['return $value = calculate();', 1],
             'compound assignment'                => ['return $value += calculate();', 1],
-            'coalescing assignment'              => ['return $value ??= calculate();', 1],
+            'coalescing assignment'              => ['return $value ??= calculate();', 0],
             'reference assignment'               => ['return $value =& $other;', 1],
-            'property write'                     => ['return $this->value = calculate();', 1],
+            'property write'                     => ['return $this->value = calculate();', 0],
             'array write'                        => ['return $values[0] = calculate();', 1],
             'destructuring'                      => ['return [$first, $second] = calculate();', 1],
             'parentheses'                        => ['return ($value = calculate());', 1],
@@ -111,7 +111,7 @@ final class AssignmentExpressionRulesTest extends TestCase
         file_put_contents($path, '<?php function run() { return $a = $b = calculate(); }');
 
         try {
-            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard()));
+            $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
             foreach (['no_assignment_in_return', 'no_chained_assignments'] as $id) {
                 self::assertArrayHasKey($id, RuleCatalog::standardDefinitions());
                 $findings = $result->violations->filter(fn ($finding): bool => $finding->rule === $id)->values()->all();

@@ -8,7 +8,7 @@ use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Rules\Architecture\NoEmptyLocalInterfaces;
 use Cosmira\Soda\Rules\Architecture\NoRedundantLocalInterfaces;
-use Cosmira\Soda\Rules\Check;
+use Cosmira\Soda\Contracts\Check;
 use PHPUnit\Framework\TestCase;
 
 final class LocalInterfaceRulesTest extends TestCase

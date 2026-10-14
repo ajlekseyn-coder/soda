@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis\Composition;
 
+use Cosmira\Soda\Analysis\Complexity\CompoundConditionFingerprint;
+use Cosmira\Soda\Analysis\Complexity\CompoundConditionScope;
 use Cosmira\Soda\Analysis\Control\TypeDispatchAnalysis;
 use Cosmira\Soda\Analysis\ForwardedCall;
-use Cosmira\Soda\Rules\Complexity\CompoundConditionFingerprint;
-use Cosmira\Soda\Rules\Complexity\CompoundConditionScope;
-use Cosmira\Soda\Rules\Structure\Delegation\TrivialDelegatingMethodProbe;
+use Cosmira\Soda\Analysis\Structure\Delegation\TrivialDelegatingMethodProbe;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;

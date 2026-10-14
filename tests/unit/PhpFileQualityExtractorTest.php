@@ -6,7 +6,7 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\ParserException;
-use Cosmira\Soda\Rules\Check as SodaRule;
+use Cosmira\Soda\Contracts\Check as SodaRule;
 use Cosmira\Soda\Tests\CheckFixture;
 use PHPUnit\Framework\TestCase;
 

@@ -39,7 +39,7 @@ SOURCE);
         $policies = ['max_properties_per_class', 'no_dependency_cycles', 'no_service_locator_calls', 'no_runtime_contract_probes', 'no_static_mutable_properties', 'boolean_methods_without_prefix'];
 
         try {
-            $standard = (new Runner)->check([$file], Soda::configure()->with(RuleCatalog::standard()));
+            $standard = (new Runner)->check([$file], Soda::configure()->with(RuleCatalog::standard())->checks());
             self::assertSame(['no_dependency_cycles'], array_values(array_intersect($policies, $standard->violations->pluck('rule')->all())));
             $checks = [];
             foreach ($policies as $id) {
@@ -47,7 +47,7 @@ SOURCE);
                 $class = $entry['class'];
                 $checks[] = new $class(...$entry['arguments']);
             }
-            $strict = (new Runner)->check([$file], Soda::configure()->with($checks));
+            $strict = (new Runner)->check([$file], Soda::configure()->with($checks)->checks());
             foreach ($policies as $id) {
                 self::assertContains($id, $strict->violations->pluck('rule')->all());
             }
