@@ -112,6 +112,7 @@ PHP);
     public function testDocumentationConfigurationIsExecutable(): void
     {
         $docs = file_get_contents(dirname(__DIR__, 2).'/docs/EXPRESSION_AND_LOCAL_STATE_RULES.md');
+        $docs = str_replace("\r\n", "\n", (string) $docs);
         self::assertSame(1, preg_match('/```php\n(.*?)\n```/s', $docs, $matches));
         $path = tempnam(sys_get_temp_dir(), 'soda-five-doc-config-');
         file_put_contents($path, '<?php '.$matches[1]);

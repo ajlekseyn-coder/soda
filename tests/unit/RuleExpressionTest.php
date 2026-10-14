@@ -86,7 +86,8 @@ final class RuleExpressionTest extends TestCase
             FileSource::createFromPathname($root.'/resources/rules.pp3'),
         );
         $generated = $compiler->generate();
-        $this->assertSame(file_get_contents($root.'/resources/rules.php'), (string) $generated);
+        $committed = str_replace("\r\n", "\n", (string) file_get_contents($root.'/resources/rules.php'));
+        $this->assertSame($committed, (string) $generated);
     }
 
     public function testExcessiveExpressionIsRejected(): void

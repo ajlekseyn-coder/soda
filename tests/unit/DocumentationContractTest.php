@@ -136,7 +136,8 @@ final class DocumentationContractTest extends TestCase
 
         $this->assertIsString($contents, $path);
 
-        return $contents;
+        /** Windows checkouts use CRLF; normalize so parsed shapes match expectations. */
+        return str_replace("\r\n", "\n", $contents);
     }
 
     /**

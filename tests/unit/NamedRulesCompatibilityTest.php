@@ -38,7 +38,7 @@ final class NamedRulesCompatibilityTest extends TestCase
         $report = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result);
         $actual = $report['violations'];
         foreach ($actual as &$row) {
-            $row['file'] = substr($row['file'], strlen($root) + 1);
+            $row['file'] = str_replace('\\', '/', substr($row['file'], strlen($root) + 1));
         }
         unset($row);
         $expected = json_decode(file_get_contents($root.'/tests/_expectations/demo-violations.json'), true, flags: JSON_THROW_ON_ERROR);
