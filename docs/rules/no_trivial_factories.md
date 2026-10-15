@@ -8,6 +8,17 @@
 
 A factory method that only maps its parameters onto a `new` expression adds a name between the caller and the constructor without adding creation logic: callers must learn the wrapper while losing direct access to named arguments and the constructor's real signature. The rule reports methods that return a freshly constructed concrete class with every parameter forwarded unchanged and no other statements. Consider direct construction; preserve parameter and return type contracts, named arguments and useful creation boundaries.
 
+Observed virtual dispatch preserves a creation hook: another method calls the
+factory through `$this` or `static`, and a descendant can replace its behavior.
+A trait's methods can also be replaced by its consuming class, including calls
+through `self`. Inlining construction would bypass that dispatch. These hooks
+are recognized from declarations and call sites, without relying on factory names.
+
+Final classes and final methods in ordinary classes close this extension point.
+Ordinary private instance methods and fixed `self::` calls in classes do not
+establish virtual dispatch. Late-static lookup can select a descendant's
+same-named method even when the original declaration is private.
+
 ## Examples
 
 ```php

@@ -53,14 +53,14 @@ final readonly class FactoryHookContracts
                 return true;
             }
 
-            array_push($pending, ...($type['parents'] ?? []));
+            array_push($pending, ...($type['parents'] ?? []), ...array_map(strtolower(...), $type['traitNames'] ?? []));
         }
 
         return false;
     }
 
     /**
-     * Match bounded names observed at an actual dynamic call site.
+     * Match method names proved by calls on the declaring receiver.
      */
     private function isDispatchMatch(array $patterns, string $method): bool
     {

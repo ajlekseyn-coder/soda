@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,320 after
-ten review rounds: 352 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 353 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,305 after
+eleven review rounds: 367 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 368 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -26,12 +26,13 @@ multiplicity.
 | `no_catch_all_exceptions` | 221 | 218 | 3 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
+| `no_trivial_factories` | 127 | 112 | 15 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,284 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,306 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -53,7 +54,7 @@ source set and each policy's diagnostic multiset. Deliberately forged line-lengt
 and parameter-name diagnostics were rejected during verification.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 31,397 retained findings unclassified. These policy checks do not prove
+this leaves 31,382 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -93,7 +94,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 352 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 367 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -119,6 +120,11 @@ resolved imports, with dynamic receivers left unknown.
 container, one to `Once`, and six to Folio's metadata. Each has a pinned declaration
 returning an object cached with `??=` in a declared static slot. The ledger records
 the caller and declaration hashes, method, return and storage lines.
+`round11-resolved.jsonl` records 15 factory hooks in Framework and Dusk, with 24
+observed virtual call sites. Every entry records the enclosing factory kind and
+caller methods, lines and receiver form; their source hash covers both factory
+and call sites. Construction is transparent, but bypassing the method would
+remove its replaceable implementation.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, and the 95
@@ -171,11 +177,17 @@ the original Runner cannot finish packages containing affected switches.
   demo's fresh-object factory is now a negative case; real cached-object controls
   continue to trigger the rule.
 
+- `no_trivial_factories` preserves factories reached by observed virtual calls
+  on the current receiver. Late-static lookup and trait composition preserve
+  replaceable implementations; final class/method controls remain detectable.
+  Trait declarations also contribute resolved factory-hook contracts.
+
 Regression cases live in the corresponding rule test classes:
 `NoUnusedParametersTest`, `NoDeclarationsBeforeEarlyExitTest` and
 `UselessVariableRuleTest`, together with `NoRepeatedTypeDispatchTest` and
 `PreferNullCoalesceAssignmentTest`, `NoCatchAllExceptionsTest` and
-`NoConsecutiveBlockCommentsTest` and `NoSingletonAccessTest`. Controls
+`NoConsecutiveBlockCommentsTest`, `NoSingletonAccessTest` and
+`NoTrivialFactoriesTest`. Controls
 continue to require genuine violations. Cross-file anonymous contracts and
 inherited selectors are also exercised in reverse file order.
 
