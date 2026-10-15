@@ -61,10 +61,14 @@ final class OperationSequence
     }
 
     /**
-     * Traverse child expressions only when the current node is not itself an operation.
+     * Exception construction is a failure path; evaluated constructor arguments remain operations.
      */
     private function nested(Node $node): array
     {
+        if ($node instanceof Expr\Throw_ && $node->expr instanceof Expr\New_) {
+            return $this->nested($node->expr);
+        }
+
         $operations = [];
         foreach ($node->getSubNodeNames() as $field) {
             $child = get_object_vars($node)[$field];

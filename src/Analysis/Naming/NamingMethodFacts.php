@@ -8,12 +8,17 @@ use function collect;
 
 use Cosmira\Soda\Analysis\FileFacts;
 
+use function implode;
 use function ltrim;
 
 use PhpParser\Node;
 use PhpParser\Node\AttributeGroup;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
+use PhpParser\Node\NullableType;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
+use PhpParser\Node\UnionType;
 
 use function strtolower;
 
@@ -105,14 +110,39 @@ final class NamingMethodFacts
             return null;
         }
 
-        return PhpTypeName::fromTypeNode($first->type);
+        return self::fromTypeNode($first->type);
     }
 
     /**
      * Describe a declared return type for redundancy checks.
      */
-    private static function returnTypeLabel(Node\Identifier|Node\Name|Node\ComplexType|null $returnType): ?string
+    private static function returnTypeLabel(Identifier|Name|Node\ComplexType|null $returnType): ?string
     {
-        return $returnType !== null ? PhpTypeName::fromTypeNode($returnType) : null;
+        return $returnType !== null ? self::fromTypeNode($returnType) : null;
+    }
+
+    /**
+     * Build the result from type node.
+     */
+    private static function fromTypeNode(Node $type): string
+    {
+        return match (true) {
+            $type instanceof Name         => $type->toString(),
+            $type instanceof Identifier   => $type->name,
+            $type instanceof NullableType => self::fromTypeNode($type->type).'|null',
+            $type instanceof UnionType    => self::unionLabel($type),
+            default                       => '',
+        };
+    }
+
+    /**
+     * Combine the member names of a union return type.
+     */
+    private static function unionLabel(UnionType $type): string
+    {
+        return implode('|', array_map(
+            self::fromTypeNode(...),
+            $type->types,
+        ));
     }
 }

@@ -19,6 +19,7 @@ $finder = new NodeFinder;
 $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
 $nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
 $docKinds = ['multiline_method_phpdoc' => 'method', 'multiline_property_phpdoc' => 'property', 'multiline_constant_phpdoc' => 'constant'];
+$metricBounds = ['max_namespace_depth' => 4, 'max_file_loc' => 700, 'max_class_length' => 500, 'max_method_length' => 100, 'max_classes_per_file' => 1];
 $syntaxMessages = [
     'only_list_arrays'           => 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.',
     'no_assignment_in_condition' => 'Assignment inside condition is forbidden. Assign first, then test the value.',
@@ -31,7 +32,7 @@ $syntaxMessages = [
     'no_behavior_magic_methods'  => 'Behavioral magic methods hide the public API. Declare explicit methods and contracts.',
     'no_anonymous_classes'       => 'Anonymous classes hide responsibilities and project size. Give the behavior a named type.',
 ];
-$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), 'no_else_branches']));
+$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), ...array_keys($metricBounds), 'no_else_branches']));
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -164,6 +165,51 @@ foreach ($manifest['packages'] as $spec) {
         }
 
         $expected = array_fill_keys($rules, []);
+        $codeLines = [];
+        foreach (PhpToken::tokenize($source) as $token) {
+            if ($token->is([T_WHITESPACE, T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG, T_CLOSE_TAG])) {
+                continue;
+            }
+            foreach (explode("\n", $token->text) as $offset => $part) {
+                if (trim($part) !== '') {
+                    $codeLines[$token->line + $offset] = true;
+                }
+            }
+        }
+        $measure = static function (Node $node) use ($codeLines): int {
+            return count(array_filter(array_keys($codeLines), static fn (int $line): bool => $line >= $node->getStartLine() && $line <= $node->getEndLine()));
+        };
+        $metric = static function (string $rule, int $value, ?string $class = null, ?string $method = null) use (&$expected, $metricBounds): void {
+            if ($value > $metricBounds[$rule]) {
+                $expected[$rule][] = json_encode([$class, $method, null, null, $value, $metricBounds[$rule]], JSON_THROW_ON_ERROR);
+            }
+        };
+        $metric('max_file_loc', count($codeLines));
+        $classCount = 0;
+        foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_) as $class) {
+            if ($class->name === null) {
+                continue;
+            }
+            $classCount++;
+            $name = $class->namespacedName->toString();
+            $metric('max_namespace_depth', substr_count($name, '\\'), $name);
+            $metric('max_class_length', $measure($class), $name);
+        }
+        $metric('max_classes_per_file', $classCount);
+        foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Stmt\ClassMethod || $node instanceof Node\Stmt\Function_) as $callable) {
+            if ($callable instanceof Node\Stmt\Function_) {
+                $metric('max_method_length', $measure($callable), null, $callable->namespacedName->toString());
+
+                continue;
+            }
+            $owner = $callable->getAttribute('parent');
+            if (! $owner instanceof Node\Stmt\ClassLike || $owner instanceof Node\Stmt\Interface_ || $owner->name === null || $callable->isAbstract()) {
+                continue;
+            }
+            $name = $owner->namespacedName->toString();
+            $metric('max_method_length', $measure($callable), $name, $name.'::'.$callable->name->toString());
+        }
+
         foreach (explode("\n", $source) as $index => $line) {
             $length = strlen(rtrim($line, "\r"));
             if ($length > 100) {
@@ -330,11 +376,17 @@ foreach ($manifest['packages'] as $spec) {
 
         $actual = array_fill_keys($rules, []);
         foreach ($byFile[$relative] ?? [] as $row) {
-            if (! isset($docKinds[$row['rule']]) && ($row['class'] !== null || $row['method'] !== null)) {
+            if (! isset($docKinds[$row['rule']]) && ! isset($metricBounds[$row['rule']]) && ($row['class'] !== null || $row['method'] !== null)) {
                 throw new RuntimeException('Unexpected scope: '.$path);
             }
 
             $key = (string) $row['line'];
+            if (isset($metricBounds[$row['rule']])) {
+                $actual[$row['rule']][] = json_encode([$row['class'], $row['method'], $row['line'], $row['message'], $row['value'], $row['threshold']], JSON_THROW_ON_ERROR);
+
+                continue;
+            }
+
             if ($row['rule'] === 'max_line_length') {
                 if ($row['threshold'] !== 100 || $row['message'] !== null) {
                     throw new RuntimeException('Unexpected line policy: '.$path);

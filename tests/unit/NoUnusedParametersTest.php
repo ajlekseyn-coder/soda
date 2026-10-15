@@ -391,6 +391,178 @@ PHP);
         yield 'private trait input remains owned' => ['trait Shared { private function run($input) {} } class Unknown implements ExternalContract { use Shared; }', 1];
     }
 
+    #[DataProvider('factoryReturnDeclarations')]
+    public function testObservedFactoryDispatchPreservesOnlyItsFamilyAndSlots(string $declaration, string $imports = 'use Contracts\\Handler as Selected;'): void
+    {
+        $root = sys_get_temp_dir().'/soda-dispatch-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $base = $root.'/Base.php';
+        $dispatch = $root.'/Dispatch.php';
+        $handlers = $root.'/Handlers.php';
+        file_put_contents($base, '<?php namespace Contracts; abstract class Handler {} abstract class OtherHandler {}');
+        file_put_contents($dispatch, '<?php namespace App; '.$imports.' final class Dispatcher { public function dispatch(string $class, object $node) { $handler = $this->make($class); return $handler->resolve($node); } '.$declaration.' { return new $class; } } final class OtherFactory { public function make(string $class): \\Contracts\\OtherHandler { return new $class; } }');
+        file_put_contents($handlers, '<?php namespace App; final class Quiet extends \\Contracts\\Handler { public function resolve(object $node, $extra = null) { return 1; } public function own($unused) {} } final class Standalone { public function resolve($input) {} } final class Other extends \\Contracts\\OtherHandler { public function resolve($input) {} }');
+
+        try {
+            foreach ([[$base, $dispatch, $handlers], [$handlers, $dispatch, $base]] as $paths) {
+                $result = (new Runner)->check($paths, RuleCatalog::standard());
+                self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+                self::assertCount(4, $findings);
+                self::assertStringContainsString('$extra', $findings[0]->message);
+                self::assertSame(['App\\Quiet', 'App\\Quiet', 'App\\Standalone', 'App\\Other'], $findings->map(static fn ($violation): ?string => $violation->class)->all());
+            }
+        } finally {
+            foreach ([$base, $dispatch, $handlers] as $path) {
+                unlink($path);
+            }
+            rmdir($root);
+        }
+    }
+
+    public static function factoryReturnDeclarations(): iterable
+    {
+        yield 'native bound' => ['private function make(string $class): Selected'];
+        yield 'aliased documented bound' => ['/** @return Selected */ private function make(string $class)'];
+        yield 'qualified documented bound' => ['/** @return \\Contracts\\Handler */ private function make(string $class)'];
+        yield 'grouped import' => ['/** @return Selected */ private function make(string $class)', 'use Contracts\\{Handler as Selected};'];
+    }
+
+    #[DataProvider('factoryBindingCases')]
+    public function testFactoryDispatchBindingBoundaries(string $binding, string $factory, string $invocation, int $expected): void
+    {
+        $source = '<?php namespace Sample; abstract class Bound {} class Known extends Bound { public function resolve($input) { return $input; } } class Quiet extends Bound { public function resolve($unused, $extra = null) {} } class Other { public function resolve($input) { return $input; } } final class Dispatch { public function run($class, $node) { '.$binding.' return '.$invocation.'; } '.$factory.' }';
+        $path = tempnam(sys_get_temp_dir(), 'soda-dispatch-binding-');
+        file_put_contents($path, $source);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters' && $violation->class === 'Sample\\Quiet')->values();
+            self::assertCount($expected, $findings);
+            self::assertStringContainsString('$extra', $findings[$expected - 1]->message);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public static function factoryBindingCases(): iterable
+    {
+        $factory = 'private function make($class): Bound { return new $class; }';
+        $binding = '$handler = $this->make($class);';
+        $call = '$handler->resolve($node)';
+        yield 'open dynamic input' => [$binding, $factory, $call, 1];
+        yield 'direct finite class' => ['$handler = $this->make(Known::class);', $factory, $call, 2];
+        yield 'finite caller alias' => ['$class = Known::class; '.$binding, $factory, $call, 2];
+        yield 'finite factory alias chain' => [$binding, 'private function make($class): Bound { $selected = Known::class; $class = $selected; return new $class; }', $call, 2];
+        yield 'omitted finite default' => ['$handler = $this->make();', 'private function make($class = Known::class): Bound { return new $class; }', $call, 2];
+        yield 'concrete factory' => [$binding, 'private function make($class): Bound { return new Known; }', $call, 2];
+        yield 'unreachable computed return' => [$binding, 'private function make($class): Bound { return new Known; return new $class; }', $call, 2];
+        yield 'receiver reassignment' => [$binding.' $handler = new Other;', $factory, $call, 2];
+        yield 'conditional receiver reassignment' => [$binding.' if ($node) { $handler = new Other; }', $factory, $call, 2];
+        yield 'unknown reference escape' => [$binding.' rebind($handler);', $factory, $call, 2];
+        yield 'reference alias' => [$binding.' $alias =& $handler; $alias = new Other;', $factory, $call, 2];
+        yield 'reference capture' => [$binding.' $later = function () use (&$handler) { $handler = new Other; }; $later();', $factory, $call, 2];
+        yield 'independent nested reference capture' => [$binding.' $object = new class { function operation() { $handler = null; return function () use (&$handler) {}; } };', $factory, $call, 1];
+        yield 'shadowed nested reference capture' => [$binding.' $later = function ($handler) { return function () use (&$handler) {}; };', $factory, $call, 1];
+        yield 'nested value capture' => [$binding.' $later = function () use ($handler) { return function () use (&$handler) {}; };', $factory, $call, 1];
+        yield 'nested reference capture chain' => [$binding.' $later = function () use (&$handler) { return function () use (&$handler) {}; };', $factory, $call, 2];
+        yield 'variable variable write' => [$binding.' $name = "handler"; $$name = new Other;', $factory, $call, 2];
+        yield 'local symbol-table extraction' => [$binding.' extract(["handler" => new Other]);', $factory, $call, 2];
+        yield 'included local scope' => [$binding.' include "binding.php";', $factory, $call, 2];
+        yield 'evaluated local scope' => [$binding.' eval($class);', $factory, $call, 2];
+        yield 'unrelated nested include' => [$binding.' $later = function () { include "binding.php"; };', $factory, $call, 1];
+        yield 'named actual argument' => [$binding, $factory, '$handler->resolve(unused: $node)', 2];
+        yield 'unpacked actual arguments' => [$binding, $factory, '$handler->resolve(...[$node])', 2];
+        yield 'first-class callable reference' => [$binding, $factory, '$handler->resolve(...)', 2];
+        yield 'guard without invocation' => [$binding, $factory, 'method_exists($handler, "resolve")', 2];
+        yield 'nested shadowed receiver invocation' => [$binding, $factory, 'function ($handler) use ($node) { return $handler->resolve($node); }', 2];
+        yield 'native qualified guard' => [$binding.' \\method_exists($handler, "resolve");', $factory, $call, 1];
+        yield 'native fallback guard' => [$binding.' method_exists($handler, "resolve");', $factory, $call, 1];
+        yield 'shadowed fallback guard' => [$binding.' method_exists($handler, "resolve");', $factory.' function unrelated() { function method_exists(&$handler, $method) { $handler = new Other; } }', $call, 2];
+        yield 'unknown factory result' => [$binding, 'private function make($class) { return new $class; }', $call, 2];
+        yield 'wrong documented family' => [$binding, '/** @return Other */ private function make($class) { return new $class; }', $call, 2];
+        yield 'prose is not a return annotation' => [$binding, '/** Mention @return Bound in explanatory prose. */ private function make($class) { return new $class; }', $call, 2];
+        yield 'unknown native union' => [$binding, 'private function make($class): Bound|Other { return new $class; }', $call, 2];
+    }
+
+    public function testVirtualDocumentedFactoriesPreserveSelectedTraitSlotsAcrossBranches(): void
+    {
+        $root = sys_get_temp_dir().'/soda-virtual-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $base = $root.'/Contracts.php';
+        $dispatch = $root.'/Dispatcher.php';
+        $handlers = $root.'/Handlers.php';
+        file_put_contents($base, '<?php namespace Contracts; abstract class Handler {}');
+        file_put_contents($dispatch, <<<'PHP'
+<?php
+namespace App;
+use Contracts\Handler as Selected;
+class Dispatcher {
+    public function dispatch(object $node) {
+        $handler = $this->make($node);
+        try {
+            if (condition()) {
+                return method_exists($handler, 'resolveForCondition') ? $handler->resolveForCondition($node) : null;
+            }
+            return $handler->resolve($node);
+        } catch (\Throwable $error) {
+            return null;
+        }
+    }
+    /** @return Selected */
+    protected function make(object $node) {
+        $class = $this->choose($node);
+        return new $class;
+    }
+    /** @return class-string<Selected> */
+    protected function choose(object $node) { return classNameFor($node); }
+}
+PHP);
+        file_put_contents($handlers, <<<'PHP'
+<?php
+namespace App;
+trait SharedBody { public function resolve($input, $extra = null) {} }
+trait ExcludedBody { public function resolve($excluded) {} }
+trait HiddenBody { public function resolve($hidden) {} }
+trait ReplacedBody { public function resolve($replaced) {} }
+class Quiet extends \Contracts\Handler {
+    use SharedBody, ExcludedBody {
+        SharedBody::resolve insteadof ExcludedBody;
+        SharedBody::resolve as resolveForCondition;
+    }
+}
+class Hidden extends \Contracts\Handler { use HiddenBody { resolve as private; } }
+class Replaced extends \Contracts\Handler {
+    use ReplacedBody;
+    public function resolve($input) { return $input; }
+}
+PHP);
+        $autoloaded = [];
+        $autoload = static function (string $class) use (&$autoloaded): void {
+            $autoloaded[] = $class;
+        };
+        spl_autoload_register($autoload);
+
+        try {
+            foreach ([[$base, $dispatch, $handlers], [$handlers, $dispatch, $base]] as $paths) {
+                $result = (new Runner)->check($paths, RuleCatalog::standard());
+                self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+                self::assertCount(4, $findings);
+                self::assertSame(['App\\SharedBody', 'App\\ExcludedBody', 'App\\HiddenBody', 'App\\ReplacedBody'], $findings->map(static fn ($violation): ?string => $violation->class)->all());
+                self::assertStringContainsString('$extra', $findings[0]->message);
+            }
+            self::assertSame([], $autoloaded);
+        } finally {
+            spl_autoload_unregister($autoload);
+            foreach ([$base, $dispatch, $handlers] as $path) {
+                unlink($path);
+            }
+            rmdir($root);
+        }
+    }
+
     private function findings(string $source, array $contracts = []): array
     {
         $nodes = (new ParserFactory)->createForNewestSupportedVersion()->parse($source);

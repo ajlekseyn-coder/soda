@@ -69,6 +69,18 @@ function fill(array &$output): void
 | `ignoredParameters` | `list<string>` | `[]` | Parameter names (without the `$` prefix) that are allowed to be rebound. Use this for intentional entry normalization. |
 | `allowInputNormalization` | `bool` | `true` | When `true`, a leading normalization of the same input using known scalar operations is accepted. Set to `false` to report every write. |
 
+Leading `str_replace()` normalization accepts literal search and replacement lists as well as scalar options. Lists must be flat string, integer or float literals with literal keys; unpacking, references and computed values are excluded. This allowance does not apply to other builtin options or later writes to the parameter.
+
+```php
+// ✅ Normalize the original input once at entry
+function normalize(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
+
+    return $content;
+}
+```
+
 ## Configuration
 
 ```php

@@ -10,16 +10,18 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,984 after
-eighteen review rounds: 688 resolved and 43 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 731 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,868 after
+nineteen review rounds: 804 resolved and 43 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 847 removals and
 43 additions: the Cloud CLI dispatch group now names three methods instead of four,
 and 42 proven-empty interfaces have a more precise message. All other retained
 diagnostics match field-for-field with their original multiplicity.
 
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
-| `no_unused_parameters` | 950 | 588 | 362 |
+| `no_unused_parameters` | 950 | 479 | 471 |
+| `no_mode_parameters` | 53 | 50 | 3 |
+| `no_reassigned_parameters` | 2,357 | 2,353 | 4 |
 | `no_empty_local_interfaces` | 82 | 42 | 40 |
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
@@ -35,12 +37,12 @@ diagnostics match field-for-field with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,404 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,476 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
 
-`verified-policies.json` records 51,424 findings checked against the pinned source:
+`verified-policies.json` records 51,821 findings checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
@@ -66,6 +68,11 @@ and Pint also pass.
 | `no_behavior_magic_methods` | 182 | Declared behavioral magic method, excluding ordinary lifecycle methods. |
 | `no_anonymous_classes` | 46 | Anonymous class outside the exact migration-hook convention. |
 | `no_else_branches` | 229 | Else or elseif follows branches that unconditionally leave the current path. |
+| `max_namespace_depth` | 279 | Named class/trait namespace exceeds four segments. |
+| `max_file_loc` | 27 | File exceeds 700 code-bearing lines, excluding PHP tags, comments and whitespace. |
+| `max_class_length` | 49 | Named class/trait span exceeds 500 code-bearing lines. |
+| `max_method_length` | 40 | Named concrete method or function span exceeds 100 code-bearing lines. |
+| `max_classes_per_file` | 2 | File declares more than one named class/trait. |
 
 The verifier reads all 5,875 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
@@ -86,11 +93,15 @@ forged method owner, property name and duplicated constant finding were rejected
 This review exposed the multiline promoted-property false positive fixed in round
 17; it was not accepted into the confirmed policy findings. The nine additional
 syntax checks preserve occurrence multiplicity and verify exact messages, values
-and bounds; forged values, lines, messages and duplicate findings were rejected.
+and bounds; forged values, lines, messages and duplicate findings were rejected. Five structural
+measurements use independent PHP token line positions and declaration spans;
+anonymous classes and interfaces follow the catalog's documented measurement scope.
+The verifier compares owner, method, location, message, measurement and threshold.
+Forged lengths, declaring owners and duplicated metric findings were rejected.
 
-Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 190 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 42 revised empty-interface findings in `round18-reviewed.jsonl`, this leaves
-10,342 retained findings unclassified. These policy checks do not prove
+9,815 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -134,7 +145,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 688 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 804 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -214,10 +225,25 @@ is unavailable. Sibling source corroborates contract content without being treat
 as an installed dependency binding. Private inputs and complete known signatures
 remain checked, including surplus parameters. All 42 retained interfaces have
 complete, empty method/property graphs and appear in `round18-reviewed.jsonl`.
+`round19-resolved.jsonl` records 116 corrections: 109 positional contracts observed
+through Surveyor's declared resolver factory family, three validation-only exception
+branches and four leading input normalizations with literal replacement arrays.
+Resolver records connect each real ancestor chain to an alias-resolved return bound
+and a concrete positional method call. They establish a family protocol without
+claiming that every subclass is returned at runtime or reads that input. The 33
+DocBlock resolvers lack the corresponding factory bound and remain under review.
+Literal normalization retains the existing consecutive entry-prefix restriction;
+later writes, other inputs and computed array options remain checked. Throwing a
+new exception does not add a productive dispatch operation; calls in constructor
+arguments and before the throw remain operations.
+`round19-reviewed.jsonl` records 14 retained temporary-return-variable findings,
+including five closure factories whose own `get_defined_vars()` calls cannot observe
+the uncaptured outer temporary. Returning the closure directly preserves its body,
+PHPDoc and reference captures.
 `revised.jsonl` retains both versions of the Cloud CLI finding and the 42 interface messages;
-`reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
-52 recommendations about repeated branches and boolean expressions, and the 95
-source-proved singleton accesses. Changes
+`reviewed-unchanged.jsonl` records 190 retained findings: 29 string-policy findings,
+52 recommendations about repeated branches and boolean expressions, 95 source-proved
+singleton accesses and 14 temporary-return-variable findings. Changes
 are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.

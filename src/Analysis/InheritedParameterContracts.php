@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Analysis;
 
 use Cosmira\Soda\Analysis\Composition\FactoryDispatchPatterns;
+use Cosmira\Soda\Analysis\Usage\FactoryParameterDispatch;
 use Cosmira\Soda\Analysis\Usage\ParameterUseAnalysis;
 use PhpParser\Node;
 use PhpParser\Node\Name;
@@ -16,6 +17,8 @@ use PhpParser\NodeFinder;
  */
 final readonly class InheritedParameterContracts
 {
+    use FactoryParameterDispatch;
+
     /**
      * Method name reserved by PHP for object construction contracts.
      */
@@ -30,7 +33,7 @@ final readonly class InheritedParameterContracts
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\ClassLike::class) as $class) {
             $name = $class->name === null ? CallableIdentity::type($class) : ($class->namespacedName?->toString() ?? $class->name->toString());
             $name = strtolower($name);
-            $types[$name] = self::declaration($class);
+            $types[$name] = self::declaration($class, $nodes);
         }
 
         return $types;
@@ -39,7 +42,7 @@ final readonly class InheritedParameterContracts
     /**
      * Summarize one class-like declaration as scalar facts without retaining nodes.
      */
-    private static function declaration(Stmt\ClassLike $class): array
+    private static function declaration(Stmt\ClassLike $class, array $nodes): array
     {
         $methods = [];
         foreach ($class->getMethods() as $method) {
@@ -49,14 +52,15 @@ final readonly class InheritedParameterContracts
         $parentNames = array_map(static fn (Name $parent): string => $parent->toString(), self::parents($class));
 
         return [
-            'isInterface'     => $class instanceof Stmt\Interface_,
-            'hasProperties'   => $class->getProperties() !== [],
-            'parentClass'     => self::parentClass($class),
-            'traitNames'      => self::traitNames($class),
-            'parentNames'     => $parentNames,
-            'parents'         => array_map(strtolower(...), $parentNames),
-            'methods'         => $methods,
-            'factoryDispatch' => FactoryDispatchPatterns::collect($class),
+            'isInterface'       => $class instanceof Stmt\Interface_,
+            'hasProperties'     => $class->getProperties() !== [],
+            'parentClass'       => self::parentClass($class),
+            'traitNames'        => self::traitNames($class),
+            'parentNames'       => $parentNames,
+            'parents'           => array_map(strtolower(...), $parentNames),
+            'methods'           => $methods,
+            'factoryDispatch'   => FactoryDispatchPatterns::collect($class),
+            'parameterDispatch' => self::parameterDispatch($class, $nodes),
         ];
     }
 
@@ -87,7 +91,7 @@ final readonly class InheritedParameterContracts
             'arity'               => count($method->params),
             'private'             => $method->isPrivate(),
             'constructorContract' => $class instanceof Stmt\Interface_ || $method->isAbstract(),
-            'forwardsParent'      => ForwardedParentConstructor::doesForward($method),
+            'forwardsParent'      => self::doesForwardConstructor($method),
             'reads'               => array_keys(array_filter($method->params, static fn (Node\Param $input): bool => (new ParameterUseAnalysis($input))->isUsed($method))),
         ];
     }

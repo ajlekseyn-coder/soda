@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Architecture;
 
-use Cosmira\Soda\Analysis\Callables\CallableMember;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
@@ -25,7 +24,7 @@ final class NoDynamicInvocation extends Check
     {
         $nodes = (new NodeFinder)->find($file->nodes, fn (Node $node): bool => ($node instanceof Expr\FuncCall && $node->name instanceof Name
                 && in_array(strtolower($node->name->toString()), ['call_user_func', 'call_user_func_array', 'forward_static_call', 'forward_static_call_array'], true))
-                || CallableMember::isDynamicCall($node));
+                || self::isDynamicCall($node));
 
         foreach ($nodes as $node) {
             yield new Violation(
@@ -34,9 +33,30 @@ final class NoDynamicInvocation extends Check
                 value: 1,
                 threshold: 0,
                 line: $node->getStartLine(),
-                message: CallableMember::message($node),
+                message: self::message($node),
             );
         }
+    }
+
+    /**
+     * Recognize method names selected at runtime instead of declared identifiers.
+     */
+    private static function isDynamicCall(Node $node): bool
+    {
+        return (($node instanceof Expr\MethodCall || $node instanceof Expr\NullsafeMethodCall) && ! $node->name instanceof Node\Identifier)
+            || ($node instanceof Expr\StaticCall && ! $node->name instanceof Node\Identifier);
+    }
+
+    /**
+     * Describe the prohibited mechanism without claiming that every callback lacks a contract.
+     */
+    private static function message(Node $node): string
+    {
+        if ($node instanceof Expr\FuncCall && $node->name instanceof Name) {
+            return 'Indirect callable helpers are forbidden by this policy. Invoke the callable directly.';
+        }
+
+        return 'Computed method names are forbidden by this policy. Use a literal method name or explicit dispatch.';
     }
 
     /**

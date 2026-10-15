@@ -41,6 +41,16 @@ return match ($locale) {
 };
 ```
 
+A branch that only throws a constructed exception validates the selector; it does not add a working operation. Calls evaluated before the throw or inside the exception's constructor arguments still count, as do exception factory calls. Returning a constructed object remains an operation.
+
+```php
+// ✅ One supported operation with input validation
+return match ($protocol) {
+    'pusher' => makePusherRouter(),
+    default => throw new InvalidArgumentException('Unsupported protocol'),
+};
+```
+
 ## Configuration
 
 ```php

@@ -29,6 +29,22 @@ positions are preserved rather than treating missing dependency information as a
 violation. Private methods retain their owned inputs;
 complete known contracts still preserve only their declared positions.
 
+Observed positional calls can also establish a protocol for a factory's declared
+receiver family. The rule follows a top-level `$this` factory binding with a native
+or single PHPDoc return class, open incoming arguments, and computed construction.
+It preserves only observed public positions on real descendants and selected trait
+methods. This records possible signature ownership, not proof that every descendant
+is constructed or that its body reads the argument.
+
+Concrete factories, finite or aliased class selections, receiver reassignment,
+reference escapes, and writes through local symbol tables do not establish this
+family protocol. Nested callable scopes stay separate. Named and unpacked calls,
+first-class callable references, union return types, and namespace-prefix formatter
+chains alone are not used to infer positional contracts. Native `method_exists`
+guards are accepted only when their namespace fallback is not shadowed by an
+analyzed function declaration. Factory declarations are currently read on the
+same class; arbitrary collaborator factories are not inferred.
+
 ## Examples
 
 ```php

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Usage\NoReassignedParameters;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,6 +22,27 @@ final class NoReassignedParametersTest extends TestCase
     public static function bodies(): array
     {
         return [
+            ['$input = str_replace(["a"], "b", $input);', 0],
+            ['$input = str_replace("a", ["b"], $input);', 0],
+            ['$input = str_replace(["a", 1, 2.5], ["b", 3, 4.5], $input);', 0],
+            ['$input = str_replace(["key" => "a"], [1 => "b"], $input);', 0],
+            ['$input = str_replace([], [], $input);', 0],
+            ['$input = str_replace(subject: $input, replace: ["b"], search: ["a"]);', 0],
+            ['$input = trim(str_replace(["a"], "b", $input));', 0],
+            ['$input = str_replace(["a"], "b", $input); $input = str_replace(["b"], "c", $input);', 1],
+            ['work(); $input = str_replace(["a"], "b", $input);', 1],
+            ['$input = str_replace([$other], "b", $input);', 1],
+            ['$input = str_replace([search()], "b", $input);', 1],
+            ['$input = str_replace([search() => "a"], "b", $input);', 1],
+            ['$input = str_replace([&$other], "b", $input);', 1],
+            ['$input = str_replace([... ["a"]], "b", $input);', 1],
+            ['$input = str_replace([["a"]], "b", $input);', 1],
+            ['$input = str_replace([null], "b", $input);', 1],
+            ['$input = str_replace([true], "b", $input);', 1],
+            ['$later = function () use (&$input) { $input = str_replace(["a"], "b", $input); };', 1],
+            ['$input = trim($input, ["a"]);', 1],
+            ['$input = str_replace(search: ["a"], unknown: "b", subject: $input);', 1],
+            ['$input = str_replace(unknown: ["a"], replace: "b", subject: $input);', 1],
             ['$input = normalize($input);', 1],
             ['$input += 1;', 1],
             ['$input ??= fallback();', 1],
@@ -55,6 +78,45 @@ final class NoReassignedParametersTest extends TestCase
             ['$object = new class { function run($input) { $input = 1; } }; $input = 2;', 2],
             ['$object = new class { function run() { $input = 1; } };', 0],
         ];
+    }
+
+    public function testStandardRunnerAcceptsLiteralReplacementOptionsAtEntry(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-input-literals-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+function normalize(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
+    return $content;
+}
+function transform(string $input): string
+{
+    $input = unknown($input);
+    return $input;
+}
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_reassigned_parameters')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+            self::assertSame(9, $findings[0]->line);
+            self::assertStringContainsString('$input', $findings[0]->message);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testLiteralOptionsDoNotHideShadowedFunctionsOrDisableThePolicy(): void
+    {
+        $source = '<?php namespace App; function str_replace($search, $replace, $subject) { return $subject; } function run($input) { $input = str_replace(["a"], "b", $input); }';
+        self::assertCount(1, FiveRuleFixture::findings(new NoReassignedParameters, $source));
+        self::assertSame([], FiveRuleFixture::findings(new NoReassignedParameters, '<?php namespace App; use function str_replace as replace; function run($input) { $input = replace(["a"], "b", $input); }'));
+        self::assertCount(1, FiveRuleFixture::findings(new NoReassignedParameters, '<?php function run($input) { $input = \Other\str_replace(["a"], "b", $input); }'));
+        self::assertCount(1, FiveRuleFixture::findings(new NoReassignedParameters(allowInputNormalization: false), '<?php function run($input) { $input = str_replace(["a"], "b", $input); }'));
     }
 
     public function testOutputParametersAndExactExceptions(): void

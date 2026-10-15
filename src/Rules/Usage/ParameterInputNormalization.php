@@ -165,7 +165,7 @@ final readonly class ParameterInputNormalization
                 continue;
             }
 
-            if (! $this->isScalarLiteral($value)) {
+            if (! $this->isNormalizationOption($argument, $subject)) {
                 return false;
             }
         }
@@ -174,11 +174,45 @@ final readonly class ParameterInputNormalization
     }
 
     /**
+     * Only str_replace search and replacement options accept literal lists.
+     */
+    private function isNormalizationOption(Node\Arg $argument, int $subject): bool
+    {
+        $options = $subject === 2 ? ['search', 'replace'] : ['characters'];
+        if ($argument->name !== null && ! in_array($argument->name->toString(), $options, true)) {
+            return false;
+        }
+
+        return $this->isScalarLiteral($argument->value) || ($subject === 2 && $this->isLiteralArray($argument->value));
+    }
+
+    /**
+     * Replacement lists may contain only literal values and keys without unpacking or references.
+     */
+    private function isLiteralArray(Expr $value): bool
+    {
+        if (! $value instanceof Expr\Array_) {
+            return false;
+        }
+
+        foreach ($value->items as $item) {
+            if ($item === null || $item->unpack || $item->byRef || ! $this->isScalarLiteral($item->value)) {
+                return false;
+            }
+            if ($item->key !== null && ! $this->isScalarLiteral($item->key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Literal options cannot substitute a different input or invoke another operation.
      */
     private function isScalarLiteral(Expr $value): bool
     {
-        return $value instanceof Node\Scalar\String_ || $value instanceof Node\Scalar\Int_ || $value instanceof Node\Scalar\Float_;
+        return in_array($value->getType(), ['Scalar_String', 'Scalar_Int', 'Scalar_Float'], true);
     }
 
     /**
