@@ -10,22 +10,14 @@ namespace Cosmira\Soda\Analysis\Dependencies;
 final readonly class ComposerTypeSources
 {
     /**
-     * Discover installed PSR-4 sources enclosing the analyzed files.
+     * Discover package and installed PSR-4 sources enclosing the analyzed files.
      */
     public static function discover(array $files): self
     {
         $metadata = [];
         foreach ($files as $file) {
-            $directory = dirname($file);
-            while (dirname($directory) !== $directory) {
-                $path = $directory.'/vendor/composer/installed.json';
-                if (is_file($path)) {
-                    $metadata[$path] = true;
-
-                    break;
-                }
-
-                $directory = dirname($directory);
+            foreach (self::metadataFor($file) as $path) {
+                $metadata[$path] = true;
             }
         }
 
@@ -45,15 +37,42 @@ final readonly class ComposerTypeSources
     }
 
     /**
+     * The closest package manifest owns local prefixes; an enclosing installation supplies dependencies.
+     */
+    private static function metadataFor(string $file): array
+    {
+        $paths = [];
+        $projectFound = false;
+        $directory = dirname($file);
+        while (dirname($directory) !== $directory) {
+            $project = $directory.'/composer.json';
+            if (! $projectFound && is_file($project)) {
+                $paths[] = $project;
+                $projectFound = true;
+            }
+
+            $installed = $directory.'/vendor/composer/installed.json';
+            if (is_file($installed)) {
+                $paths[] = $installed;
+
+                break;
+            }
+
+            $directory = dirname($directory);
+        }
+
+        return $paths;
+    }
+
+    /**
      * Convert package installation paths and their PSR-4 declarations into source roots.
      */
     private static function sourcesFrom(string $path): self
     {
-        $content = file_get_contents($path);
-        $installed = $content === false ? [] : json_decode($content, true);
+        $project = basename($path) === 'composer.json';
         $prefixes = [];
         $archives = [];
-        foreach ($installed['packages'] ?? [] as $package) {
+        foreach (self::packagesIn($path) as $package) {
             $autoload = $package['autoload'] ?? [];
             $installPath = $package['install-path'] ?? null;
             if (! is_string($installPath)) {
@@ -61,7 +80,7 @@ final readonly class ComposerTypeSources
             }
 
             $packageRoot = dirname($path).'/'.$installPath;
-            $packageArchives = glob($packageRoot.'/*.{phar,zip,tar}', GLOB_BRACE);
+            $packageArchives = $project ? [] : glob($packageRoot.'/*.{phar,zip,tar}', GLOB_BRACE);
             $archives = [...$archives, ...($packageArchives === false ? [] : $packageArchives)];
 
             foreach ($autoload['psr-4'] ?? [] as $prefix => $roots) {
@@ -75,6 +94,32 @@ final readonly class ComposerTypeSources
         }
 
         return new self($prefixes, $archives);
+    }
+
+    /**
+     * Normalize the two Composer metadata formats without evaluating PHP autoload files.
+     */
+    private static function packagesIn(string $path): array
+    {
+        $content = file_get_contents($path);
+        $decoded = $content === false ? null : json_decode($content, true);
+        $metadata = is_array($decoded) ? $decoded : [];
+
+        return basename($path) === 'composer.json' ? [self::projectPackage($metadata)] : ($metadata['packages'] ?? []);
+    }
+
+    /**
+     * Root packages declare development prefixes alongside their production autoload roots.
+     */
+    private static function projectPackage(array $metadata): array
+    {
+        $autoload = $metadata['autoload'] ?? [];
+        $development = $metadata['autoload-dev'] ?? [];
+
+        return [
+            'install-path' => '.',
+            'autoload'     => ['psr-4' => array_merge_recursive($autoload['psr-4'] ?? [], $development['psr-4'] ?? [])],
+        ];
     }
 
     /**

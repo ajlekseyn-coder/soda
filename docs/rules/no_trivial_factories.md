@@ -59,6 +59,12 @@ final class ReceiptFactory
 }
 ```
 
+Package-local parent and trait declarations are located through the closest
+`composer.json` PSR-4 mappings, including development mappings. An installed
+`vendor` directory is optional. Installed dependency metadata still supplies
+external contracts. Only declarations with the expected qualified name are used;
+autoload scripts and source files are parsed as data and never executed.
+
 ## Options
 
 - `contracts` (default `[]`): list of qualified `Class::method` names whose published factory API must remain available; matching methods are exempt regardless of case. Framework-recognized creation hooks are exempt automatically.

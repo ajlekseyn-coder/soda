@@ -312,6 +312,30 @@ PHP);
         self::assertCount(2, $this->findings('<?php class Stream { public function url_stat($path, $flags) {} public function other() { return new class { public function register() { stream_wrapper_register("test", __CLASS__); } }; } }'));
     }
 
+    public function testPackageInterfaceContractDoesNotNeedAnInstalledAutoloader(): void
+    {
+        $root = sys_get_temp_dir().'/soda-package-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root.'/src', recursive: true);
+        $manifest = $root.'/composer.json';
+        $scope = $root.'/src/Scope.php';
+        $own = $root.'/src/OwnScope.php';
+        file_put_contents($manifest, json_encode(['autoload' => ['psr-4' => ['App\\' => 'src/']]], JSON_THROW_ON_ERROR));
+        file_put_contents($scope, '<?php namespace App; throw new \\RuntimeException("Must not execute"); interface Scope { public function apply($value); }');
+        file_put_contents($own, '<?php namespace App; class OwnScope implements Scope { public function apply($value, $extra = null) {} }');
+
+        try {
+            $result = (new Runner)->check([$own], [new NoUnusedParameters]);
+            self::assertCount(1, $result->violations);
+            self::assertStringContainsString('$extra', $result->violations[0]->message);
+        } finally {
+            foreach ([$manifest, $scope, $own] as $path) {
+                unlink($path);
+            }
+            rmdir($root.'/src');
+            rmdir($root);
+        }
+    }
+
     private function findings(string $source, array $contracts = []): array
     {
         $nodes = (new ParserFactory)->createForNewestSupportedVersion()->parse($source);

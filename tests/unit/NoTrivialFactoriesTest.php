@@ -64,6 +64,110 @@ PHP;
         self::assertSame(0, $findings[0]->threshold);
     }
 
+    #[DataProvider('localPackageContracts')]
+    public function testLocalComposerContractWithoutInstalledMetadata(array|string $manifest, string $parent, string $child, int $count): void
+    {
+        $this->withLocalPackage($manifest, $parent, $child, function (array $files, string $root) use ($count): void {
+            $result = (new Runner)->check([$files[0]], [new NoTrivialFactories]);
+            self::assertCount($count, $result->violations);
+            self::assertFileDoesNotExist($root.'/src/executed');
+        });
+    }
+
+    public static function localPackageContracts(): iterable
+    {
+        $parent = 'namespace App; file_put_contents(__DIR__."/executed", "bad"); class BaseBuilder { public function build($value) { return $this->product($value); } protected function product($value) { return new Product($value); } }';
+        $child = 'namespace App; class Builder extends BaseBuilder { protected function product($value) { return new CustomProduct($value); } }';
+        yield 'package PSR-4' => [['autoload' => ['psr-4' => ['App\\' => 'src/']]], $parent, $child, 0];
+        yield 'multiple PSR-4 roots' => [['autoload' => ['psr-4' => ['App\\' => ['absent/', 'src/']]]], $parent, $child, 0];
+        yield 'development PSR-4' => [['autoload-dev' => ['psr-4' => ['App\\' => 'src/']]], $parent, $child, 0];
+        yield 'trait contract' => [['autoload' => ['psr-4' => ['App\\' => 'src/']]], str_replace('class BaseBuilder', 'trait BaseBuilder', $parent), 'namespace App; class Builder { use BaseBuilder; protected function product($value) { return new CustomProduct($value); } }', 0];
+        yield 'malformed metadata' => ['{not JSON', $parent, $child, 1];
+        yield 'scalar metadata' => ['"not a package"', $parent, $child, 1];
+        yield 'unregistered namespace' => [['autoload' => ['psr-4' => ['Other\\' => 'src/']]], $parent, $child, 1];
+        yield 'unrelated declaration' => [['autoload' => ['psr-4' => ['App\\' => 'src/']]], str_replace('namespace App;', 'namespace Other;', $parent), $child, 1];
+        yield 'private parent method is fixed' => [['autoload' => ['psr-4' => ['App\\' => 'src/']]], str_replace('protected function product', 'private function product', $parent), $child, 1];
+    }
+
+    public function testStandardRunnerResolvesPackageHooksInEitherFileOrder(): void
+    {
+        $parent = 'namespace App; throw new \\RuntimeException("Do not execute"); class BaseBuilder { function build($value) { return $this->product($value); } protected function product($value) { return new Product($value); } }';
+        $child = 'namespace App; class Builder extends BaseBuilder { protected function product($value) { return new CustomProduct($value); } public function unused($value) { return new Product($value); } }';
+        $this->withLocalPackage(['autoload' => ['psr-4' => ['App\\' => 'src/'], 'files' => ['autoload.php']]], $parent, $child, function (array $files): void {
+            foreach ([$files, array_reverse($files)] as $paths) {
+                $result = (new Runner)->check($paths, RuleCatalog::standard());
+                $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_trivial_factories')->values();
+                self::assertCount(1, $findings);
+                self::assertSame('unused', $findings[0]->method);
+            }
+        });
+    }
+
+    public function testClosestPackageDoesNotBorrowAnotherRootNamespace(): void
+    {
+        $parent = 'namespace App; class BaseBuilder { protected function product($value) { return new Product($value); } }';
+        $child = 'namespace App; class Builder extends BaseBuilder { protected function product($value) { return new Product($value); } }';
+        $this->withLocalPackage(['autoload' => ['psr-4' => ['App\\' => 'src/']]], $parent, $child, function (array $files, string $root): void {
+            mkdir($root.'/nested/src', recursive: true);
+            $manifest = $root.'/nested/composer.json';
+            $path = $root.'/nested/src/Builder.php';
+            file_put_contents($manifest, json_encode(['autoload' => ['psr-4' => ['Other\\' => 'src/']]], JSON_THROW_ON_ERROR));
+            file_put_contents($path, file_get_contents($files[0]));
+
+            try {
+                self::assertCount(1, (new Runner)->check([$path], [new NoTrivialFactories])->violations);
+            } finally {
+                unlink($path);
+                unlink($manifest);
+                rmdir($root.'/nested/src');
+                rmdir($root.'/nested');
+            }
+        });
+    }
+
+    public function testAnUnregisteredProjectArchiveDoesNotInventAContract(): void
+    {
+        $child = 'namespace App; class Builder extends BaseBuilder { protected function product($value) { return new Product($value); } }';
+        $this->withLocalPackage([], 'namespace Other; class BaseBuilder {}', $child, function (array $files, string $root): void {
+            $path = $root.'/backup.zip';
+            $archive = new \PharData($path);
+            $archive['BaseBuilder.php'] = '<?php namespace App; class BaseBuilder { protected function product($value) {} }';
+            unset($archive);
+
+            try {
+                self::assertCount(1, (new Runner)->check([$files[0]], [new NoTrivialFactories])->violations);
+            } finally {
+                unlink($path);
+            }
+        });
+    }
+
+    private function withLocalPackage(array|string $manifest, string $parent, string $child, callable $test): void
+    {
+        $root = sys_get_temp_dir().'/soda-package-hooks-'.bin2hex(random_bytes(6));
+        mkdir($root.'/src', recursive: true);
+        $composer = $root.'/composer.json';
+        $autoload = $root.'/autoload.php';
+        $base = $root.'/src/BaseBuilder.php';
+        $own = $root.'/src/Builder.php';
+        file_put_contents($composer, is_array($manifest) ? json_encode($manifest, JSON_THROW_ON_ERROR) : $manifest);
+        file_put_contents($autoload, '<?php throw new \\RuntimeException("Autoloader must not execute");');
+        file_put_contents($base, '<?php '.$parent);
+        file_put_contents($own, '<?php '.$child);
+
+        try {
+            $test([$own, $base], $root);
+        } finally {
+            foreach ([$composer, $autoload, $base, $own, $root.'/src/executed'] as $path) {
+                if (is_file($path)) {
+                    unlink($path);
+                }
+            }
+            rmdir($root.'/src');
+            rmdir($root);
+        }
+    }
+
     private function findings(string $source, ?array $checks = null): array
     {
         $path = tempnam(sys_get_temp_dir(), 'soda-virtual-factory-');

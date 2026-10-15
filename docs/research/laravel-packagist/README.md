@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,305 after
-eleven review rounds: 367 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 368 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,280 after
+twelve review rounds: 392 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 393 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -26,13 +26,13 @@ multiplicity.
 | `no_catch_all_exceptions` | 221 | 218 | 3 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
-| `no_trivial_factories` | 127 | 112 | 15 |
+| `no_trivial_factories` | 127 | 87 | 40 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,306 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,319 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -54,7 +54,7 @@ source set and each policy's diagnostic multiset. Deliberately forged line-lengt
 and parameter-name diagnostics were rejected during verification.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 31,382 retained findings unclassified. These policy checks do not prove
+this leaves 31,357 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -81,10 +81,12 @@ and invokes the standard Runner. Package code, Composer scripts, plugins and
 upstream `soda.php` files are never executed. Tests, vendor directories, Blade
 views, resources and scaffolding stubs are excluded. When no production autoload
 roots or PHP binaries exist, the remaining PHP files under the package root are
-scanned. Dependencies are not installed; external contracts are available only
-when their declarations occur in the selected source set. Loaded PHP internal
-classes and interfaces also provide native signature metadata without application
-autoloading.
+scanned. Dependencies are not installed. Package-local PSR-4 mappings, including
+those declared for development, can supply reachable contract declarations outside
+the selected file list; these declarations are parsed without being linted or
+executed. Installed dependency metadata can provide external source when present.
+Loaded PHP internal classes and interfaces also provide native signature metadata
+without application autoloading.
 
 Each package report contains the exact source paths and SHA-256 hashes, the full
 diagnostic list, time and peak memory. `summary.json` records completed and failed
@@ -94,7 +96,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 367 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 392 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -125,6 +127,11 @@ observed virtual call sites. Every entry records the enclosing factory kind and
 caller methods, lines and receiver form; their source hash covers both factory
 and call sites. Construction is transparent, but bypassing the method would
 remove its replaceable implementation.
+`round12-resolved.jsonl` records 25 local factory contracts in Cashier Mollie,
+Framework and LSP: 23 inherited signatures and two registered driver factories.
+Each entry records hashes of the package's Composer manifest and the verified
+ancestor source, with the method or dispatch location. Package-local PSR-4 roots
+supply these declarations without requiring an installed autoloader.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, and the 95
@@ -180,7 +187,9 @@ the original Runner cannot finish packages containing affected switches.
 - `no_trivial_factories` preserves factories reached by observed virtual calls
   on the current receiver. Late-static lookup and trait composition preserve
   replaceable implementations; final class/method controls remain detectable.
-  Trait declarations also contribute resolved factory-hook contracts.
+  Trait declarations also contribute resolved factory-hook contracts. The closest
+  package manifest supplies local ancestors before consulting installed dependency
+  metadata; executable autoload files remain untouched.
 
 Regression cases live in the corresponding rule test classes:
 `NoUnusedParametersTest`, `NoDeclarationsBeforeEarlyExitTest` and
