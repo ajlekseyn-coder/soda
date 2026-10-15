@@ -1,0 +1,38 @@
+{
+    "packages": 81,
+    "files": 5875,
+    "manifest_sha256": "29ae5c78c75378ff9974ec17b9dbeb02b4d7e5115f1978f3b59c19ab88ae8375",
+    "verifier_sha256": "3b725aebad402c3fc202bdaf151aa5eec2dd2b240df0828fb0e844f677d78d89",
+    "source_set_sha256": "64a7695e4986ae3df5283d3ffcde69c0dc217fe01762a683eb0b43cc311d8281",
+    "scope": "Exact source measurements and AST declarations for four standard policies; no claim about other rules.",
+    "rules": {
+        "max_line_length": {
+            "findings": 10130,
+            "diagnostic_multiset_sha256": "5443e2e009afd8c9a4a1b24ef3bb1a7b5cd9ea19f6e9c09a9e3071a374b1dc98"
+        },
+        "no_untyped_parameters": {
+            "findings": 20389,
+            "diagnostic_multiset_sha256": "7838a58681f3da20e45d80bce002fb95671d5ad7f1b962908b4e147d6e2bc43e"
+        },
+        "no_reflection": {
+            "findings": 227,
+            "diagnostic_multiset_sha256": "038fd79bb824dcfc7e7b9957ecbbb6b0be6ec4dc624e374465a06eb917af9888"
+        },
+        "no_dynamic_properties": {
+            "findings": 1,
+            "diagnostic_multiset_sha256": "83f60d965147fbe34018842e6da39e0bb40e3128a4c4ba5436e1b27a52b64fea"
+        }
+    },
+    "reflection_ancestors": {
+        "laravel\\serializableclosure\\support\\reflectionclosure": {
+            "parent": "reflectionfunction",
+            "declarations": [
+                {
+                    "package": "laravel/serializable-closure",
+                    "file": "src/Support/ReflectionClosure.php",
+                    "source_sha256": "f747b235be3c75abac27c65f1665d96ca72746f54be433c5ce2745ad3961e44f"
+                }
+            ]
+        }
+    }
+}

@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,414 after
-six review rounds: 258 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 259 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,411 after
+seven review rounds: 261 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 262 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -23,13 +23,46 @@ multiplicity.
 | `no_declarations_before_early_exit` | 171 | 151 | 20 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
+| `no_catch_all_exceptions` | 221 | 218 | 3 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,215 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,228 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
+
+## Source-grounded policy review
+
+`verified-policies.json` records 30,747 findings checked against the pinned source:
+
+| Policy | Findings | Evidence |
+| --- | ---: | --- |
+| `max_line_length` | 10,130 | Physical byte length exceeds the standard 100-byte limit. |
+| `no_untyped_parameters` | 20,389 | The parameter declaration has no native type. |
+| `no_reflection` | 227 | Construction resolves to a native reflection class or a source-proved subclass. |
+| `no_dynamic_properties` | 1 | The attribute resolves to PHP's global `AllowDynamicProperties`. |
+
+The verifier reads all 5,875 selected files, checks every source hash, recomputes
+measurements and AST declarations without invoking Soda rules, and compares exact
+point multiplicities. Reflection subclasses require a declared, unambiguous path
+to a native reflection type. SHA-256 digests cover the verifier, pinned manifest,
+source set and each policy's diagnostic multiset. Deliberately forged line-length
+and parameter-name diagnostics were rejected during verification.
+
+Together with the 81 individually reviewed findings in `reviewed-unchanged.jsonl`,
+this leaves 31,583 retained findings unclassified. These policy checks do not prove
+the behavior of the remaining semantic rules.
+
+After reproducing the corpus, run:
+
+```sh
+php docs/research/laravel-packagist/verify-policies.php /tmp/soda-laravel-recheck
+```
+
+For reports stored separately from source archives, pass the `sources` directory
+as the second argument. The script prints its verification summary as JSON and
+fails when source hashes or policy evidence differ.
 
 ## Scope and reproduction
 
@@ -58,7 +91,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 258 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 261 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -68,6 +101,8 @@ in Laravel AI, Cashier Paddle, Framework and Scout.
 must remain observable even when its current value is non-null.
 `round6-resolved.jsonl` records five Reverb factory inputs read after a match whose
 default arm throws; a successful explicit arm still reaches those reads.
+`round7-resolved.jsonl` records three Octane/Vapor catches that terminate the
+process with `exit(1)` rather than continuing.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 81 retained findings: 29 string-policy findings
 and 52 recommendations about repeated branches and boolean expressions. Changes
@@ -103,10 +138,13 @@ the original Runner cannot finish packages containing affected switches.
   readonly properties. Only proved ordinary fields remain eligible. Calls,
   assignments and increments in a target prevent collapsing its evaluations.
 
+- `no_catch_all_exceptions` accepts native process termination. A later
+  unreachable bare return does not replace an unconditional catch outcome.
+
 Regression cases live in the corresponding rule test classes:
 `NoUnusedParametersTest`, `NoDeclarationsBeforeEarlyExitTest` and
 `UselessVariableRuleTest`, together with `NoRepeatedTypeDispatchTest` and
-`PreferNullCoalesceAssignmentTest`. Controls
+`PreferNullCoalesceAssignmentTest` and `NoCatchAllExceptionsTest`. Controls
 continue to require genuine violations. Cross-file anonymous contracts and
 inherited selectors are also exercised in reverse file order.
 

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Architecture\NoCatchAllExceptions;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
@@ -32,6 +34,18 @@ final class NoCatchAllExceptionsTest extends TestCase
 
     public static function catchBodies(): \Iterator
     {
+        yield 'explicit failure exit' => ['report($error); exit(1);', 0];
+        yield 'explicit success exit is a chosen outcome' => ['exit(0);', 0];
+        yield 'explicit exit message' => ['die("Failed");', 0];
+        yield 'computed exit status' => ['exit(status($error));', 0];
+        yield 'bare exit terminates the process' => ['exit;', 0];
+        yield 'conditional exit leaves a continuing path' => ['if (fatal($error)) { exit(1); }', 1];
+        yield 'exit and fallback cover both branches' => ['if (fatal($error)) { exit(1); } else { return null; }', 0];
+        yield 'exit in closure is not catch outcome' => ['$terminate = function () { exit(1); };', 1];
+        yield 'void return before exit still hides failure' => ['if (recoverable($error)) { return; } exit(1);', 1];
+        yield 'unreachable bare return after exit' => ['exit(1); return;', 0];
+        yield 'unreachable bare return after fallback' => ['return null; return;', 0];
+        yield 'unreachable bare return after rethrow' => ['throw $error; return;', 0];
         yield 'empty catch' => ['', 1];
         yield 'logging then continuing' => ['report($error);', 1];
         yield 'void guard before fallback' => ['if (recoverable($error)) { return; } return null;', 1];
@@ -106,5 +120,21 @@ final class NoCatchAllExceptionsTest extends TestCase
         ), []);
 
         $this->assertSame([], iterator_to_array((new NoCatchAllExceptions)->checkFile($file)));
+    }
+
+    public function testStandardRunnerAcceptsAnExplicitExitStatus(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-catch-exit-');
+        self::assertIsString($path);
+        file_put_contents($path, '<?php function terminate() { try { work(); } catch (Throwable $error) { report($error); exit(1); } } function swallowed() { try { work(); } catch (Throwable $error) { report($error); } }');
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_catch_all_exceptions')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+        } finally {
+            unlink($path);
+        }
     }
 }

@@ -1,12 +1,16 @@
 # no_catch_all_exceptions
 
-📝 Make broad `catch (Throwable)` / `catch (Exception)` blocks end with an explicit outcome: return a value, rethrow, or translate the failure.
+📝 Make broad `catch (Throwable)` / `catch (Exception)` blocks end with an explicit outcome: return a value, throw, or terminate the process.
 
 💼 This rule is enabled in the ✅ `standard` config.
 
 ## Why
 
-A broad catch that neither returns a value nor throws silently continues as if nothing failed. Callers cannot distinguish success from a swallowed failure, and invariant violations turn into corrupted downstream state. The rule reports catch blocks for `Throwable` or `Exception` (specific exception types are allowed) whose body has no explicit outcome, and advises returning an explicit fallback value, propagating, or translating the failure instead of silently continuing.
+A broad catch that neither returns a value, throws, nor terminates the process silently continues as if nothing failed. Callers cannot distinguish success from a swallowed failure, and invariant violations turn into corrupted downstream state. The rule reports catch blocks for `Throwable` or `Exception` (specific exception types are allowed) whose body has no explicit outcome, and advises returning an explicit fallback value, propagating, or translating the failure instead of silently continuing.
+
+Native `exit` and `die` are explicit process boundaries and are accepted. Creating
+a closure that might exit later does not terminate the catch. Unreachable
+statements after an unconditional outcome do not replace that outcome.
 
 ## Examples
 

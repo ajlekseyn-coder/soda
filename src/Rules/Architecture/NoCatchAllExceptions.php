@@ -11,7 +11,6 @@ use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
-use PhpParser\Node\Stmt\Else_;
 use PhpParser\NodeFinder;
 
 final class NoCatchAllExceptions extends Check
@@ -83,11 +82,8 @@ final class NoCatchAllExceptions extends Check
             if ($this->hasBareReturn($statement)) {
                 return false;
             }
-        }
-
-        foreach ($statements as $statement) {
-            $isThrow = $statement instanceof Stmt\Expression && $statement->expr instanceof Expr\Throw_;
-            if ($statement instanceof Stmt\Return_ || $isThrow) {
+            $isTermination = $statement instanceof Stmt\Expression && ($statement->expr instanceof Expr\Throw_ || $statement->expr instanceof Expr\Exit_);
+            if ($statement instanceof Stmt\Return_ || $isTermination) {
                 return true;
             }
 
@@ -129,7 +125,7 @@ final class NoCatchAllExceptions extends Check
      */
     private function hasOutcomeInEveryBranch(Stmt\If_ $statement): bool
     {
-        if (! $statement->else instanceof Else_ || ! $this->hasExplicitOutcome($statement->stmts)) {
+        if ($statement->else === null || ! $this->hasExplicitOutcome($statement->stmts)) {
             return false;
         }
 

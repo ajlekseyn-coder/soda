@@ -8,19 +8,24 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Not individually classified; no claim that every remaining diagnostic is a true positive.",
-  "final_source_sha256": "c29ce06d2981e014b6f3ab38d2f6483c2c4e1f40fc480cfe7dd42f8a2dc0af80",
-  "after": 62414,
-  "removed": 259,
+  "remaining_review": "Four standard policies have 30,747 source-grounded findings; 81 other retained findings were reviewed individually. The remaining 31,583 findings are not yet classified.",
+  "final_source_sha256": "05fa753b763e6a07dfd244c5462b170b87ff2b7e86de995d1826e94cbf240725",
+  "after": 62411,
+  "removed": 262,
   "added": 1,
-  "resolved": 258,
+  "resolved": 261,
   "revised": 1,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 259,
+    "removed": 262,
     "added": 1
   },
   "changed_rules": {
+    "no_catch_all_exceptions": {
+      "before": 221,
+      "after": 218,
+      "net_removed": 3
+    },
     "no_declarations_before_early_exit": {
       "before": 171,
       "after": 151,
@@ -88,6 +93,13 @@
       "before": 62419,
       "after": 62414,
       "resolved": 5,
+      "revised": 0
+    },
+    {
+      "round": 7,
+      "before": 62414,
+      "after": 62411,
+      "resolved": 3,
       "revised": 0
     }
   ],
@@ -553,8 +565,8 @@
       "files": 146,
       "source_sha256": "e53acd888dba13919946690b78bf567f541a2a44b99b07e168baa27459b08ab0",
       "before": 790,
-      "after": 783,
-      "removed": 7,
+      "after": 782,
+      "removed": 8,
       "added": 0
     },
     {
@@ -843,8 +855,8 @@
       "files": 71,
       "source_sha256": "23f1c47204db3fe7fd6ad27b7e85fac10ec6812679ddcb81d970111c4939792c",
       "before": 493,
-      "after": 493,
-      "removed": 0,
+      "after": 491,
+      "removed": 2,
       "added": 0
     },
     {
@@ -907,5 +919,11 @@
       "removed": 0,
       "added": 0
     }
-  ]
+  ],
+  "review_coverage": {
+    "source_grounded_policy_findings": 30747,
+    "individually_reviewed_retained": 81,
+    "remaining_unclassified": 31583,
+    "policy_proof": "verified-policies.json"
+  }
 }
