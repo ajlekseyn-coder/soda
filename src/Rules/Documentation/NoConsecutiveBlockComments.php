@@ -61,10 +61,12 @@ final class NoConsecutiveBlockComments extends Check
     }
 
     /**
-     * Line comments are outside this policy, even when adjacent to a PHPDoc.
+     * Standalone tool directives must remain separate tokens; PHPDoc tags still belong together.
      */
     private function isBlockComment(PhpToken $token): bool
     {
-        return $token->id === T_DOC_COMMENT || ($token->id === T_COMMENT && str_starts_with($token->text, '/*'));
+        return $token->id === T_DOC_COMMENT || ($token->id === T_COMMENT
+            && str_starts_with($token->text, '/*')
+            && preg_match('~^/\*\s*@[a-zA-Z][\w-]*\s*\*/$~D', $token->text) !== 1);
     }
 }

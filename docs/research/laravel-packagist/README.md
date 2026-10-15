@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,411 after
-seven review rounds: 261 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 262 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,407 after
+eight review rounds: 265 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 266 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -24,12 +24,13 @@ multiplicity.
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
 | `no_catch_all_exceptions` | 221 | 218 | 3 |
+| `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,228 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,237 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -51,7 +52,7 @@ source set and each policy's diagnostic multiset. Deliberately forged line-lengt
 and parameter-name diagnostics were rejected during verification.
 
 Together with the 81 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 31,583 retained findings unclassified. These policy checks do not prove
+this leaves 31,579 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -91,7 +92,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 261 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 265 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -103,6 +104,9 @@ must remain observable even when its current value is non-null.
 default arm throws; a successful explicit arm still reaches those reads.
 `round7-resolved.jsonl` records three Octane/Vapor catches that terminate the
 process with `exit(1)` rather than continuing.
+`round8-resolved.jsonl` records four adjacent Chisel section markers in the Svelte
+starter kit. Chisel's pinned `Filesystem/File.php` consumes each marker as a
+separate block comment; the ledger includes that consumer's source hash.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 81 retained findings: 29 string-policy findings
 and 52 recommendations about repeated branches and boolean expressions. Changes
@@ -141,10 +145,15 @@ the original Runner cannot finish packages containing affected switches.
 - `no_catch_all_exceptions` accepts native process termination. A later
   unreachable bare return does not replace an unconditional catch outcome.
 
+- `no_consecutive_block_comments` preserves ordinary blocks containing only a
+  tool directive. Joining section markers changes how source tools recognize
+  section boundaries. PHPDoc tag blocks and ordinary prose remain checked.
+
 Regression cases live in the corresponding rule test classes:
 `NoUnusedParametersTest`, `NoDeclarationsBeforeEarlyExitTest` and
 `UselessVariableRuleTest`, together with `NoRepeatedTypeDispatchTest` and
-`PreferNullCoalesceAssignmentTest` and `NoCatchAllExceptionsTest`. Controls
+`PreferNullCoalesceAssignmentTest`, `NoCatchAllExceptionsTest` and
+`NoConsecutiveBlockCommentsTest`. Controls
 continue to require genuine violations. Cross-file anonymous contracts and
 inherited selectors are also exercised in reverse file order.
 
