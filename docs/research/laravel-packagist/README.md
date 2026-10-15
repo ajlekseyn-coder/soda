@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,280 after
-twelve review rounds: 392 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 393 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,175 after
+thirteen review rounds: 497 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 498 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -20,7 +20,7 @@ multiplicity.
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
 | `no_unused_parameters` | 950 | 722 | 228 |
-| `no_declarations_before_early_exit` | 171 | 150 | 21 |
+| `no_declarations_before_early_exit` | 171 | 45 | 126 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
 | `no_catch_all_exceptions` | 221 | 218 | 3 |
@@ -32,7 +32,7 @@ multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,319 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,335 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -54,7 +54,7 @@ source set and each policy's diagnostic multiset. Deliberately forged line-lengt
 and parameter-name diagnostics were rejected during verification.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 31,357 retained findings unclassified. These policy checks do not prove
+this leaves 31,252 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -96,7 +96,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 392 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 497 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -132,6 +132,14 @@ Framework and LSP: 23 inherited signatures and two registered driver factories.
 Each entry records hashes of the package's Composer manifest and the verified
 ancestor source, with the method or dispatch location. Package-local PSR-4 roots
 supply these declarations without requiring an installed autoloader.
+`round13-resolved.jsonl` records 105 initializers that invoke functions, methods
+or constructors. Each records its exact assignment hash and eager invocation
+locations. Such calls may have effects on the exiting path, so relocation is not
+justified without a purity proof. Two entries include concrete effect contexts:
+Dusk must assert the query parameter exists even when no expected value is given;
+Valet must execute redirected commands such as `brew update` while suppressing
+their output. The remaining entries are conservative suppression of unproved
+purity, not a claim that every callee changes state.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, and the 95
@@ -158,7 +166,10 @@ the original Runner cannot finish packages containing affected switches.
   snapshots also stay before writes to their inputs, including removal of array
   keys. Writes confined to an exiting guard branch preserve the surviving path.
   Initializers with explicit writes, yields, output or termination also stay in
-  place. Deferred callable bodies do not contribute eager effects.
+  place. Calls, construction, cloning and shell execution remain in place because
+  their effects may be required on the exiting path; deferred callable bodies do
+  not contribute eager effects. The broader call check replaces the JSON-specific
+  exception.
 - `useless_variable` preserves aliases whose names may be consumed by included
   code, dynamic variable access or symbol-table operations. It also follows writes
   through loop/catch bindings and nested destructuring assignments.

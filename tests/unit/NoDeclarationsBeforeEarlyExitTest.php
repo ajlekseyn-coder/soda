@@ -23,6 +23,21 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'function may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = perform(); if (!$ready) { return; } save($result); }', 0];
+        yield 'namespaced function may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = \App\perform(); if (!$ready) { return; } save($result); }', 0];
+        yield 'indirect function may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = $callback(); if (!$ready) { return; } save($result); }', 0];
+        yield 'method may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = $worker->perform(); if (!$ready) { return; } save($result); }', 0];
+        yield 'nullsafe method may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = $worker?->perform(); if (!$ready) { return; } save($result); }', 0];
+        yield 'static method may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = Worker::perform(); if (!$ready) { return; } save($result); }', 0];
+        yield 'constructor may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = new Worker(); if (!$ready) { return; } save($result); }', 0];
+        yield 'anonymous constructor may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = new class { function __construct() { notify(); } }; if (!$ready) { return; } save($result); }', 0];
+        yield 'clone hook may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = clone $worker; if (!$ready) { return; } save($result); }', 0];
+        yield 'shell command must execute before the exit' => ['function run($worker, $callback, $enabled, $ready) { $result = `command`; if (!$ready) { return; } save($result); }', 0];
+        yield 'call in an array remains eager' => ['function run($worker, $callback, $enabled, $ready) { $result = [perform()]; if (!$ready) { return; } save($result); }', 0];
+        yield 'conditional call remains eager' => ['function run($worker, $callback, $enabled, $ready) { $result = $enabled ? perform() : null; if (!$ready) { return; } save($result); }', 0];
+        yield 'callable reference may evaluate an eager receiver' => ['function run($worker, $callback, $enabled, $ready) { $result = factory()->perform(...); if (!$ready) { return; } save($result); }', 0];
+        yield 'closure body call remains deferred' => ['function run($worker, $callback, $enabled, $ready) { $result = function () { return perform(); }; if (!$ready) { return; } save($result); }', 1];
+        yield 'arrow body call remains deferred' => ['function run($worker, $callback, $enabled, $ready) { $result = fn () => perform(); if (!$ready) { return; } save($result); }', 1];
         yield 'prefix increment remains before the exit' => ['function run(&$counter, $ready) { $label = "item-".++$counter; if (!$ready) { return; } save($label); }', 0];
         yield 'postfix increment remains before the exit' => ['function run(&$counter, $ready) { $number = $counter++; if (!$ready) { return; } save($number); }', 0];
         yield 'prefix decrement remains before the exit' => ['function run(&$counter, $ready) { $number = --$counter; if (!$ready) { return; } save($number); }', 0];
@@ -41,7 +56,7 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
         yield 'termination remains before the exit' => ['function run($ready) { $result = exit(1); if (!$ready) { return; } save($result); }', 0];
         yield 'closure body is deferred' => ['function run(&$counter, $ready) { $task = function () use (&$counter) { return ++$counter; }; if (!$ready) { return; } save($task); }', 1];
         yield 'arrow body is deferred' => ['function run($counter, $ready) { $task = fn () => ++$counter; if (!$ready) { return; } save($task); }', 1];
-        yield 'anonymous class method is deferred' => ['function run($ready) { $task = new class { function next() { return ++$this->count; } }; if (!$ready) { return; } save($task); }', 1];
+        yield 'closure containing an anonymous class is deferred' => ['function run($ready) { $task = function () { return new class { function next() { return ++$this->count; } }; }; if (!$ready) { return; } save($task); }', 1];
         yield 'anonymous class argument is eager' => ['function run(&$counter, $ready) { $task = new class(++$counter) {}; if (!$ready) { return; } save($task); }', 0];
         yield 'snapshot before removing an array key' => ['function run(array $options, $ready) { $trial = $options["trial"] ?? null; unset($options["trial"]); if (!$ready) { return; } save($trial); }', 0];
         yield 'snapshot before overwriting an input' => ['function run($input, $ready) { $original = $input; $input = normalize($input); if (!$ready) { return; } save($original); }', 0];
@@ -52,34 +67,34 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
         yield 'unrelated mutation permits moving the declaration' => ['function run($input, $ready, $other) { $original = $input; unset($other["trial"]); if (!$ready) { return; } save($original); }', 1];
         yield 'input used as an index is not overwritten' => ['function run($input, $ready, $other) { $original = $input; $other[$input] = true; if (!$ready) { return; } save($original); }', 1];
         yield 'write confined to the exiting path does not change the surviving input' => ['function run($input, $ready) { $original = $input; if (!$ready) { $input = null; return; } save($original); }', 1];
-        yield 'switch cases have separate statement lists' => ['function run($status, $ready) { switch ($status) { case 1: $result = compute(); if (!$ready) { return; } useIt($result); break; case 2: useOther(); break; } }', 1];
-        yield 'switch does not merge declarations across cases' => ['function run($status, $ready) { switch ($status) { case 1: $result = compute(); break; case 2: if (!$ready) { return; } useIt($result); break; } }', 0];
+        yield 'switch cases have separate statement lists' => ['function run($status, $ready) { switch ($status) { case 1: $result = 42; if (!$ready) { return; } useIt($result); break; case 2: useOther(); break; } }', 1];
+        yield 'switch does not merge declarations across cases' => ['function run($status, $ready) { switch ($status) { case 1: $result = 42; break; case 2: if (!$ready) { return; } useIt($result); break; } }', 0];
         yield 'JSON error guard observes the decoding operation' => ['function decode($json) { $data = json_decode($json, true); if (json_last_error() !== JSON_ERROR_NONE) { return null; } return $data; }', 0];
-        yield 'unrelated guard can precede JSON decoding' => ['function decode($json, $ready) { $data = json_decode($json, true); if (!$ready) { return null; } return $data; }', 1];
+        yield 'unrelated guard can precede a local snapshot' => ['function decode($json, $ready) { $data = $json; if (!$ready) { return null; } return $data; }', 1];
         yield 'JSON error message observes the encoding operation' => ['function encode($data) { $json = json_encode($data); if (json_last_error_msg() !== "No error") { throw new RuntimeException(); } return $json; }', 0];
         yield 'retry jump must not restart the clock' => ['function retry($callback) { $start = time(); beginning: if ($output = $callback()) { return $output; } if (time() - $start < 10) { goto beginning; } return null; }', 0];
         yield 'reference assignment establishes an observable binding' => ['function run(&$target, &$source, $ready) { $target = &$source; if (!$ready) { return; } consume($target); }', 0];
-        yield 'nested closure checked once' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); }', 1];
-        yield 'nested named function checked once' => ['function outer() { function inner($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } } }', 1];
-        yield 'anonymous class method checked once' => ['function outer() { return new class { function run($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } } }; }', 1];
-        yield 'arrow returning a closure checked once' => ['$callback = fn () => function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } };', 1];
-        yield 'separate closures retain both findings' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); }', 2];
+        yield 'nested closure checked once' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } }); }', 1];
+        yield 'nested named function checked once' => ['function outer() { function inner($items) { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } } }', 1];
+        yield 'anonymous class method checked once' => ['function outer() { return new class { function run($items) { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } } }; }', 1];
+        yield 'arrow returning a closure checked once' => ['$callback = fn () => function ($items) { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } };', 1];
+        yield 'separate closures retain both findings' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } }); register(function ($items) { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } }); }', 2];
         yield 'interface method without a body' => ['interface Contract { public function run(): void; }', 0];
         yield 'abstract method without a body' => ['abstract class Worker { abstract public function run(): void; }', 0];
-        yield 'work skipped by the guard' => ['function run(bool $ready, array $items): void { $result = compute($items); if (!$ready) { return; } useIt($result); }', 1];
-        yield 'throw guard' => ['function run(bool $ready): int { $result = compute(); if (!$ready) { throw new \RuntimeException("not ready"); } return $result; }', 1];
-        yield 'continue guard inside a loop' => ['function run(array $items): void { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }', 1];
-        yield 'break guard inside a loop' => ['function run(array $items): void { while ($item = nextItem($items)) { $prepared = prepare($item); if ($item->done) { break; } save($prepared); } }', 1];
-        yield 'value is read by the guard condition' => ['function run(bool $ready): int { $result = compute(); if ($result === null) { return 0; } return $result; }', 0];
-        yield 'value is read before the guard' => ['function run(bool $ready): void { $result = compute(); audit($result); if (!$ready) { return; } useIt($result); }', 0];
-        yield 'value is read inside the guarded branch' => ['function run(bool $ready): void { $result = compute(); if (!$ready) { logIt($result); return; } useIt($result); }', 0];
-        yield 'value is not used after the guard' => ['function run(bool $ready): void { $result = compute(); if (!$ready) { return; } useOther(); }', 0];
-        yield 'closure capture counts as a use' => ['function run(bool $ready): void { $result = compute(); register(function () use ($result) { save($result); }); if (!$ready) { return; } flush(); }', 0];
-        yield 'assigned closure is a skipped declaration' => ['function run(bool $ready): void { $result = compute(); $task = function () use ($result) { save($result); }; if (!$ready) { return; } $task(); }', 1];
-        yield 'branching guard keeps the path open' => ['function run(bool $ready): void { $result = compute(); if (!$ready) { return; } else { audit(); } useIt($result); }', 0];
-        yield 'declaration belongs after the guard' => ['function run(bool $ready): void { if (!$ready) { return; } $result = compute(); useIt($result); }', 0];
-        yield 'second guard is reported once' => ['function run(bool $ready, bool $done): void { $result = compute(); if (!$ready) { return; } if (!$done) { return; } useIt($result); }', 1];
-        yield 'guarded branch with assignment stays outside' => ['function run(bool $ready): void { if (!$ready) { $result = compute(); return; } useOther(); }', 0];
+        yield 'work skipped by the guard' => ['function run(bool $ready, array $items): void { $result = $items; if (!$ready) { return; } useIt($result); }', 1];
+        yield 'throw guard' => ['function run(bool $ready): int { $result = 42; if (!$ready) { throw new \RuntimeException("not ready"); } return $result; }', 1];
+        yield 'continue guard inside a loop' => ['function run(array $items): void { foreach ($items as $item) { $prepared = $item; if ($item->skip) { continue; } save($prepared); } }', 1];
+        yield 'break guard inside a loop' => ['function run(array $items): void { while ($item = nextItem($items)) { $prepared = $item; if ($item->done) { break; } save($prepared); } }', 1];
+        yield 'value is read by the guard condition' => ['function run(bool $ready): int { $result = 42; if ($result === null) { return 0; } return $result; }', 0];
+        yield 'value is read before the guard' => ['function run(bool $ready): void { $result = 42; audit($result); if (!$ready) { return; } useIt($result); }', 0];
+        yield 'value is read inside the guarded branch' => ['function run(bool $ready): void { $result = 42; if (!$ready) { logIt($result); return; } useIt($result); }', 0];
+        yield 'value is not used after the guard' => ['function run(bool $ready): void { $result = 42; if (!$ready) { return; } useOther(); }', 0];
+        yield 'closure capture counts as a use' => ['function run(bool $ready): void { $result = 42; register(function () use ($result) { save($result); }); if (!$ready) { return; } flush(); }', 0];
+        yield 'assigned closure is a skipped declaration' => ['function run(bool $ready): void { $result = 42; $task = function () use ($result) { save($result); }; if (!$ready) { return; } $task(); }', 1];
+        yield 'branching guard keeps the path open' => ['function run(bool $ready): void { $result = 42; if (!$ready) { return; } else { audit(); } useIt($result); }', 0];
+        yield 'declaration belongs after the guard' => ['function run(bool $ready): void { if (!$ready) { return; } $result = 42; useIt($result); }', 0];
+        yield 'second guard is reported once' => ['function run(bool $ready, bool $done): void { $result = 42; if (!$ready) { return; } if (!$done) { return; } useIt($result); }', 1];
+        yield 'guarded branch with assignment stays outside' => ['function run(bool $ready): void { if (!$ready) { $result = 42; return; } useOther(); }', 0];
     }
 
     public function testReportsTheVariableAndTheGuardLine(): void
@@ -89,7 +104,7 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
 function run(bool $ready, array $items): int
 {
-    $result = compute($items);
+    $result = $items;
     if (! $ready) {
         return 0;
     }
@@ -110,7 +125,7 @@ PHP);
     {
         $path = tempnam(sys_get_temp_dir(), 'soda-declarations-');
         self::assertIsString($path);
-        file_put_contents($path, '<?php function run(bool $ready): int { $result = compute(); if (!$ready) { return 0; } return $result; }');
+        file_put_contents($path, '<?php function run(bool $ready): int { $result = 42; if (!$ready) { return 0; } return $result; }');
 
         try {
             $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
@@ -163,6 +178,47 @@ PHP);
             self::assertSame($path, $findings[0]->file);
             self::assertSame(8, $findings[0]->line);
             self::assertStringContainsString('line 9', $findings[0]->message);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testStandardRunnerPreservesInvocationsBeforeAnExit(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-guard-calls-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+class Browser {
+    public function query($name, $value = null) {
+        $output = $this->assertPresent($name);
+        if ($value === null) { return; }
+        consume($output);
+    }
+    private function assertPresent($name) {
+        if ($name === '') { throw new RuntimeException(); }
+        return ['name' => $name];
+    }
+}
+function command($cli, bool $silent) {
+    $output = $cli->run();
+    if ($silent) { return; }
+    consume($output);
+}
+function movable($input, bool $ready) {
+    $output = $input;
+    if (!$ready) { return; }
+    consume($output);
+}
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_declarations_before_early_exit')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+            self::assertSame(19, $findings[0]->line);
+            self::assertStringContainsString('line 20', $findings[0]->message);
         } finally {
             unlink($path);
         }

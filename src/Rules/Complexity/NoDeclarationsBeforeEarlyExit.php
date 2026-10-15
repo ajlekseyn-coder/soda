@@ -13,7 +13,6 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
-use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
 
@@ -89,7 +88,6 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 $usedBeforeGuard = $this->isUsed($statements, $firstRead, $guard, $variable, $finder);
                 $between = [...array_slice($statements, $firstRead, $guard - $firstRead), $branch->cond];
                 if ($usedBeforeGuard
-                    || $this->doesGuardObserveJsonError($statements[$index], $branch, $finder)
                     || $this->doesInputChange($statements[$index], $between, $finder)) {
                     continue;
                 }
@@ -129,19 +127,6 @@ final class NoDeclarationsBeforeEarlyExit extends Check
         }
 
         return false;
-    }
-
-    /**
-     * Moving JSON processing past its error check would inspect an earlier operation's status.
-     */
-    private function doesGuardObserveJsonError(Node $declaration, Node $guard, NodeFinder $finder): bool
-    {
-        $processesJson = $finder->findFirst([$declaration], static fn ($node): bool => $node instanceof Expr\FuncCall
-            && $node->name instanceof Name && in_array(strtolower($node->name->toString()), ['json_decode', 'json_encode'], true));
-        $readsError = $finder->findFirst([$guard], static fn ($node): bool => $node instanceof Expr\FuncCall
-            && $node->name instanceof Name && in_array(strtolower($node->name->toString()), ['json_last_error', 'json_last_error_msg'], true));
-
-        return $processesJson !== null && $readsError !== null;
     }
 
     /**
@@ -187,7 +172,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     }
 
     /**
-     * Explicit effects must also run on the exiting path; nested callable bodies are deferred.
+     * Invoked code can affect the exiting path; nested callable bodies are deferred.
      */
     private function hasEagerEffect(Node $node): bool
     {
@@ -198,6 +183,8 @@ final class NoDeclarationsBeforeEarlyExit extends Check
         if (str_starts_with($node->getType(), 'Expr_AssignOp_') || in_array($node->getType(), [
             'Expr_Assign', 'Expr_AssignRef', 'Expr_PreInc', 'Expr_PostInc', 'Expr_PreDec', 'Expr_PostDec',
             'Expr_Yield', 'Expr_YieldFrom', 'Expr_Print', 'Expr_Include', 'Expr_Eval', 'Expr_Exit', 'Expr_Throw',
+            'Expr_FuncCall', 'Expr_MethodCall', 'Expr_NullsafeMethodCall', 'Expr_StaticCall',
+            'Expr_New', 'Expr_Clone', 'Expr_ShellExec',
         ], true)) {
             return true;
         }

@@ -483,19 +483,24 @@ One diagnostic points at the declaration line and names the guard line. Reads
 inside the guard condition or body keep the declaration in place; closure captures
 count as reads. Loops take part through `continue` and `break` guards in their bodies.
 
+Invocations, construction, cloning and shell execution remain before the guard:
+their effects may be required on the exiting path. Writes, output and termination
+also remain in place; nested callable bodies are deferred.
+
 ```php
-// Reported: the report is computed even when the caller is gone.
-$report = $this->compile($request);
-if (! $request->user()->canSeeReports()) {
-    return abort(403);
+// Reported: the local snapshot is only read after the guard.
+$report = ['name' => $request['name'], 'email' => $request['email']];
+if (! $allowed) {
+    return [];
 }
 return $report;
 
-// Accepted: the guard comes first, the work follows.
-if (! $request->user()->canSeeReports()) {
-    return abort(403);
+// Accepted: the assertion must run even when no value was specified.
+$output = $this->assertPresent($name);
+if ($value === null) {
+    return;
 }
-return $this->compile($request);
+consume($output);
 ```
 
 There is no automatic fix: keep evaluation order and reference semantics when

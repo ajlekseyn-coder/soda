@@ -10,8 +10,10 @@ A variable declared before `return`, `throw`, `break`, or `continue` pays its co
 
 The guard must exit every branch: an `if` without `else` counts when its body ends with an exit, and an `if` with `else` or `elseif` counts when every branch does. Reads inside the guard condition or body keep the declaration in place, because the early-exit path genuinely needs the value. Closure captures count as reads. Loops take part through `continue` and `break` guards in their bodies.
 
-JSON processing stays before guards that read its error status through
-`json_last_error()` or `json_last_error_msg()`. Reference bindings are excluded.
+Function and method calls stay in place because their effects may be required on
+the exiting path. This includes JSON processing, whose error status is observable.
+Construction, cloning and shell execution also stay in place: they can invoke
+user code or external processes. Reference bindings are excluded.
 Callables containing `goto` are skipped because lexical order does not establish
 their execution order. Switch cases are inspected as separate statement lists.
 
@@ -23,32 +25,34 @@ Writes confined to the exiting branch do not change the surviving path's inputs.
 An initializer with an explicit write, increment or decrement stays in place:
 its state change also runs on the exiting path. Output, included or evaluated
 code, generator yields and explicit termination likewise prevent moving the
-initializer. Closure and arrow function bodies are deferred. Anonymous class
-bodies are separate scopes; constructor argument expressions are inspected.
+initializer. Closure and arrow function bodies are deferred. Object construction
+is retained even when its constructor arguments are simple.
 
 ## Examples
 
 ```php
-// ❌ the report is computed even when the user is gone
-public function handle(Request $request): Report
+// ❌ the snapshot is only read after the guard
+public function handle(array $request, bool $allowed): array
 {
-    $report = $this->compile($request);
+    $report = ['name' => $request['name'], 'email' => $request['email']];
 
-    if (! $request->user()->canSeeReports()) {
-        return abort(403);
+    if (! $allowed) {
+        throw new RuntimeException('Forbidden');
     }
 
     return $report;
 }
 
-// ✅ the guard comes first, the work follows
-public function handle(Request $request): Report
+// ✅ the guard comes first
+public function handle(array $request, bool $allowed): array
 {
-    if (! $request->user()->canSeeReports()) {
-        return abort(403);
+    if (! $allowed) {
+        throw new RuntimeException('Forbidden');
     }
 
-    return $this->compile($request);
+    $report = ['name' => $request['name'], 'email' => $request['email']];
+
+    return $report;
 }
 ```
 
