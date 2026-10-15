@@ -65,6 +65,12 @@ Package-local parent and trait declarations are located through the closest
 external contracts. Only declarations with the expected qualified name are used;
 autoload scripts and source files are parsed as data and never executed.
 
+An enclosing Composer manifest can also supply source roots when its `replace`
+map explicitly names the closest nested package. This preserves hooks shared by
+bundled components; an unrelated outer project or a mere `require` entry does
+not establish that source relationship. Selector assignments after a call do not
+invalidate the earlier dispatch; multiple preceding assignments remain ambiguous.
+
 ## Options
 
 - `contracts` (default `[]`): list of qualified `Class::method` names whose published factory API must remain available; matching methods are exempt regardless of case. Framework-recognized creation hooks are exempt automatically.

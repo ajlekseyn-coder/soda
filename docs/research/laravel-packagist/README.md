@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,169 after
-fourteen review rounds: 503 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 504 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,160 after
+fifteen review rounds: 512 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 513 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -26,13 +26,13 @@ multiplicity.
 | `no_catch_all_exceptions` | 221 | 218 | 3 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
-| `no_trivial_factories` | 127 | 87 | 40 |
+| `no_trivial_factories` | 127 | 78 | 49 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,346 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,357 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -66,7 +66,7 @@ and verify both the reported length and bound. A forged variable length and a
 duplicated namespace diagnostic were also rejected.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 22,409 retained findings unclassified. These policy checks do not prove
+this leaves 22,400 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -96,7 +96,9 @@ roots or PHP binaries exist, the remaining PHP files under the package root are
 scanned. Dependencies are not installed. Package-local PSR-4 mappings, including
 those declared for development, can supply reachable contract declarations outside
 the selected file list; these declarations are parsed without being linted or
-executed. Installed dependency metadata can provide external source when present.
+executed. An enclosing bundle can supply sibling source roots when its `replace`
+map explicitly names the closest nested package. Installed dependency metadata
+can provide external source when present.
 Loaded PHP internal classes and interfaces also provide native signature metadata
 without application autoloading.
 
@@ -108,7 +110,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 503 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 512 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -160,6 +162,13 @@ change a snapshot. MCP has a concrete write witness: `captureSessionId()` change
 moving the snapshot would change the later session-expiration decision. The other
 five entries conservatively retain property reads without a proof of pure, stable
 access.
+`round15-resolved.jsonl` records nine contracts across bundled Framework components:
+six JsonSchema interface signatures, two Image driver hooks and one Concurrency
+hook. Entries retain hashes of the enclosing and nested Composer manifests and
+the ancestor source. Each dispatch entry records a preceding selector definition
+and call; Concurrency's later fallback reassignment cannot invalidate its earlier
+factory invocation. Only explicit `replace` ownership supplies enclosing roots;
+unrelated manifests and `require` entries do not create contracts.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, and the 95
@@ -221,7 +230,9 @@ the original Runner cannot finish packages containing affected switches.
   replaceable implementations; final class/method controls remain detectable.
   Trait declarations also contribute resolved factory-hook contracts. The closest
   package manifest supplies local ancestors before consulting installed dependency
-  metadata; executable autoload files remain untouched.
+  metadata; executable autoload files remain untouched. Explicitly replaced nested
+  packages can also use sibling declarations from their enclosing bundle. Selector
+  definitions are considered only when they precede the observed call.
 
 Regression cases live in the corresponding rule test classes:
 `NoUnusedParametersTest`, `NoDeclarationsBeforeEarlyExitTest` and

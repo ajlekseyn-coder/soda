@@ -20,6 +20,10 @@ final class NoTrivialFactoriesTest extends TestCase
 
     public static function creationHooks(): iterable
     {
+        yield 'later selector assignment cannot invalidate an earlier call' => ['class Builder { function build($driver) { $method = "create".$driver."Driver"; if (method_exists($this, $method)) { return $this->$method(); } $method = "fallback".$driver; return $this->$method(); } protected function createSyncDriver() { return new Product; } }', 0];
+        yield 'multiple preceding assignments remain ambiguous' => ['class Builder { function build($driver) { $method = "create".$driver."Driver"; $method = input(); return $this->$method(); } protected function createSyncDriver() { return new Product; } }', 1];
+        yield 'a future assignment cannot establish an earlier selector' => ['class Builder { function build() { $this->$method(); $method = "createSyncDriver"; } protected function createSyncDriver() { return new Product; } }', 1];
+        yield 'another receiver does not establish the current hook' => ['class Builder { function build($other, $driver) { $method = "create".$driver."Driver"; return $other->$method(); } protected function createSyncDriver() { return new Product; } }', 1];
         yield 'protected instance hook' => ['class Builder { function build($value) { return $this->product($value); } protected function product($value) { return new Product($value); } }', 0];
         yield 'public instance hook' => ['class Builder { function build($value) { return $this->product($value); } public function product($value) { return new Product($value); } }', 0];
         yield 'trait creation hook' => ['trait Builder { function build($value) { return $this->product($value); } protected function product($value) { return new Product($value); } }', 0];
@@ -140,6 +144,53 @@ PHP;
                 unlink($path);
             }
         });
+    }
+
+    #[DataProvider('enclosingPackages')]
+    public function testStandardRunnerResolvesAnExplicitlyBundledPackage(array $outer, array $inner, int $count, bool $signature = false): void
+    {
+        $parent = 'namespace App; throw new \RuntimeException("Do not execute"); class BaseBuilder { function build($driver) { $method = "create".$driver."Driver"; if (method_exists($this, $method)) { return $this->$method(); } $method = "fallback".$driver; return $this->$method(); } }';
+        $child = 'namespace App\Feature; class Builder extends \App\BaseBuilder { protected function createSyncDriver() { return new Product; } public function unused($value) { return new Product($value); } }';
+        if ($signature) {
+            $parent = 'namespace App; throw new \\RuntimeException("Do not execute"); interface BaseBuilder { public function createSyncDriver(); }';
+            $child = str_replace(['extends \\App\\BaseBuilder', 'protected function'], ['implements \\App\\BaseBuilder', 'public function'], $child);
+        }
+
+        $this->withLocalPackage($outer, $parent, $child, function (array $files, string $root) use ($inner, $count): void {
+            $directory = $root.'/src/Feature';
+            mkdir($directory);
+            $manifest = $directory.'/composer.json';
+            $path = $directory.'/Builder.php';
+            file_put_contents($manifest, json_encode($inner, JSON_THROW_ON_ERROR));
+            file_put_contents($path, file_get_contents($files[0]));
+
+            try {
+                $result = (new Runner)->check([$path], RuleCatalog::standard());
+                $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_trivial_factories')->values();
+                self::assertCount($count, $findings);
+                self::assertContains('unused', $findings->pluck('method')->all());
+                self::assertFileDoesNotExist($root.'/src/executed');
+            } finally {
+                unlink($path);
+                unlink($manifest);
+                rmdir($directory);
+            }
+        });
+    }
+
+    public static function enclosingPackages(): iterable
+    {
+        $outer = ['name' => 'example/bundle', 'autoload' => ['psr-4' => ['App\\' => 'src/'], 'files' => ['autoload.php']]];
+        $inner = ['name' => 'example/feature', 'autoload' => ['psr-4' => ['App\\Feature\\' => '']]];
+        yield 'bundle supplies a sibling interface signature' => [$outer + ['replace' => ['example/feature' => 'self.version']], $inner, 1, true];
+        yield 'bundle declares the nested package it replaces' => [$outer + ['replace' => ['example/feature' => 'self.version']], $inner, 1];
+        yield 'require alone does not provide source' => [$outer + ['require' => ['example/feature' => '*']], $inner, 2];
+        yield 'an unrelated outer project is not a source provider' => [$outer, $inner, 2];
+        yield 'replacement names must match' => [$outer + ['replace' => ['example/other' => '*']], $inner, 2];
+        yield 'unnamed nested metadata cannot claim a replacement' => [$outer + ['replace' => ['example/feature' => '*']], ['autoload' => $inner['autoload']], 2];
+        yield 'the enclosing prefix must resolve the ancestor' => [
+            ['replace' => ['example/feature' => '*'], 'autoload' => ['psr-4' => ['Other\\' => 'src/']]], $inner, 2,
+        ];
     }
 
     private function withLocalPackage(array|string $manifest, string $parent, string $child, callable $test): void

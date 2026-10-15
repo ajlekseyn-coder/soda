@@ -37,18 +37,22 @@ final readonly class ComposerTypeSources
     }
 
     /**
-     * The closest package manifest owns local prefixes; an enclosing installation supplies dependencies.
+     * Local prefixes include enclosing bundles that explicitly replace the closest package.
      */
     private static function metadataFor(string $file): array
     {
         $paths = [];
-        $projectFound = false;
+        $owner = null;
         $directory = dirname($file);
         while (dirname($directory) !== $directory) {
             $project = $directory.'/composer.json';
-            if (! $projectFound && is_file($project)) {
-                $paths[] = $project;
-                $projectFound = true;
+            if (is_file($project)) {
+                $package = self::packagesIn($project)[0] ?? [];
+                if ($owner === null || array_key_exists($owner, (array) ($package['replace'] ?? []))) {
+                    $paths[] = $project;
+                }
+
+                $owner ??= $package['name'] ?? '';
             }
 
             $installed = $directory.'/vendor/composer/installed.json';
@@ -117,6 +121,8 @@ final readonly class ComposerTypeSources
         $development = $metadata['autoload-dev'] ?? [];
 
         return [
+            'name'         => is_string($metadata['name'] ?? null) ? $metadata['name'] : '',
+            'replace'      => $metadata['replace'] ?? [],
             'install-path' => '.',
             'autoload'     => ['psr-4' => array_merge_recursive($autoload['psr-4'] ?? [], $development['psr-4'] ?? [])],
         ];

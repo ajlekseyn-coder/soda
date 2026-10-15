@@ -35,16 +35,13 @@ final readonly class FactoryDispatchPatterns
                 }
 
                 $matches = array_filter($assignments, static fn (Expr\Assign $assignment): bool => $assignment->var instanceof Expr\Variable
-                    && $assignment->var->name === $call->name->name && self::isOwnedBy($assignment, $method));
+                    && $assignment->var->name === $call->name->name
+                    && $assignment->getStartFilePos() < $call->getStartFilePos() && self::isOwnedBy($assignment, $method));
                 if (count($matches) !== 1) {
                     continue;
                 }
 
                 $assignment = array_shift($matches);
-                if ($assignment->getStartFilePos() >= $call->getStartFilePos()) {
-                    continue;
-                }
-
                 $pattern = self::pattern($assignment->expr);
                 $hasLiteral = str_replace('.*', '', $pattern) !== '';
                 if ($hasLiteral) {
