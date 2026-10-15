@@ -2,9 +2,9 @@
     "packages": 81,
     "files": 5875,
     "manifest_sha256": "29ae5c78c75378ff9974ec17b9dbeb02b4d7e5115f1978f3b59c19ab88ae8375",
-    "verifier_sha256": "4728761c7254885f4e5a5ef8f541fa9d74725a4a4641eb28fd8f23442542d7ab",
+    "verifier_sha256": "67bf425d4a14986668f47c996cf46ce58be61b7a99f1ca1030167b175c117f7f",
     "source_set_sha256": "64a7695e4986ae3df5283d3ffcde69c0dc217fe01762a683eb0b43cc311d8281",
-    "scope": "Exact source measurements and AST declarations for six standard policies; no claim about other rules.",
+    "scope": "Exact source measurements and AST declarations for ten standard policies; no claim about other rules.",
     "rules": {
         "max_line_length": {
             "findings": 10130,
@@ -29,6 +29,38 @@
         "no_assignment_in_condition": {
             "findings": 1068,
             "diagnostic_multiset_sha256": "7e67f322066e1a78af33dc3c285b213fec187155aed0fc1d111b643ba4a6fca4"
+        },
+        "variable_name_length": {
+            "findings": 5506,
+            "diagnostic_multiset_sha256": "eeb9f5dff0c38f94ef569683df873b17a587f15816176f329f7bf184d842896f",
+            "byte_bounds": [
+                2,
+                16
+            ]
+        },
+        "method_name_length": {
+            "findings": 252,
+            "diagnostic_multiset_sha256": "c89c50dd9779ab3caab3aac3ca4b6dffcbd3cb1f7c016726eedd2502159bb0a1",
+            "byte_bounds": [
+                1,
+                32
+            ]
+        },
+        "class_name_length": {
+            "findings": 126,
+            "diagnostic_multiset_sha256": "63020386d786658c1737283a558ad9cfd138ad7eefb75b1df65c4ab2382cacd3",
+            "byte_bounds": [
+                3,
+                32
+            ]
+        },
+        "namespace_name_length": {
+            "findings": 526,
+            "diagnostic_multiset_sha256": "0a50b6f8813e43b865b3bd654e21330707785516632ba4fe861e9bea57c21933",
+            "byte_bounds": [
+                3,
+                32
+            ]
         }
     },
     "reflection_ancestors": {

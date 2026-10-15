@@ -37,7 +37,7 @@ and Pint also pass.
 
 ## Source-grounded policy review
 
-`verified-policies.json` records 33,174 findings checked against the pinned source:
+`verified-policies.json` records 39,584 findings checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
@@ -47,6 +47,10 @@ and Pint also pass.
 | `no_dynamic_properties` | 1 | The attribute resolves to PHP's global `AllowDynamicProperties`. |
 | `only_list_arrays` | 1,359 | Nested array indexing outside the default request/resource path exclusions. |
 | `no_assignment_in_condition` | 1,068 | A direct or compound assignment belongs to a control-flow condition within its callable scope. |
+| `variable_name_length` | 5,506 | Literal variable identifier outside the inclusive 2–16 byte bounds, preserving each occurrence. |
+| `method_name_length` | 252 | Method identifier outside the inclusive 1–32 byte bounds. |
+| `class_name_length` | 126 | Named class-like identifier outside the inclusive 3–32 byte bounds. |
+| `namespace_name_length` | 526 | Namespace segment outside the inclusive 3–32 byte bounds. |
 
 The verifier reads all 5,875 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
@@ -56,10 +60,13 @@ source set and each policy's diagnostic multiset. Deliberately forged line-lengt
 and parameter-name diagnostics were rejected during verification. The extended
 verifier also rejected a forged nested-index line and duplicated assignment
 diagnostic. Condition membership is checked by walking AST ancestors up to the
-nearest callable or type boundary, independently of Soda's rule traversal.
+nearest callable or type boundary, independently of Soda's rule traversal. Name
+measurements preserve repeated occurrences, skip computed variable identifiers,
+and verify both the reported length and bound. A forged variable length and a
+duplicated namespace diagnostic were also rejected.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 28,819 retained findings unclassified. These policy checks do not prove
+this leaves 22,409 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:

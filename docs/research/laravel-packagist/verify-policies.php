@@ -17,6 +17,8 @@ $manifest = json_decode(file_get_contents(__DIR__.'/packages.json'), true, flags
 $parser = (new ParserFactory)->createForNewestSupportedVersion();
 $finder = new NodeFinder;
 $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
+$nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
+$rules = [...$rules, ...array_keys($nameBounds)];
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -136,6 +138,34 @@ foreach ($manifest['packages'] as $spec) {
         }
         $expected['no_assignment_in_condition'] = array_map(strval(...), array_keys($conditionLines));
 
+        foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Expr\Variable
+            || $node instanceof Node\Stmt\ClassLike || $node instanceof Node\Stmt\ClassMethod
+            || $node instanceof Node\Stmt\Namespace_) as $named) {
+            $names = [];
+            $nameRule = null;
+            if ($named instanceof Node\Stmt\Namespace_) {
+                $names = $named->name?->getParts() ?? [];
+                $nameRule = 'namespace_name_length';
+            } elseif ($named instanceof Node\Stmt\ClassLike) {
+                $names = $named->name === null ? [] : [$named->name->toString()];
+                $nameRule = 'class_name_length';
+            } elseif ($named instanceof Node\Stmt\ClassMethod) {
+                $names = [$named->name->toString()];
+                $nameRule = 'method_name_length';
+            } elseif (is_string($named->name) && ! $named->getAttribute('parent') instanceof Node\Expr\Variable) {
+                $names = [$named->name];
+                $nameRule = 'variable_name_length';
+            }
+
+            foreach ($names as $identifier) {
+                [$minimum, $maximum] = $nameBounds[$nameRule];
+                $length = strlen($identifier);
+                if ($length < $minimum || $length > $maximum) {
+                    $expected[$nameRule][] = $named->getStartLine().':'.$identifier.':'.$length.':'.($length < $minimum ? $minimum : $maximum);
+                }
+            }
+        }
+
         $actual = array_fill_keys($rules, []);
         foreach ($byFile[$relative] ?? [] as $row) {
             if ($row['class'] !== null || $row['method'] !== null) {
@@ -149,6 +179,19 @@ foreach ($manifest['packages'] as $spec) {
                 }
 
                 $key .= ':'.$row['value'];
+            } elseif (isset($nameBounds[$row['rule']])) {
+                [$minimum, $maximum] = $nameBounds[$row['rule']];
+                if (preg_match('/^Name "(.+)" has length (\d+)\.$/D', $row['message'], $name) !== 1) {
+                    throw new RuntimeException('Unexpected name diagnostic: '.$path);
+                }
+
+                $length = strlen($name[1]);
+                $bound = $length < $minimum ? $minimum : $maximum;
+                if ($row['value'] !== $length || (int) $name[2] !== $length || $row['threshold'] !== $bound) {
+                    throw new RuntimeException('Unexpected name measurement: '.$path);
+                }
+
+                $key .= ':'.$name[1].':'.$length.':'.$bound;
             } elseif ($row['value'] !== 1 || $row['threshold'] !== 0) {
                 throw new RuntimeException('Unexpected syntax policy value: '.$path);
             }
@@ -209,12 +252,15 @@ $summary = [
     'manifest_sha256'   => hash_file('sha256', __DIR__.'/packages.json'),
     'verifier_sha256'   => hash_file('sha256', __FILE__),
     'source_set_sha256' => hash('sha256', implode("\n", $sourceHashes)."\n"),
-    'scope'             => 'Exact source measurements and AST declarations for six standard policies; no claim about other rules.',
+    'scope'             => 'Exact source measurements and AST declarations for ten standard policies; no claim about other rules.',
     'rules'             => [], 'reflection_ancestors' => $ancestry,
 ];
 foreach ($verified as $rule => $rows) {
     sort($rows);
     $summary['rules'][$rule] = ['findings' => count($rows), 'diagnostic_multiset_sha256' => hash('sha256', implode("\n", $rows)."\n")];
+    if (isset($nameBounds[$rule])) {
+        $summary['rules'][$rule]['byte_bounds'] = $nameBounds[$rule];
+    }
 }
 
 echo json_encode($summary, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n";
