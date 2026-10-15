@@ -44,15 +44,28 @@ final class ExternalParameterContractsTest extends TestCase
         });
     }
 
-    public function testUnrelatedArchivedDeclarationDoesNotExemptInput(): void
+    public function testUnrelatedArchivedDeclarationDoesNotResolvePublicInputsOrExemptPrivateInputs(): void
     {
         $this->withProject(function (string $root): void {
             $this->write($root, 'vendor/vendor/api/bootstrap.php', '<?php throw new \\RuntimeException("Do not execute");');
             $archive = new \PharData($root.'/vendor/vendor/api/contracts.zip');
             $archive['definitions/Scope.php'] = '<?php namespace Unrelated; interface Scope { public function apply($input); }';
             unset($archive);
-            $path = $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \\Vendor\\Api\\Scope { public function apply($input) {} }');
-            self::assertCount(1, $this->findings([$path]));
+            $path = $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \\Vendor\\Api\\Scope { public function apply($input, $extra = null) {} }');
+            self::assertSame([], $this->findings([$path]));
+            $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \\Vendor\\Api\\Scope { public function apply($input, $extra = null) {} private function own($unused) {} }');
+            $findings = $this->findings([$path]);
+            self::assertCount(1, $findings);
+            self::assertSame('own', $findings[0]->method);
+            self::assertStringContainsString('$unused', $findings[0]->message);
+            $archive = new \PharData($root.'/vendor/vendor/api/contracts.zip');
+            $archive['definitions/Scope.php'] = '<?php namespace Vendor\\Api; interface Scope { public function apply($input); }';
+            unset($archive);
+            $findings = $this->findings([$path]);
+            self::assertCount(2, $findings);
+            self::assertSame(['apply', 'own'], array_column($findings, 'method'));
+            self::assertStringContainsString('$extra', $findings[0]->message);
+            self::assertStringContainsString('$unused', $findings[1]->message);
         });
     }
 
@@ -69,15 +82,32 @@ final class ExternalParameterContractsTest extends TestCase
         });
     }
 
-    public function testUnresolvedOrUnrelatedDependencyDoesNotExemptInput(): void
+    public function testUnresolvedOrUnrelatedDependencyDoesNotExemptPrivateInputs(): void
     {
         $this->withProject(function (string $root): void {
             $this->write($root, 'vendor/vendor/api/src/Scope.php', '<?php namespace Vendor\Api; interface Scope { public function apply($builder, $model); }');
             $path = $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \Missing\Scope { public function apply($builder, $model) {} }');
-            self::assertCount(2, $this->findings([$path]));
+            self::assertSame([], $this->findings([$path]));
+            $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \Missing\Scope { public function apply($builder, $model) {} private function own($builder, $model) {} }');
+            $findings = $this->findings([$path]);
+            self::assertCount(2, $findings);
+            self::assertSame(['own', 'own'], array_column($findings, 'method'));
+            self::assertStringContainsString('$builder', $findings[0]->message);
+            self::assertStringContainsString('$model', $findings[1]->message);
             $this->write($root, 'vendor/vendor/api/src/Scope.php', '<?php broken syntax !!!');
             $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \Vendor\Api\Scope { public function apply($builder, $model) {} }');
-            self::assertCount(2, $this->findings([$path]));
+            self::assertSame([], $this->findings([$path]));
+            $this->write($root, 'src/OwnScope.php', '<?php namespace App; class OwnScope implements \Vendor\Api\Scope { public function apply($builder, $model) {} private function own($builder, $model) {} }');
+            $findings = $this->findings([$path]);
+            self::assertCount(2, $findings);
+            self::assertSame(['own', 'own'], array_column($findings, 'method'));
+            self::assertStringContainsString('$builder', $findings[0]->message);
+            self::assertStringContainsString('$model', $findings[1]->message);
+            $this->write($root, 'vendor/vendor/api/src/Scope.php', '<?php namespace Vendor\Api; interface Scope { public function apply($builder); }');
+            $findings = $this->findings([$path]);
+            self::assertCount(3, $findings);
+            self::assertSame(['apply', 'own', 'own'], array_column($findings, 'method'));
+            self::assertStringContainsString('$model', $findings[0]->message);
         });
     }
 

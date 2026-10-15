@@ -3813,7 +3813,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Archivable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Catalog\\Archivable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3824,7 +3824,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Auditable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Orders\\Auditable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3835,7 +3835,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Billable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Orders\\Billable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3846,7 +3846,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Billable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Subscriptions\\Billable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3857,7 +3857,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Consolidated declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Subscriptions\\Consolidated declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3868,7 +3868,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Exportable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Catalog\\Exportable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3879,7 +3879,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Exportable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Orders\\Exportable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3890,7 +3890,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Importable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Catalog\\Importable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3901,7 +3901,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Localized declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Catalog\\Localized declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3912,7 +3912,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Negotiable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Subscriptions\\Negotiable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3923,7 +3923,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Notifiable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Subscriptions\\Notifiable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3934,7 +3934,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Prioritized declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Orders\\Prioritized declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3945,7 +3945,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Publishable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Catalog\\Publishable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3956,7 +3956,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Reconciled declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Orders\\Reconciled declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3967,7 +3967,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Renewable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Subscriptions\\Renewable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3978,7 +3978,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Orders\\Reservable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Orders\\Reservable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -3989,7 +3989,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Catalog\\Searchable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Catalog\\Searchable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {
@@ -4000,7 +4000,7 @@
         "line": 7,
         "value": 1,
         "threshold": 0,
-        "message": "DemoApp\\Subscriptions\\Transferable declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.",
+        "message": "DemoApp\\Subscriptions\\Transferable declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.",
         "recommendation": "Remove decorative marker interfaces; list required external protocols explicitly."
     },
     {

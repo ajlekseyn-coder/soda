@@ -75,12 +75,18 @@ final class InheritedParameterContractsTest extends TestCase
 
     public function testUnknownOrPrivateParentDoesNotInventContract(): void
     {
-        self::assertCount(1, $this->findings(['<?php class Child extends Unknown { function run($unused) {} }']));
+        self::assertSame([], $this->findings(['<?php class Child extends Unknown { public function run($unknown) {} }']));
+        $findings = $this->findings(['<?php class Child extends Unknown { public function run($unknown) {} private function own($unused) {} }']);
+        self::assertCount(1, $findings);
+        self::assertSame('own', $findings[0]->method);
+        self::assertStringContainsString('$unused', $findings[0]->message);
         $findings = $this->findings([
             '<?php class ParentType { private function run($input) { return $input; } }',
             '<?php class Child extends ParentType { public function run($unused) {} }',
         ]);
         self::assertCount(1, $findings);
+        self::assertSame('run', $findings[0]->method);
+        self::assertStringContainsString('$unused', $findings[0]->message);
     }
 
     public function testConcreteConstructorCanChangeItsSignature(): void

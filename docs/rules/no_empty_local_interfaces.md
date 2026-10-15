@@ -1,12 +1,14 @@
 # no_empty_local_interfaces
 
-📝 Reports local interfaces that declare no methods and inherit no known method contract.
+📝 Reports local interfaces whose complete declared and inherited contract has no methods or properties.
 
 💼 This rule is enabled in the ✅ `standard` config.
 
 ## Why
 
-A marker interface that carries no methods and inherits none adds a name to the codebase without a contract: consumers cannot rely on it for anything except `instanceof` checks, and the intent ("attachable", "exportable") stays implicit. The rule reports every local interface with no declared or inherited method contract and advises removing the marker or declaring the required protocol explicitly. Interfaces extending external protocols can be exempted by name.
+A marker interface that carries no methods or properties and inherits none adds a name without a behavioral contract. The rule reports it only when every reachable ancestor is known to be empty. Constants and attributes do not establish a behavioral contract; PHP 8.4 interface properties do. Interfaces required by external protocols can be exempted by name.
+
+Inherited declarations are resolved across analyzed files, available Composer PSR-4 sources and installed dependencies. Dependency source and Composer JSON metadata are parsed without executing source files or autoloaders. Loaded internal PHP interfaces expose native contracts. Unknown ancestors, mismatched declarations and incomplete inheritance do not prove emptiness and produce no finding. An entirely known empty inheritance cycle still has no contract.
 
 ## Examples
 
@@ -28,18 +30,22 @@ interface Marker
 ```
 
 ```php
-// ❌ The parent is not part of the analyzed project, so no
-// method contract is known
-interface Marker extends ExternalProtocol {}
+// ✅ Throwable supplies an inherited method contract
+interface FailoverableException extends \Throwable {}
 
-// ✅ Accepted once the external protocol is declared explicitly
-// in configuration: new NoEmptyLocalInterfaces(['ExternalProtocol'])
-interface Marker extends ExternalProtocol {}
+// ✅ An unresolved ancestor does not prove an empty contract
+interface Response extends ExternalProtocol {}
+
+// ✅ A property contract is behavioral even without methods (PHP 8.4)
+interface Named
+{
+    public string $name { get; }
+}
 ```
 
 ## Options
 
-- `protocols` (default `[]`) — qualified marker interface names required by an explicitly named external protocol. These are exempt from the local method-contract requirement, both when declared locally and when referenced as an unknown parent.
+- `protocols` (default `[]`) — qualified marker interface names required by an explicitly named external protocol. These are exempt from the empty-contract restriction, both when declared locally and when referenced as an unknown parent.
 
 ## Configuration
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Architecture;
 
+use Cosmira\Soda\Analysis\Dependencies\ExternalParameterContracts;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
@@ -20,13 +21,13 @@ final class NoEmptyLocalInterfaces extends Check
      */
     public function __construct(
         /**
-         * External marker interfaces exempted from the local method-contract requirement.
+         * External marker interfaces exempted from the empty-contract restriction.
          */
         private readonly array $protocols = [],
     ) {}
 
     /**
-     * Report interfaces without a declared or inherited method contract.
+     * Report interfaces whose complete declared and inherited contract is empty.
      */
     public function checkProject(ProjectFacts $project): iterable
     {
@@ -38,43 +39,65 @@ final class NoEmptyLocalInterfaces extends Check
             }
         }
 
+        $contracts = ExternalParameterContracts::resolve($interfaces, array_keys($project->files));
         $protocols = array_fill_keys(array_map(strtolower(...), $this->protocols), true);
         foreach ($interfaces as $key => $declaration) {
-            if (isset($protocols[$key]) || $this->hasContract($key, $interfaces)) {
+            if (isset($protocols[$key]) || ! $this->isEmpty($key, $contracts)) {
                 continue;
             }
 
             yield new Violation(
                 rule: $this->id(), file: $declaration['file'], value: 1, threshold: 0,
                 class: $declaration['name'], line: $declaration['line'],
-                message: $declaration['name'].' declares no methods and inherits no known method contract. Remove the marker interface or declare its required protocol explicitly.',
+                message: $declaration['name'].' declares no methods or properties and its complete inherited contract is empty. Remove the marker interface or declare its required protocol explicitly.',
             );
         }
     }
 
     /**
-     * Follow parent interfaces across files, terminating on cycles.
+     * Every reachable parent must be known and empty before a marker is proven.
      */
-    private function hasContract(string $key, array $interfaces, array $seen = []): bool
+    private function isEmpty(string $key, array $interfaces, array $seen = []): bool
     {
         if (isset($seen[$key])) {
-            return false;
-        }
-
-        $seen[$key] = true;
-        $declaration = $interfaces[$key] ?? null;
-        $isExternalContract = $declaration === null && in_array($key, array_map(strtolower(...), $this->protocols), true);
-        if ($isExternalContract || ($declaration['methods'] ?? []) !== []) {
             return true;
         }
 
-        foreach ($declaration['parents'] ?? [] as $parent) {
-            if ($this->hasContract($parent, $interfaces, $seen)) {
-                return true;
+        $seen[$key] = true;
+        if (in_array($key, array_map(strtolower(...), $this->protocols), true)) {
+            return false;
+        }
+
+        $declaration = $interfaces[$key] ?? null;
+        if ($declaration === null) {
+            return $this->isEmptyNativeInterface($key);
+        }
+
+        if (! $declaration['isInterface'] || $declaration['hasProperties'] || $declaration['methods'] !== []) {
+            return false;
+        }
+
+        foreach ($declaration['parents'] as $parent) {
+            if (! $this->isEmpty($parent, $interfaces, $seen)) {
+                return false;
             }
         }
 
-        return false;
+        return true;
+    }
+
+    /**
+     * Only internal interfaces expose trusted runtime contracts without autoloading.
+     */
+    private function isEmptyNativeInterface(string $name): bool
+    {
+        if (! interface_exists($name, false)) {
+            return false;
+        }
+
+        $interface = new \ReflectionClass($name);
+
+        return $interface->isInternal() && $interface->getMethods() === [] && $interface->getProperties() === [];
     }
 
     /**

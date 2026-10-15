@@ -2,9 +2,9 @@
     "packages": 81,
     "files": 5875,
     "manifest_sha256": "29ae5c78c75378ff9974ec17b9dbeb02b4d7e5115f1978f3b59c19ab88ae8375",
-    "verifier_sha256": "62345e74e9c4bbe8168937261c7b67edc255aefedb58da4b7db60eb285d21057",
+    "verifier_sha256": "2307f1848c60f3bae379f9dc0312b2eba7e57922605d31af8acc64213d770fbc",
     "source_set_sha256": "64a7695e4986ae3df5283d3ffcde69c0dc217fe01762a683eb0b43cc311d8281",
-    "scope": "Exact source measurements and AST declarations for thirteen standard policies; no claim about other rules.",
+    "scope": "Exact source measurements and AST declarations for 22 standard policies; no claim about other rules.",
     "rules": {
         "max_line_length": {
             "findings": 10130,
@@ -73,6 +73,42 @@
         "multiline_constant_phpdoc": {
             "findings": 276,
             "diagnostic_multiset_sha256": "46dbd536d0ef67ce9e7bedbdc3b37f4ea315b6b6016e401cdabad7152499a268"
+        },
+        "no_error_suppression": {
+            "findings": 134,
+            "diagnostic_multiset_sha256": "ef1dbb7a33a046d3ef595b2e342c2e5874b289e3059a422ef62706715efc1cc4"
+        },
+        "no_runtime_includes": {
+            "findings": 99,
+            "diagnostic_multiset_sha256": "69b299c77f0540925412ac3acb5ee8950c33167d40fdbf7dd6c03dfba0384a4c"
+        },
+        "no_runtime_code_evaluation": {
+            "findings": 1,
+            "diagnostic_multiset_sha256": "062d297b84e666e1f7585f32e1dfb23e01fbeadda81139eb4265af14af3b82d8"
+        },
+        "no_global_state": {
+            "findings": 1,
+            "diagnostic_multiset_sha256": "06041f8f63db8bd9dcda6ccb907ba6809562dff3c96aed022fcc7bb6a4d5a34f"
+        },
+        "no_chained_assignments": {
+            "findings": 82,
+            "diagnostic_multiset_sha256": "729eefffcb0541560355239d710567ca68675bd7d42041c9f7526b538fe0cb96"
+        },
+        "no_nested_ternary": {
+            "findings": 44,
+            "diagnostic_multiset_sha256": "375c76b2284244189ce62ff58c9ec1bb850e38e04fd97969c919690db749fd29"
+        },
+        "no_behavior_magic_methods": {
+            "findings": 182,
+            "diagnostic_multiset_sha256": "46d4611f72c173b34d8d197b0de78f460f760f6129e9d54418fe14dda4fe764e"
+        },
+        "no_anonymous_classes": {
+            "findings": 46,
+            "diagnostic_multiset_sha256": "c1e7c7283843189b92b6e72354d4747799da23a8e5917fabbc791e24d62c2f2c"
+        },
+        "no_else_branches": {
+            "findings": 229,
+            "diagnostic_multiset_sha256": "8e8d3725c039649a45bfe8a6aa36d0e9d89fd04bbfcf44b7ca74de519f889435"
         }
     },
     "reflection_ancestors": {

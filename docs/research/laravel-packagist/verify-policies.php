@@ -19,7 +19,19 @@ $finder = new NodeFinder;
 $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
 $nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
 $docKinds = ['multiline_method_phpdoc' => 'method', 'multiline_property_phpdoc' => 'property', 'multiline_constant_phpdoc' => 'constant'];
-$rules = [...$rules, ...array_keys($nameBounds), ...array_keys($docKinds)];
+$syntaxMessages = [
+    'only_list_arrays'           => 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.',
+    'no_assignment_in_condition' => 'Assignment inside condition is forbidden. Assign first, then test the value.',
+    'no_error_suppression'       => 'Error suppression hides failures. Handle or translate the failure explicitly.',
+    'no_runtime_includes'        => 'Runtime includes hide executable dependencies. Use autoloaded classes or explicit configuration data.',
+    'no_runtime_code_evaluation' => 'Runtime code evaluation hides executable behavior. Use explicit policy objects or data-driven configuration.',
+    'no_global_state'            => 'Global state hides inputs and couples behavior to process-wide mutation.',
+    'no_chained_assignments'     => 'Chained assignments are forbidden. Write separate assignments, preserving right-to-left evaluation, single evaluation of the value and reference semantics.',
+    'no_nested_ternary'          => 'A full ternary contains another full ternary in its result branch. Name the inner decision or use explicit control flow, preserving evaluation order.',
+    'no_behavior_magic_methods'  => 'Behavioral magic methods hide the public API. Declare explicit methods and contracts.',
+    'no_anonymous_classes'       => 'Anonymous classes hide responsibilities and project size. Give the behavior a named type.',
+];
+$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), 'no_else_branches']));
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -97,6 +109,25 @@ $parameterNames = static function (string $body): array {
     return $names;
 };
 
+$isAssignment = static fn (Node $node): bool => $node instanceof Node\Expr\Assign
+    || $node instanceof Node\Expr\AssignRef || $node instanceof Node\Expr\AssignOp;
+$endsPath = static function (array $statements) use (&$endsPath): bool {
+    $last = $statements === [] ? null : $statements[array_key_last($statements)];
+    if ($last instanceof Node\Stmt\If_) {
+        foreach ([$last, ...$last->elseifs, $last->else] as $branch) {
+            if ($branch === null || ! $endsPath($branch->stmts)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return $last instanceof Node\Stmt\Return_ || $last instanceof Node\Stmt\Break_
+        || $last instanceof Node\Stmt\Continue_ || ($last instanceof Node\Stmt\Expression
+            && ($last->expr instanceof Node\Expr\Throw_ || $last->expr instanceof Node\Expr\Exit_));
+};
+
 foreach ($manifest['packages'] as $spec) {
     $name = explode('/', $spec['name'])[1];
     $report = $reports.'/'.$name.'.json';
@@ -137,6 +168,57 @@ foreach ($manifest['packages'] as $spec) {
             $length = strlen(rtrim($line, "\r"));
             if ($length > 100) {
                 $expected['max_line_length'][] = ($index + 1).':'.$length;
+            }
+        }
+
+        foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node) as $node) {
+            $rule = match (true) {
+                $node instanceof Node\Expr\ErrorSuppress => 'no_error_suppression',
+                $node instanceof Node\Expr\Include_      => 'no_runtime_includes',
+                $node instanceof Node\Expr\Eval_         => 'no_runtime_code_evaluation',
+                $node instanceof Node\Stmt\Global_,
+                $node instanceof Node\Expr\ArrayDimFetch && $node->var instanceof Node\Expr\Variable && $node->var->name === 'GLOBALS'                                     => 'no_global_state',
+                $node instanceof Node\Stmt\ClassMethod && in_array($node->name->toLowerString(), ['__call', '__callstatic', '__get', '__set', '__isset', '__unset'], true) => 'no_behavior_magic_methods',
+                default                                                                                                                                                    => null,
+            };
+            if ($rule !== null) {
+                $expected[$rule][] = (string) $node->getStartLine();
+            }
+
+            $parent = $node->getAttribute('parent');
+            if ($isAssignment($node) && $isAssignment($node->expr)
+                && ! ($parent instanceof Node && $isAssignment($parent) && $parent->expr === $node)) {
+                $expected['no_chained_assignments'][] = (string) $node->getStartLine();
+            }
+            if ($node instanceof Node\Expr\Ternary && $node->if !== null
+                && (($node->if instanceof Node\Expr\Ternary && $node->if->if !== null)
+                    || ($node->else instanceof Node\Expr\Ternary && $node->else->if !== null))) {
+                $expected['no_nested_ternary'][] = (string) $node->getStartLine();
+            }
+            if ($node instanceof Node\Stmt\Class_ && $node->name === null) {
+                $hooks = [];
+                foreach ($node->getMethods() as $method) {
+                    if ($method->isPublic() && $method->params === []) {
+                        $hooks[$method->name->toLowerString()] = true;
+                    }
+                }
+                $migration = $node->extends?->toLowerString() === 'illuminate\\database\\migrations\\migration'
+                    && isset($hooks['up'], $hooks['down']);
+                if (! $migration) {
+                    $expected['no_anonymous_classes'][] = (string) $node->getStartLine();
+                }
+            }
+            if (($node instanceof Node\Stmt\Else_ || $node instanceof Node\Stmt\ElseIf_) && $parent instanceof Node\Stmt\If_) {
+                $allExit = true;
+                foreach ([$parent, ...$parent->elseifs] as $previous) {
+                    if ($previous === $node) {
+                        break;
+                    }
+                    $allExit = $allExit && $endsPath($previous->stmts);
+                }
+                if ($allExit) {
+                    $expected['no_else_branches'][] = $node->getStartLine().':'.($node instanceof Node\Stmt\ElseIf_ ? 'elseif' : 'else');
+                }
             }
         }
 
@@ -293,10 +375,15 @@ foreach ($manifest['packages'] as $spec) {
                 $key .= ':'.$match[1];
             }
 
-            $syntaxMessages = [
-                'only_list_arrays'           => 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.',
-                'no_assignment_in_condition' => 'Assignment inside condition is forbidden. Assign first, then test the value.',
-            ];
+            if ($row['rule'] === 'no_else_branches') {
+                $kind = match ($row['message']) {
+                    'Avoid elseif after an unconditional exit. Use a separate if.'                => 'elseif',
+                    'Avoid else after an unconditional exit. Keep the remaining path unindented.' => 'else',
+                    default                                                                       => throw new RuntimeException('Unexpected branch diagnostic: '.$path),
+                };
+                $key .= ':'.$kind;
+            }
+
             if (isset($syntaxMessages[$row['rule']]) && $row['message'] !== $syntaxMessages[$row['rule']]) {
                 throw new RuntimeException('Unexpected syntax policy message: '.$path);
             }
@@ -341,7 +428,7 @@ $summary = [
     'manifest_sha256'   => hash_file('sha256', __DIR__.'/packages.json'),
     'verifier_sha256'   => hash_file('sha256', __FILE__),
     'source_set_sha256' => hash('sha256', implode("\n", $sourceHashes)."\n"),
-    'scope'             => 'Exact source measurements and AST declarations for thirteen standard policies; no claim about other rules.',
+    'scope'             => 'Exact source measurements and AST declarations for '.count($rules).' standard policies; no claim about other rules.',
     'rules'             => [], 'reflection_ancestors' => $ancestry,
 ];
 foreach ($verified as $rule => $rows) {

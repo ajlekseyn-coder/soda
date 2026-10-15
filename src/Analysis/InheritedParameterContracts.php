@@ -49,6 +49,8 @@ final readonly class InheritedParameterContracts
         $parentNames = array_map(static fn (Name $parent): string => $parent->toString(), self::parents($class));
 
         return [
+            'isInterface'     => $class instanceof Stmt\Interface_,
+            'hasProperties'   => $class->getProperties() !== [],
             'parentClass'     => self::parentClass($class),
             'traitNames'      => self::traitNames($class),
             'parentNames'     => $parentNames,

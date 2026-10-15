@@ -197,7 +197,7 @@ PHP);
         self::assertStringContainsString('$extra', $extra[0]->message);
         self::assertCount(2, $this->findings('<?php class Answers { public function offsetSet($offset, $value) {} }'));
         self::assertCount(2, $this->findings('<?php namespace App; interface ArrayAccess {} class Answers implements ArrayAccess { public function offsetSet($offset, $value) {} }'));
-        self::assertCount(1, $this->findings('<?php class Visitor implements \\PhpParser\\NodeVisitor { public function enterNode($node) {} }'));
+        self::assertCount(1, $this->findings('<?php namespace PhpParser { interface NodeVisitor {} } namespace App { class Visitor implements \\PhpParser\\NodeVisitor { public function enterNode($node) {} } }'));
         self::assertCount(1, $this->findings('<?php class Answers extends \\ArrayObject { public function __construct($input) {} }'));
     }
 
@@ -229,7 +229,7 @@ PHP);
     {
         $path = tempnam(sys_get_temp_dir(), 'soda-native-contracts-');
         self::assertIsString($path);
-        file_put_contents($path, '<?php class Answers implements \\ArrayAccess { public function offsetSet($offset, $value) { throw new \\LogicException; } public function offsetUnset($offset) { throw new \\LogicException; } } class Local extends SodaUnloadedParent { public function offsetSet($offset, $value) {} }');
+        file_put_contents($path, '<?php class Answers implements \\ArrayAccess { public function offsetSet($offset, $value) { throw new \\LogicException; } public function offsetUnset($offset) { throw new \\LogicException; } } class Local extends SodaUnloadedParent { private function offsetSet($offset, $value) {} }');
         $autoloaded = [];
         $autoload = static function (string $class) use (&$autoloaded): void {
             $autoloaded[] = $class;
@@ -334,6 +334,61 @@ PHP);
             rmdir($root.'/src');
             rmdir($root);
         }
+    }
+
+    public function testStandardRunnerRequiresCompleteInheritedContracts(): void
+    {
+        $root = sys_get_temp_dir().'/soda-unknown-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $contract = $root.'/Contracts.php';
+        $own = $root.'/Workers.php';
+        file_put_contents($contract, '<?php namespace App; interface EmptyContract {} interface KnownContract { public function run($value); } interface UnresolvedContract extends \Missing\Protocol {} trait SharedWorker { public function shared($value) {} }');
+        file_put_contents($own, '<?php namespace App; class UnknownWorker implements UnresolvedContract { use SharedWorker; public function run($value) {} private function own($private) {} } class OwnWorker implements EmptyContract { public function run($owned) {} } class KnownWorker implements KnownContract { public function run($value, $extra = null) {} } class UnknownConstructor extends \Missing\ParentType { public function __construct($input) {} } class OwnConstructor { public function __construct($input) {} }');
+        $autoloaded = [];
+        $autoload = static function (string $class) use (&$autoloaded): void {
+            $autoloaded[] = $class;
+        };
+        spl_autoload_register($autoload);
+
+        try {
+            foreach ([[$contract, $own], [$own, $contract]] as $paths) {
+                $result = (new Runner)->check($paths, RuleCatalog::standard());
+                self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+                self::assertCount(4, $findings);
+                self::assertSame(['own', 'run', 'run', '__construct'], $findings->map(static fn ($violation): ?string => $violation->method)->all());
+                self::assertStringContainsString('$extra', $findings[2]->message);
+            }
+            self::assertSame([], $autoloaded);
+        } finally {
+            spl_autoload_unregister($autoload);
+            unlink($contract);
+            unlink($own);
+            rmdir($root);
+        }
+    }
+
+    #[DataProvider('inheritedCompleteness')]
+    public function testMissingDeclarationsDoNotProveOwnedSignatures(string $source, int $expected): void
+    {
+        self::assertCount($expected, $this->findings('<?php '.$source));
+    }
+
+    public static function inheritedCompleteness(): iterable
+    {
+        yield 'unknown interface constructor' => ['class Record implements ExternalContract { public function __construct($input) {} }', 0];
+        yield 'unknown parent constructor' => ['class Record extends ExternalRecord { public function __construct($input) {} }', 0];
+        yield 'private constructor remains owned' => ['class Record extends ExternalRecord { private function __construct($input) {} }', 1];
+        yield 'unknown parent through a known ancestor' => ['class Base extends ExternalRecord {} class Record extends Base { protected function run($input) {} }', 0];
+        yield 'unknown trait requirement' => ['class Record { use ExternalTrait; public function run($input) {} }', 0];
+        yield 'same method on an independent class remains owned' => ['class Unknown implements ExternalContract { public function run($input) {} } class Own { public function run($input) {} }', 1];
+        yield 'known empty interface constructor remains owned' => ['interface Contract {} class Record implements Contract { public function __construct($input) {} }', 1];
+        yield 'known empty parent remains owned' => ['class Base {} class Record extends Base { protected function run($input) {} }', 1];
+        yield 'known empty cyclic ancestry remains owned' => ['interface First extends Second {} interface Second extends First {} class Record implements First { public function run($input) {} }', 1];
+        yield 'cycle with missing ancestor is incomplete' => ['interface First extends Second {} interface Second extends First, ExternalContract {} class Record implements First { public function run($input) {} }', 0];
+        yield 'anonymous unknown interface' => ['$record = new class implements ExternalContract { public function run($input) {} };', 0];
+        yield 'trait input required by one unresolved consumer' => ['trait Shared { public function run($input) {} } class Unknown implements ExternalContract { use Shared; } class Own { use Shared; }', 0];
+        yield 'private trait input remains owned' => ['trait Shared { private function run($input) {} } class Unknown implements ExternalContract { use Shared; }', 1];
     }
 
     private function findings(string $source, array $contracts = []): array

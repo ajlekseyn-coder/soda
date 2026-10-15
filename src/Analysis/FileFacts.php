@@ -62,7 +62,13 @@ use PhpParser\Node;
  *   ownerDesign?: array{types: array<string, array>, decisions: list<array>, updates: list<array>, sequences: list<array>, invocations: list<array>},
  *   classBehavior?: array<string, array>,
  *   privateState?: array<string, array{name: string, trait: bool, declarations: array<string, int>, traits: list<string>, reads: array<string, true>, methodReads: array<string, array<string, true>>}>,
- *   interfaceUsage?: array{declarations?: array<string, array{name: string, line: int, methods: list<string>, parents: list<string>}>, references?: array<string, true>, dependencies?: array<string, array<string, true>>},
+ *   interfaceUsage?: array{
+ *     declarations?: array<string, array{
+ *       name: string, line: int, isInterface: bool, hasProperties: bool,
+ *       parentNames: list<string>, methods: list<string>, parents: list<string>
+ *     }>,
+ *     references?: array<string, true>, dependencies?: array<string, array<string, true>>
+ *   },
  *   methodUsage?: list<Declaration>,
  *   cohesion?: array<string, array>,
  *   file_loc: int, classes_count: int, cognitiveExtras?: array<string, CognitiveRow>,

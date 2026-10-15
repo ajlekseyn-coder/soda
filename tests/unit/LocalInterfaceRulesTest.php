@@ -29,9 +29,9 @@ final class LocalInterfaceRulesTest extends TestCase
         self::assertSame([], $this->findings(new NoEmptyLocalInterfaces, $source));
     }
 
-    public function testUnknownParentsRequireAnExplicitProtocol(): void
+    public function testEmptyMarkersCanDeclareAnExplicitProtocol(): void
     {
-        $source = ['<?php interface Marker extends ExternalProtocol {}'];
+        $source = ['<?php interface ExternalProtocol {}'];
         self::assertCount(1, $this->findings(new NoEmptyLocalInterfaces, $source));
         self::assertSame([], $this->findings(new NoEmptyLocalInterfaces(['ExternalProtocol']), $source));
     }

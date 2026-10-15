@@ -23,6 +23,12 @@ Inherited signatures from loaded PHP internal classes and interfaces (such as
 `ArrayAccess`) are also preserved. Only internal metadata is inspected; application
 autoloaders are never invoked and loaded application classes do not supply contracts.
 
+When an ancestor or imported trait cannot be resolved from available source,
+public and protected methods may still implement an unknown signature. These
+positions are preserved rather than treating missing dependency information as a
+violation. Private methods retain their owned inputs;
+complete known contracts still preserve only their declared positions.
+
 ## Examples
 
 ```php

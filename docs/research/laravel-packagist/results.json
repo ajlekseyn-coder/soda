@@ -8,17 +8,17 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirteen standard policies have 50,606 source-grounded findings; 176 other retained findings were reviewed individually. The remaining 11,376 findings are not yet classified.",
-  "final_source_sha256": "c8cd3c8cac6a4e9d381ab55e9fbfd27e040dae6e79055e7d8055b85e24dfdc52",
-  "after": 62158,
-  "removed": 515,
-  "added": 1,
-  "resolved": 514,
-  "revised": 1,
+  "remaining_review": "Twenty-two standard policies have 51,424 source-grounded findings; 176 unchanged and 42 revised retained findings were reviewed individually. The remaining 10,342 findings are not yet classified.",
+  "final_source_sha256": "e1ae137a5a81a09e51d0c9b865c4980e7c936ac9150522d85dbaabbfe8fac81a",
+  "after": 61984,
+  "removed": 731,
+  "added": 43,
+  "resolved": 688,
+  "revised": 43,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 515,
-    "added": 1
+    "removed": 731,
+    "added": 43
   },
   "changed_rules": {
     "multiline_property_phpdoc": {
@@ -41,6 +41,11 @@
       "after": 39,
       "net_removed": 132
     },
+    "no_empty_local_interfaces": {
+      "before": 82,
+      "after": 42,
+      "net_removed": 40
+    },
     "no_repeated_type_dispatch": {
       "before": 40,
       "after": 34,
@@ -58,8 +63,8 @@
     },
     "no_unused_parameters": {
       "before": 950,
-      "after": 722,
-      "net_removed": 228
+      "after": 588,
+      "net_removed": 362
     },
     "no_unused_private_state": {
       "before": 2,
@@ -196,6 +201,13 @@
       "after": 62158,
       "resolved": 1,
       "revised": 0
+    },
+    {
+      "round": 18,
+      "before": 62158,
+      "after": 61984,
+      "resolved": 174,
+      "revised": 42
     }
   ],
   "packages": [
@@ -215,9 +227,9 @@
       "files": 511,
       "source_sha256": "6b1419024731e1e98a6bc9088a54d65cf8755246da6d01ebe748f6dea0358fd5",
       "before": 4455,
-      "after": 4435,
-      "removed": 20,
-      "added": 0
+      "after": 4431,
+      "removed": 25,
+      "added": 1
     },
     {
       "name": "laravel/airlock",
@@ -275,8 +287,8 @@
       "files": 103,
       "source_sha256": "de4c6937002ae525f1b4c95a9d6fcfce33f34f6ec39176ea4b52f49e3d5947eb",
       "before": 1404,
-      "after": 1391,
-      "removed": 13,
+      "after": 1388,
+      "removed": 16,
       "added": 0
     },
     {
@@ -285,8 +297,8 @@
       "files": 6,
       "source_sha256": "a80aee2cb5e26c4d8695f2b2ed93ceb1f2564da2f4ad316f36f355fe1cb8e433",
       "before": 210,
-      "after": 210,
-      "removed": 0,
+      "after": 209,
+      "removed": 1,
       "added": 0
     },
     {
@@ -295,8 +307,8 @@
       "files": 23,
       "source_sha256": "31b84a90518c28d9281317caafdede3423f838b9bd0ae87f6e74aab727a23914",
       "before": 306,
-      "after": 305,
-      "removed": 1,
+      "after": 303,
+      "removed": 3,
       "added": 0
     },
     {
@@ -305,8 +317,8 @@
       "files": 54,
       "source_sha256": "a1ed08bae386a620d702228460b40c8156659696ecc34be6c0e67f2fafc472e3",
       "before": 557,
-      "after": 556,
-      "removed": 1,
+      "after": 550,
+      "removed": 7,
       "added": 0
     },
     {
@@ -315,8 +327,8 @@
       "files": 8,
       "source_sha256": "19943bf3face44a268a887e74a412508418e94057fb1d45fc41604ab97c80c28",
       "before": 105,
-      "after": 102,
-      "removed": 3,
+      "after": 101,
+      "removed": 4,
       "added": 0
     },
     {
@@ -355,9 +367,9 @@
       "files": 357,
       "source_sha256": "3ea5350641b44002d137efb9a8509d2855e92fc428188b510f9dbb40d6d5c734",
       "before": 4064,
-      "after": 4062,
-      "removed": 3,
-      "added": 1
+      "after": 4052,
+      "removed": 14,
+      "added": 2
     },
     {
       "name": "laravel/database",
@@ -365,8 +377,8 @@
       "files": 28,
       "source_sha256": "ae6a1d9a4c86f27a141b4909f4e03ef5eff02b48d6d1a356895152f9907463d0",
       "before": 430,
-      "after": 425,
-      "removed": 5,
+      "after": 420,
+      "removed": 10,
       "added": 0
     },
     {
@@ -405,8 +417,8 @@
       "files": 37,
       "source_sha256": "2167a8e1f35e798e9905e4935320bef4f24cb15c6f0a95bbc99fdd00f9231009",
       "before": 208,
-      "after": 202,
-      "removed": 6,
+      "after": 201,
+      "removed": 7,
       "added": 0
     },
     {
@@ -435,9 +447,9 @@
       "files": 110,
       "source_sha256": "6ad129c4a242716572a9968925900cb47026a87913598e25fc37d2425a346722",
       "before": 277,
-      "after": 277,
-      "removed": 0,
-      "added": 0
+      "after": 242,
+      "removed": 38,
+      "added": 3
     },
     {
       "name": "laravel/framework",
@@ -445,9 +457,9 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26577,
-      "removed": 281,
-      "added": 0
+      "after": 26557,
+      "removed": 323,
+      "added": 22
     },
     {
       "name": "laravel/head",
@@ -475,8 +487,8 @@
       "files": 9,
       "source_sha256": "dbde1a6793690fb9009300afaf74b3cae1101fc4c2fb4f0032c0d6dac896cba5",
       "before": 87,
-      "after": 87,
-      "removed": 0,
+      "after": 84,
+      "removed": 3,
       "added": 0
     },
     {
@@ -485,9 +497,9 @@
       "files": 141,
       "source_sha256": "7d06366cdca1e1a43a5e7076eef38eb13fe71419e0ceec84103108a0132478a7",
       "before": 804,
-      "after": 801,
-      "removed": 3,
-      "added": 0
+      "after": 797,
+      "removed": 9,
+      "added": 2
     },
     {
       "name": "laravel/installer",
@@ -495,8 +507,8 @@
       "files": 7,
       "source_sha256": "fe97ae084cd75514c5ebe037cf2bea740f88648d052a8fdd99204ba1224898fb",
       "before": 343,
-      "after": 338,
-      "removed": 5,
+      "after": 335,
+      "removed": 8,
       "added": 0
     },
     {
@@ -505,9 +517,9 @@
       "files": 68,
       "source_sha256": "caf70c6b3bd3a5f2f3c0c4bfe776d5ffdd8213d066c762b2663459b58ff6ddfe",
       "before": 390,
-      "after": 390,
-      "removed": 0,
-      "added": 0
+      "after": 383,
+      "removed": 14,
+      "added": 7
     },
     {
       "name": "laravel/laravel",
@@ -525,8 +537,8 @@
       "files": 2,
       "source_sha256": "b0067c924ddf58b9d5cfd12cea87a457c49c01372ab8d59a844af2813650180d",
       "before": 30,
-      "after": 30,
-      "removed": 0,
+      "after": 29,
+      "removed": 1,
       "added": 0
     },
     {
@@ -561,8 +573,8 @@
       "source_sha256": "88599da1251c297cad8134df1ac6b36379bfd93642fa757f5912c8f8c68a58bc",
       "before": 1379,
       "after": 1356,
-      "removed": 23,
-      "added": 0
+      "removed": 24,
+      "added": 1
     },
     {
       "name": "laravel/lumen",
@@ -570,8 +582,8 @@
       "files": 17,
       "source_sha256": "8a0a8a843dff8b4f87591cfeae3c952ff25d53226c22c07b58db749f4666fd2f",
       "before": 11,
-      "after": 11,
-      "removed": 0,
+      "after": 10,
+      "removed": 1,
       "added": 0
     },
     {
@@ -580,8 +592,8 @@
       "files": 26,
       "source_sha256": "1591e10d72a1902460a3380775157730a8e0f16f2b0aeec4b9ceced1c9c2b89b",
       "before": 590,
-      "after": 587,
-      "removed": 3,
+      "after": 579,
+      "removed": 11,
       "added": 0
     },
     {
@@ -600,9 +612,9 @@
       "files": 174,
       "source_sha256": "93d0a226d80e95ac3745f2139a630a0724691774671dc83107e2cf3afec933e4",
       "before": 1636,
-      "after": 1592,
-      "removed": 44,
-      "added": 0
+      "after": 1591,
+      "removed": 46,
+      "added": 1
     },
     {
       "name": "laravel/nexmo-notification-channel",
@@ -630,8 +642,8 @@
       "files": 21,
       "source_sha256": "6c30b8902bcc717571949700669181656e9fff87f9248b156797c08d62f7ce0b",
       "before": 145,
-      "after": 145,
-      "removed": 0,
+      "after": 136,
+      "removed": 9,
       "added": 0
     },
     {
@@ -640,8 +652,8 @@
       "files": 5,
       "source_sha256": "7644683cf987226eb13e72b744d28370cbc5a4517f72b06700aa8ccdd9a4815c",
       "before": 13,
-      "after": 13,
-      "removed": 0,
+      "after": 12,
+      "removed": 1,
       "added": 0
     },
     {
@@ -660,8 +672,8 @@
       "files": 146,
       "source_sha256": "e53acd888dba13919946690b78bf567f541a2a44b99b07e168baa27459b08ab0",
       "before": 790,
-      "after": 778,
-      "removed": 12,
+      "after": 772,
+      "removed": 18,
       "added": 0
     },
     {
@@ -680,8 +692,8 @@
       "files": 20,
       "source_sha256": "f11a2acd572a3e02309c66e430a392c85494370842c957353c5099f157136f66",
       "before": 246,
-      "after": 240,
-      "removed": 6,
+      "after": 238,
+      "removed": 8,
       "added": 0
     },
     {
@@ -690,8 +702,8 @@
       "files": 29,
       "source_sha256": "268b9567f27b6081197faf69d8ba7deb68b558a16471d06cefd265c7b36bb136",
       "before": 41,
-      "after": 40,
-      "removed": 1,
+      "after": 37,
+      "removed": 4,
       "added": 0
     },
     {
@@ -700,8 +712,8 @@
       "files": 84,
       "source_sha256": "20c3552bc4810ee7e1f310c94a950d5fe6894168b5a30d70e94bb4bc7fd497ed",
       "before": 289,
-      "after": 288,
-      "removed": 1,
+      "after": 276,
+      "removed": 13,
       "added": 0
     },
     {
@@ -720,8 +732,8 @@
       "files": 49,
       "source_sha256": "b8d7daebc9cfe80c01800093fb8727e46790921ff8ff46844e50269c32163f4a",
       "before": 394,
-      "after": 390,
-      "removed": 4,
+      "after": 385,
+      "removed": 9,
       "added": 0
     },
     {
@@ -731,8 +743,8 @@
       "source_sha256": "59b57dc9b61fc018ee1d2f52d68418e550b6d8c654f2befeaafaddb3a1f9f67e",
       "before": 794,
       "after": 790,
-      "removed": 4,
-      "added": 0
+      "removed": 5,
+      "added": 1
     },
     {
       "name": "laravel/pulse",
@@ -770,8 +782,8 @@
       "files": 98,
       "source_sha256": "7cec7c53412cbda307176a1ca30bb3fc215cd3544493b5a80b1b85afc2677e33",
       "before": 431,
-      "after": 426,
-      "removed": 5,
+      "after": 425,
+      "removed": 6,
       "added": 0
     },
     {
@@ -810,9 +822,9 @@
       "files": 46,
       "source_sha256": "be4cba66b1f2987b01836efb9b4845d6da41e37b9177f6e29c292af41ada00d0",
       "before": 799,
-      "after": 789,
-      "removed": 10,
-      "added": 0
+      "after": 787,
+      "removed": 13,
+      "added": 1
     },
     {
       "name": "laravel/sentinel",
@@ -840,8 +852,8 @@
       "files": 30,
       "source_sha256": "22691345f5859d69bb3adbb1b120c594445bedc4c9e69f20ad3f356019ec61d0",
       "before": 133,
-      "after": 133,
-      "removed": 0,
+      "after": 129,
+      "removed": 4,
       "added": 0
     },
     {
@@ -860,8 +872,8 @@
       "files": 15,
       "source_sha256": "4571a458f23ed4ab5732e2b43f1297002ef1ce806bc62046517beb388653f0b3",
       "before": 71,
-      "after": 71,
-      "removed": 0,
+      "after": 70,
+      "removed": 1,
       "added": 0
     },
     {
@@ -871,8 +883,8 @@
       "source_sha256": "ffc34ed2d0d9f14b1e5a753089f98de175e0d2188e6696d37254eafd10dfc7bf",
       "before": 2015,
       "after": 2012,
-      "removed": 3,
-      "added": 0
+      "removed": 5,
+      "added": 2
     },
     {
       "name": "laravel/svelte-starter-kit",
@@ -890,8 +902,8 @@
       "files": 17,
       "source_sha256": "e254c2e71ff9fb78d8a1adb827e22ebb4b1b34f567c059ff3cd6aca8b8a24ca8",
       "before": 207,
-      "after": 206,
-      "removed": 1,
+      "after": 202,
+      "removed": 5,
       "added": 0
     },
     {
@@ -940,8 +952,8 @@
       "files": 156,
       "source_sha256": "83d02929ec3cc77c144e6ad777fb77b1f855404b4d96757a8dc0952678aaa8c1",
       "before": 1090,
-      "after": 1085,
-      "removed": 5,
+      "after": 1084,
+      "removed": 6,
       "added": 0
     },
     {
@@ -950,8 +962,8 @@
       "files": 71,
       "source_sha256": "23f1c47204db3fe7fd6ad27b7e85fac10ec6812679ddcb81d970111c4939792c",
       "before": 493,
-      "after": 491,
-      "removed": 2,
+      "after": 489,
+      "removed": 4,
       "added": 0
     },
     {
@@ -970,8 +982,8 @@
       "files": 96,
       "source_sha256": "b1544b4290d3ab0658e7c6c5ac7134b7ca28ce9dfa52cb1f35fe96018eb14a3c",
       "before": 1284,
-      "after": 1281,
-      "removed": 3,
+      "after": 1276,
+      "removed": 8,
       "added": 0
     },
     {
@@ -1016,9 +1028,10 @@
     }
   ],
   "review_coverage": {
-    "source_grounded_policy_findings": 50606,
+    "source_grounded_policy_findings": 51424,
     "individually_reviewed_retained": 176,
-    "remaining_unclassified": 11376,
-    "policy_proof": "verified-policies.json"
+    "remaining_unclassified": 10342,
+    "policy_proof": "verified-policies.json",
+    "individually_reviewed_revised": 42
   }
 }

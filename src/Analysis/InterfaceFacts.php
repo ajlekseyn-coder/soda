@@ -40,10 +40,13 @@ final class InterfaceFacts
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\Interface_::class) as $interface) {
             $name = $interface->namespacedName?->toString() ?? $interface->name->toString();
             $interfaces[strtolower($name)] = [
-                'name'    => $name,
-                'line'    => $interface->getStartLine(),
-                'methods' => array_map(fn (Stmt\ClassMethod $method): string => strtolower($method->name->toString()), $interface->getMethods()),
-                'parents' => array_map(fn (Node\Name $parent): string => strtolower($parent->toString()), $interface->extends),
+                'name'          => $name,
+                'isInterface'   => true,
+                'hasProperties' => $interface->getProperties() !== [],
+                'parentNames'   => array_map(fn (Node\Name $parent): string => $parent->toString(), $interface->extends),
+                'line'          => $interface->getStartLine(),
+                'methods'       => array_map(fn (Stmt\ClassMethod $method): string => strtolower($method->name->toString()), $interface->getMethods()),
+                'parents'       => array_map(fn (Node\Name $parent): string => strtolower($parent->toString()), $interface->extends),
             ];
         }
 
