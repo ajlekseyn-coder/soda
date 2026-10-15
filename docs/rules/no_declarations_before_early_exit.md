@@ -13,7 +13,10 @@ The guard must exit every branch: an `if` without `else` counts when its body en
 Function and method calls stay in place because their effects may be required on
 the exiting path. This includes JSON processing, whose error status is observable.
 Construction, cloning and shell execution also stay in place: they can invoke
-user code or external processes. Reference bindings are excluded.
+user code or external processes. Property reads stay in place: object properties
+can invoke getters or hooks, and moving a property snapshot across intervening
+work can observe changed state. Static property snapshots are retained too.
+Reference bindings are excluded.
 Callables containing `goto` are skipped because lexical order does not establish
 their execution order. Switch cases are inspected as separate statement lists.
 

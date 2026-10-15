@@ -485,7 +485,9 @@ count as reads. Loops take part through `continue` and `break` guards in their b
 
 Invocations, construction, cloning and shell execution remain before the guard:
 their effects may be required on the exiting path. Writes, output and termination
-also remain in place; nested callable bodies are deferred.
+also remain in place; nested callable bodies are deferred. Property reads are
+retained because they can invoke getters or hooks and their snapshots can change
+across intervening work.
 
 ```php
 // Reported: the local snapshot is only read after the guard.

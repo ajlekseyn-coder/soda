@@ -23,6 +23,16 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'property hook may change state' => ['class State { public int $value { get { audit(); return 42; } } } function run(State $state, bool $ready) { $snapshot = $state->value; if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'static snapshot precedes an explicit field write' => ['function run($ready) { $snapshot = State::$value; State::$value = 42; if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'property getter may change state' => ['function run($state, $field, $ready) { $snapshot = $state->value; if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'nullsafe property getter may change state' => ['function run($state, $field, $ready) { $snapshot = $state?->value; if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'dynamic property getter may change state' => ['function run($state, $field, $ready) { $snapshot = $state->{$field}; if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'property snapshot precedes a mutating call' => ['function run($state, $field, $ready) { $snapshot = $state->value; $state->advance(); if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'static property snapshot precedes mutation' => ['function run($state, $field, $ready) { $snapshot = State::$value; State::advance(); if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'array element can invoke its property getter' => ['function run($state, $field, $ready) { $snapshot = $state->values[0]; if (!$ready) { return; } save($snapshot); }', 0];
+        yield 'closure property read is deferred' => ['function run($state, $field, $ready) { $snapshot = function () use ($state) { return $state->value; }; if (!$ready) { return; } save($snapshot); }', 1];
+        yield 'arrow property read is deferred' => ['function run($state, $field, $ready) { $snapshot = fn () => $state->value; if (!$ready) { return; } save($snapshot); }', 1];
         yield 'function may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = perform(); if (!$ready) { return; } save($result); }', 0];
         yield 'namespaced function may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = \App\perform(); if (!$ready) { return; } save($result); }', 0];
         yield 'indirect function may change state' => ['function run($worker, $callback, $enabled, $ready) { $result = $callback(); if (!$ready) { return; } save($result); }', 0];
@@ -219,6 +229,49 @@ PHP);
             self::assertSame($path, $findings[0]->file);
             self::assertSame(19, $findings[0]->line);
             self::assertStringContainsString('line 20', $findings[0]->message);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testStandardRunnerPreservesPropertySnapshotsAndGetters(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-guard-properties-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+class Transport {
+    public ?string $session = null;
+    public function send(bool $unauthorized) {
+        $hadSession = $this->session !== null;
+        $this->captureSession();
+        if ($unauthorized) { return; }
+        consume($hadSession);
+    }
+    private function captureSession() { $this->session = 'next'; }
+}
+class Record {
+    public function __get($name) { audit($name); return 42; }
+}
+function readRecord(Record $record, bool $ready) {
+    $value = $record->answer;
+    if (!$ready) { return; }
+    consume($value);
+}
+function movable(array $record, bool $ready) {
+    $value = $record['answer'];
+    if (!$ready) { return; }
+    consume($value);
+}
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_declarations_before_early_exit')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+            self::assertSame(21, $findings[0]->line);
+            self::assertStringContainsString('line 22', $findings[0]->message);
         } finally {
             unlink($path);
         }

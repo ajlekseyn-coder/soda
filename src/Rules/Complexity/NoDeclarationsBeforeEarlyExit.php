@@ -185,6 +185,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
             'Expr_Yield', 'Expr_YieldFrom', 'Expr_Print', 'Expr_Include', 'Expr_Eval', 'Expr_Exit', 'Expr_Throw',
             'Expr_FuncCall', 'Expr_MethodCall', 'Expr_NullsafeMethodCall', 'Expr_StaticCall',
             'Expr_New', 'Expr_Clone', 'Expr_ShellExec',
+            'Expr_PropertyFetch', 'Expr_NullsafePropertyFetch', 'Expr_StaticPropertyFetch',
         ], true)) {
             return true;
         }
