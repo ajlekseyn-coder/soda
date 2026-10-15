@@ -10,16 +10,16 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,466 after
-two review rounds: 206 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 207 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,426 after
+three review rounds: 246 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 247 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
 
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
-| `no_unused_parameters` | 950 | 767 | 183 |
+| `no_unused_parameters` | 950 | 727 | 223 |
 | `no_declarations_before_early_exit` | 171 | 157 | 14 |
 | `useless_variable` | 6 | 3 | 3 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
@@ -27,7 +27,7 @@ multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,174 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,177 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Scope and reproduction
@@ -45,7 +45,9 @@ upstream `soda.php` files are never executed. Tests, vendor directories, Blade
 views, resources and scaffolding stubs are excluded. When no production autoload
 roots or PHP binaries exist, the remaining PHP files under the package root are
 scanned. Dependencies are not installed; external contracts are available only
-when their declarations occur in the selected source set.
+when their declarations occur in the selected source set. Loaded PHP internal
+classes and interfaces also provide native signature metadata without application
+autoloading.
 
 Each package report contains the exact source paths and SHA-256 hashes, the full
 diagnostic list, time and peak memory. `summary.json` records completed and failed
@@ -55,10 +57,13 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 206 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 246 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
+`round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
+19 for `SessionHandlerInterface`, and three for `php_user_filter`.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
-`reviewed-unchanged.jsonl` records the 29 inspected string-policy findings that remain. Changes
+`reviewed-unchanged.jsonl` records 81 retained findings: 29 string-policy findings
+and 52 recommendations about repeated branches and boolean expressions. Changes
 are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
@@ -71,7 +76,8 @@ the original Runner cannot finish packages containing affected switches.
   through `compact()`, argument introspection and included files. Recovery paths
   in `catch`/`finally` and alternative switch cases are analyzed independently.
   Anonymous classes preserve their declared interfaces and parent contracts with
-  file-scoped identities; extra parameters remain detectable.
+  file-scoped identities; extra parameters remain detectable. Loaded internal PHP
+  ancestors supply their native signatures without loading application classes.
 - `no_declarations_before_early_exit` preserves JSON operations observed through
   `json_last_error()`/`json_last_error_msg()`, reference bindings, and callables
   containing `goto`, whose execution order cannot be inferred lexically.

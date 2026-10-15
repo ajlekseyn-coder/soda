@@ -116,7 +116,7 @@ final readonly class InheritedParameterContracts
     }
 
     /**
-     * Index only declarations from this analysis, never autoload application code.
+     * Index source declarations without autoloading application code.
      *
      * @param array $types Declared type and inheritance facts used to resolve local contracts.
      */
@@ -227,6 +227,10 @@ final readonly class InheritedParameterContracts
         }
 
         $seen[$type] = true;
+        if (! isset($this->types[$type])) {
+            return $this->nativeSignature($type, $method);
+        }
+
         $declaration = $this->types[$type] ?? [];
         $methods = $declaration['methods'] ?? [];
         if (isset($methods[$method])) {
@@ -242,6 +246,29 @@ final readonly class InheritedParameterContracts
         }
 
         return count($matches) === 1 ? reset($matches) : [];
+    }
+
+    /**
+     * Loaded internal types expose PHP contracts without invoking an application autoloader.
+     */
+    private function nativeSignature(string $type, string $method): array
+    {
+        if (! class_exists($type, false) && ! interface_exists($type, false)) {
+            return [];
+        }
+
+        $native = new \ReflectionClass($type);
+        if (! $native->isInternal() || ! $native->hasMethod($method)) {
+            return [];
+        }
+
+        $signature = $native->getMethod($method);
+
+        return [
+            'arity'               => $signature->getNumberOfParameters(),
+            'private'             => $signature->isPrivate(),
+            'constructorContract' => $native->isInterface() || $signature->isAbstract(),
+        ];
     }
 
     /**

@@ -18,6 +18,10 @@ Anonymous classes retain declared parent and interface contracts. Their identiti
 are scoped to the source file, and additional parameters beyond the inherited
 signature remain eligible for diagnostics.
 
+Inherited signatures from loaded PHP internal classes and interfaces (such as
+`ArrayAccess`) are also preserved. Only internal metadata is inspected; application
+autoloaders are never invoked and loaded application classes do not supply contracts.
+
 ## Examples
 
 ```php

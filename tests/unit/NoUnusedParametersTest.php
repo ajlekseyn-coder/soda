@@ -155,6 +155,73 @@ PHP);
         self::assertSame([], $this->findings($extra, ['App\\Worker::run']));
     }
 
+    public function testNativeContractsPreserveOnlyInheritedPositions(): void
+    {
+        $source = '<?php namespace App; use ArrayAccess as Indexed; class Answers implements Indexed { public function offsetSet($offset, $value) { throw new \\LogicException; } public function offsetUnset($offset) { throw new \\LogicException; } }';
+        self::assertSame([], $this->findings($source));
+        self::assertSame([], $this->findings('<?php $answers = new class implements \\ArrayAccess { public function offsetSet($offset, $value) {} };'));
+        self::assertSame([], $this->findings('<?php interface Indexed extends \\ArrayAccess {} class Answers implements Indexed { public function offsetSet($offset, $value) {} }'));
+        self::assertSame([], $this->findings('<?php class Answers extends \\ArrayObject { public function offsetSet($offset, $value) {} }'));
+        self::assertSame([], $this->findings('<?php class Capture extends \\php_user_filter { public function filter($in, $out, &$consumed, $closing) {} }'));
+        self::assertCount(1, $this->findings('<?php class Capture extends \\php_user_filter { public function filter($in, $out, &$consumed, $closing, $extra = null) {} }'));
+        self::assertSame([], $this->findings('<?php class Sessions implements \\SessionHandlerInterface { public function open($path, $name): bool { return true; } public function close(): bool { return true; } public function read($id): string { return ""; } public function write($id, $data): bool { return true; } public function destroy($id): bool { return true; } public function gc($lifetime): int { return 0; } }'));
+        $extra = $this->findings('<?php class Answers implements \\ArrayAccess { public function offsetSet($offset, $value, $extra = null) {} }');
+        self::assertCount(1, $extra);
+        self::assertStringContainsString('$extra', $extra[0]->message);
+        self::assertCount(2, $this->findings('<?php class Answers { public function offsetSet($offset, $value) {} }'));
+        self::assertCount(2, $this->findings('<?php namespace App; interface ArrayAccess {} class Answers implements ArrayAccess { public function offsetSet($offset, $value) {} }'));
+        self::assertCount(1, $this->findings('<?php class Visitor implements \\PhpParser\\NodeVisitor { public function enterNode($node) {} }'));
+        self::assertCount(1, $this->findings('<?php class Answers extends \\ArrayObject { public function __construct($input) {} }'));
+    }
+
+    public function testStandardRunnerResolvesNativeContractsAcrossFiles(): void
+    {
+        $directory = sys_get_temp_dir().'/soda-native-parents-'.bin2hex(random_bytes(6));
+        mkdir($directory);
+        $contract = $directory.'/Contract.php';
+        $implementation = $directory.'/Answers.php';
+        file_put_contents($contract, '<?php namespace App; interface Indexed extends \\ArrayAccess {}');
+        file_put_contents($implementation, '<?php namespace App; class Answers implements Indexed { public function offsetSet($offset, $value, $extra = null) {} }');
+
+        try {
+            foreach ([[$contract, $implementation], [$implementation, $contract]] as $files) {
+                $result = (new Runner)->check($files, RuleCatalog::standard());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+                self::assertCount(1, $findings);
+                self::assertSame($implementation, $findings[0]->file);
+                self::assertStringContainsString('$extra', $findings[0]->message);
+            }
+        } finally {
+            unlink($contract);
+            unlink($implementation);
+            rmdir($directory);
+        }
+    }
+
+    public function testStandardRunnerResolvesNativeContractsWithoutAutoloadingApplicationCode(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-native-contracts-');
+        self::assertIsString($path);
+        file_put_contents($path, '<?php class Answers implements \\ArrayAccess { public function offsetSet($offset, $value) { throw new \\LogicException; } public function offsetUnset($offset) { throw new \\LogicException; } } class Local extends SodaUnloadedParent { public function offsetSet($offset, $value) {} }');
+        $autoloaded = [];
+        $autoload = static function (string $class) use (&$autoloaded): void {
+            $autoloaded[] = $class;
+        };
+        spl_autoload_register($autoload);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+            self::assertCount(2, $findings);
+            self::assertSame('Local', $findings[0]->class);
+            self::assertSame('Local', $findings[1]->class);
+            self::assertNotContains('SodaUnloadedParent', $autoloaded);
+        } finally {
+            spl_autoload_unregister($autoload);
+            unlink($path);
+        }
+    }
+
     public function testAnonymousClassesPreserveOnlyInheritedPositions(): void
     {
         $source = '<?php interface Caster { function get($model, $key); } $caster = new class implements Caster { function get($model, $key) {} };';
