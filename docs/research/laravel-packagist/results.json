@@ -8,7 +8,7 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Four standard policies have 30,747 source-grounded findings; 176 other retained findings were reviewed individually. The remaining 31,252 findings are not yet classified.",
+  "remaining_review": "Six standard policies have 33,174 source-grounded findings; 176 other retained findings were reviewed individually. The remaining 28,825 findings are not yet classified.",
   "final_source_sha256": "ba074297aad87160ebcba2bd1fff05d89c461ed1bf18e96792eb5accbbf3c9f0",
   "after": 62175,
   "removed": 498,
@@ -978,9 +978,9 @@
     }
   ],
   "review_coverage": {
-    "source_grounded_policy_findings": 30747,
+    "source_grounded_policy_findings": 33174,
     "individually_reviewed_retained": 176,
-    "remaining_unclassified": 31252,
+    "remaining_unclassified": 28825,
     "policy_proof": "verified-policies.json"
   }
 }

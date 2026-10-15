@@ -2,9 +2,9 @@
     "packages": 81,
     "files": 5875,
     "manifest_sha256": "29ae5c78c75378ff9974ec17b9dbeb02b4d7e5115f1978f3b59c19ab88ae8375",
-    "verifier_sha256": "3b725aebad402c3fc202bdaf151aa5eec2dd2b240df0828fb0e844f677d78d89",
+    "verifier_sha256": "4728761c7254885f4e5a5ef8f541fa9d74725a4a4641eb28fd8f23442542d7ab",
     "source_set_sha256": "64a7695e4986ae3df5283d3ffcde69c0dc217fe01762a683eb0b43cc311d8281",
-    "scope": "Exact source measurements and AST declarations for four standard policies; no claim about other rules.",
+    "scope": "Exact source measurements and AST declarations for six standard policies; no claim about other rules.",
     "rules": {
         "max_line_length": {
             "findings": 10130,
@@ -21,6 +21,14 @@
         "no_dynamic_properties": {
             "findings": 1,
             "diagnostic_multiset_sha256": "83f60d965147fbe34018842e6da39e0bb40e3128a4c4ba5436e1b27a52b64fea"
+        },
+        "only_list_arrays": {
+            "findings": 1359,
+            "diagnostic_multiset_sha256": "61ba4fd0b5cc1b8f4ecbdb6d0464c1b51857e13766b18d7b5bfde71cb2fc95d8"
+        },
+        "no_assignment_in_condition": {
+            "findings": 1068,
+            "diagnostic_multiset_sha256": "7e67f322066e1a78af33dc3c285b213fec187155aed0fc1d111b643ba4a6fca4"
         }
     },
     "reflection_ancestors": {

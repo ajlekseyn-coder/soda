@@ -37,7 +37,7 @@ and Pint also pass.
 
 ## Source-grounded policy review
 
-`verified-policies.json` records 30,747 findings checked against the pinned source:
+`verified-policies.json` records 33,174 findings checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
@@ -45,16 +45,21 @@ and Pint also pass.
 | `no_untyped_parameters` | 20,389 | The parameter declaration has no native type. |
 | `no_reflection` | 227 | Construction resolves to a native reflection class or a source-proved subclass. |
 | `no_dynamic_properties` | 1 | The attribute resolves to PHP's global `AllowDynamicProperties`. |
+| `only_list_arrays` | 1,359 | Nested array indexing outside the default request/resource path exclusions. |
+| `no_assignment_in_condition` | 1,068 | A direct or compound assignment belongs to a control-flow condition within its callable scope. |
 
 The verifier reads all 5,875 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
 point multiplicities. Reflection subclasses require a declared, unambiguous path
 to a native reflection type. SHA-256 digests cover the verifier, pinned manifest,
 source set and each policy's diagnostic multiset. Deliberately forged line-length
-and parameter-name diagnostics were rejected during verification.
+and parameter-name diagnostics were rejected during verification. The extended
+verifier also rejected a forged nested-index line and duplicated assignment
+diagnostic. Condition membership is checked by walking AST ancestors up to the
+nearest callable or type boundary, independently of Soda's rule traversal.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 31,252 retained findings unclassified. These policy checks do not prove
+this leaves 28,825 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:

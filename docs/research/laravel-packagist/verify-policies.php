@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
+use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use PhpParser\ParserFactory;
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';
@@ -15,7 +16,7 @@ $sources = realpath($argv[2] ?? $reports.'/sources');
 $manifest = json_decode(file_get_contents(__DIR__.'/packages.json'), true, flags: JSON_THROW_ON_ERROR);
 $parser = (new ParserFactory)->createForNewestSupportedVersion();
 $finder = new NodeFinder;
-$rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties'];
+$rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -33,6 +34,27 @@ $encode = static function (array $row): string {
     ksort($row);
 
     return json_encode($row, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+};
+
+$insideCondition = static function (Node $assignment): bool {
+    $child = $assignment;
+    for ($parent = $child->getAttribute('parent'); $parent instanceof Node; $parent = $parent->getAttribute('parent')) {
+        if ($parent instanceof Node\FunctionLike || $parent instanceof Node\Stmt\ClassLike) {
+            return false;
+        }
+
+        $single = $parent instanceof Node\Stmt\If_ || $parent instanceof Node\Stmt\ElseIf_
+            || $parent instanceof Node\Stmt\While_ || $parent instanceof Node\Stmt\Do_
+            || $parent instanceof Node\Expr\Ternary;
+        if (($single && $parent->cond === $child)
+            || ($parent instanceof Node\Stmt\For_ && in_array($child, $parent->cond, true))) {
+            return true;
+        }
+
+        $child = $parent;
+    }
+
+    return false;
 };
 
 foreach ($manifest['packages'] as $spec) {
@@ -61,7 +83,7 @@ foreach ($manifest['packages'] as $spec) {
 
         $sourceHashes[] = $spec['name']."\0".$relative."\0".$sha;
         $source = file_get_contents($path);
-        $nodes = (new NodeTraverser(new NameResolver))->traverse($parser->parse($source) ?? []);
+        $nodes = (new NodeTraverser(new NameResolver, new ParentConnectingVisitor))->traverse($parser->parse($source) ?? []);
         foreach ($finder->findInstanceOf($nodes, Node\Stmt\Class_::class) as $class) {
             if ($class->name !== null && $class->extends !== null) {
                 $key = strtolower($class->namespacedName->toString());
@@ -97,6 +119,23 @@ foreach ($manifest['packages'] as $spec) {
             }
         }
 
+        $skipArrayPolicy = fnmatch('*Request.php', basename($path)) || fnmatch('*Resource.php', basename($path));
+        $nestedLines = [];
+        foreach ($finder->findInstanceOf($nodes, Node\Expr\ArrayDimFetch::class) as $fetch) {
+            if (! $skipArrayPolicy && $fetch->var instanceof Node\Expr\ArrayDimFetch) {
+                $nestedLines[$fetch->getStartLine()] = true;
+            }
+        }
+        $expected['only_list_arrays'] = array_map(strval(...), array_keys($nestedLines));
+
+        $conditionLines = [];
+        foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Expr\Assign || $node instanceof Node\Expr\AssignOp) as $assignment) {
+            if ($insideCondition($assignment)) {
+                $conditionLines[$assignment->getStartLine()] = true;
+            }
+        }
+        $expected['no_assignment_in_condition'] = array_map(strval(...), array_keys($conditionLines));
+
         $actual = array_fill_keys($rules, []);
         foreach ($byFile[$relative] ?? [] as $row) {
             if ($row['class'] !== null || $row['method'] !== null) {
@@ -120,6 +159,14 @@ foreach ($manifest['packages'] as $spec) {
                 }
 
                 $key .= ':'.$match[1];
+            }
+
+            $syntaxMessages = [
+                'only_list_arrays'           => 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.',
+                'no_assignment_in_condition' => 'Assignment inside condition is forbidden. Assign first, then test the value.',
+            ];
+            if (isset($syntaxMessages[$row['rule']]) && $row['message'] !== $syntaxMessages[$row['rule']]) {
+                throw new RuntimeException('Unexpected syntax policy message: '.$path);
             }
 
             $actual[$row['rule']][] = $key;
@@ -162,7 +209,7 @@ $summary = [
     'manifest_sha256'   => hash_file('sha256', __DIR__.'/packages.json'),
     'verifier_sha256'   => hash_file('sha256', __FILE__),
     'source_set_sha256' => hash('sha256', implode("\n", $sourceHashes)."\n"),
-    'scope'             => 'Exact source measurements and AST declarations for four standard policies; no claim about other rules.',
+    'scope'             => 'Exact source measurements and AST declarations for six standard policies; no claim about other rules.',
     'rules'             => [], 'reflection_ancestors' => $ancestry,
 ];
 foreach ($verified as $rule => $rows) {
