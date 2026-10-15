@@ -7,6 +7,10 @@ namespace Cosmira\Soda\Analysis\Composition;
 use Cosmira\Soda\Analysis\Architecture\Cohesion;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\AssignOp\Coalesce;
+use PhpParser\Node\Expr\ConstFetch;
+use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
 
@@ -51,7 +55,10 @@ final class ClassBehaviorFacts
         $methods = [];
         foreach ($class->getMethods() as $method) {
             $scope = $class instanceof Stmt\Trait_ ? null : strtolower($name);
-            $methods[$method->name->toLowerString()] = MethodBehaviorFacts::collect($method, $name, $scope);
+            $methods[$method->name->toLowerString()] = [
+                ...MethodBehaviorFacts::collect($method, $name, $scope),
+                'sharedReturn' => self::hasSharedReturn($method->stmts ?? [], $method->isStatic(), $class),
+            ];
         }
 
         foreach (self::fields($class) as $field => $metadata) {
@@ -84,7 +91,10 @@ final class ClassBehaviorFacts
                 'blocked'    => $property->hooks !== [] || $property->isStatic(),
             ];
             foreach ($property->props as $item) {
-                yield $item->name->toString() => $metadata;
+                yield $item->name->toString() => [
+                    ...$metadata,
+                    'objectCache' => self::isEmptyStaticSlot($property->isStatic(), $item->default),
+                ];
             }
         }
 
@@ -94,9 +104,10 @@ final class ClassBehaviorFacts
             }
 
             yield $parameter->var->name => [
-                'visibility' => $parameter->isPrivate() ? 'private' : 'public',
-                'type'       => self::typeName($parameter->type),
-                'blocked'    => $parameter->hooks !== [],
+                'visibility'  => $parameter->isPrivate() ? 'private' : 'public',
+                'type'        => self::typeName($parameter->type),
+                'blocked'     => $parameter->hooks !== [],
+                'objectCache' => false,
             ];
         }
     }
@@ -109,5 +120,47 @@ final class ClassBehaviorFacts
         $resolved = $type instanceof Node\NullableType ? $type->type : $type;
 
         return $resolved instanceof Node\Name ? strtolower($resolved->toString()) : null;
+    }
+
+    /**
+     * A lazy construction returned from a declared static slot proves object reuse.
+     */
+    private static function hasSharedReturn(array $body, bool $static, Stmt\ClassLike $class): bool
+    {
+        $statements = array_values(array_filter($body, static fn (Node $node): bool => $node->getType() !== 'Stmt_Nop'));
+        $return = count($statements) === 1 ? $statements[0] : null;
+        $expression = $return?->getType() === 'Stmt_Return' ? get_object_vars($return)['expr'] : null;
+        if (! $static || ! $expression instanceof Coalesce || ! $expression->expr instanceof New_) {
+            return false;
+        }
+
+        $slot = self::sharedSlot($expression->var);
+        foreach (self::fields($class) as $field => $metadata) {
+            if ($field === $slot && $metadata['objectCache']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A non-null initial scalar makes the object-construction fallback unreachable until another write.
+     */
+    private static function isEmptyStaticSlot(bool $static, ?Node $default): bool
+    {
+        return $static && ($default === null || ($default instanceof ConstFetch && $default->name->toLowerString() === 'null'));
+    }
+
+    /**
+     * Dynamic property names and foreign receivers do not prove an owned storage slot.
+     */
+    private static function sharedSlot(Node $slot): ?string
+    {
+        if (! $slot instanceof StaticPropertyFetch || ! $slot->class instanceof Node\Name || $slot->name->getType() !== 'VarLikeIdentifier') {
+            return null;
+        }
+
+        return in_array($slot->class->toLowerString(), ['self', 'static'], true) ? get_object_vars($slot->name)['name'] : null;
     }
 }

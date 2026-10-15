@@ -2442,17 +2442,6 @@
         "recommendation": "Inject time and retry coordination rather than blocking inside application behavior."
     },
     {
-        "rule": "no_singleton_access",
-        "file": "demo-app/iterations/16-singleton-access.php",
-        "method": null,
-        "class": null,
-        "line": 24,
-        "value": 1,
-        "threshold": 0,
-        "message": "Singleton access hides construction and lifetime. Inject the collaborator explicitly.",
-        "recommendation": "Construct collaborators at the composition root and inject their explicit lifetime."
-    },
-    {
         "rule": "no_reflection",
         "file": "demo-app/iterations/17-reflection-hydrator.php",
         "method": null,

@@ -54,6 +54,7 @@ use PhpParser\Node;
  * @phpstan-import-type Declaration from \Cosmira\Soda\Analysis\Usage\UnusedMethodDeclarations
  *
  * @phpstan-type FileMetrics array{
+ *   staticAccessors?: list<array{class: string|null, method: string, line: int}>,
  *   representationFlow?: array{types: array<string, array>, callables: array<string, array>, truncated: list<array>},
  *   registeredMiddleware?: array<string, true>,
  *   parameterInputs?: list<array>, parameterContracts?: array<string, array>,

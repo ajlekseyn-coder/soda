@@ -6,7 +6,14 @@
 
 ## Why
 
-A static singleton accessor hides construction and lifetime: callers cannot see that they depend on the singleton's type, the shared instance cannot be replaced for tests, and lifetime decisions leak into every call site. The rule reports every static call named `instance` or `getInstance` (case-insensitive) and advises constructing collaborators at the composition root and injecting their explicit lifetime instead.
+A static singleton accessor hides construction and lifetime: callers cannot see that they depend on the singleton's type, the shared instance cannot be replaced for tests, and lifetime decisions leak into every call site. The rule checks static calls named `instance` or `getInstance` (case-insensitive) only when a resolved declaration proves that an object is cached in shared storage. The name alone does not establish a singleton: a factory can construct or clone an independent value.
+
+The current proof recognizes a static method returning `self::$slot ??= new ...`
+or `static::$slot ??= new ...`, with an initially null static property declared
+by that class or trait. Inherited and trait methods are resolved across analyzed files;
+overrides replace the inherited body. Missing or ambiguous declarations and
+other method bodies remain unreported. Package code is never loaded to infer
+behavior. A first-class callable reference is not itself an accessor execution.
 
 ## Examples
 
@@ -14,9 +21,11 @@ A static singleton accessor hides construction and lifetime: callers cannot see 
 // ❌ Construction and lifetime are hidden behind a static accessor
 final class GlobalFeatureManager
 {
+    private static ?self $current = null;
+
     public static function instance(): self
     {
-        return new self();
+        return self::$current ??= new self();
     }
 
     public function resolve(string $feature): string

@@ -51,7 +51,7 @@ final class NamedRulesCompatibilityTest extends TestCase
 
             return $rows;
         };
-        self::assertCount(392, $expected);
+        self::assertCount(391, $expected);
         self::assertSame($sort($expected), $sort($actual));
     }
 }

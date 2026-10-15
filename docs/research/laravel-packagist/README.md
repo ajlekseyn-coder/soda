@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,406 after
-nine review rounds: 266 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 267 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,320 after
+ten review rounds: 352 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 353 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -25,12 +25,13 @@ multiplicity.
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
 | `no_catch_all_exceptions` | 221 | 218 | 3 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
+| `no_singleton_access` | 181 | 95 | 86 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,258 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,284 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -51,8 +52,8 @@ to a native reflection type. SHA-256 digests cover the verifier, pinned manifest
 source set and each policy's diagnostic multiset. Deliberately forged line-length
 and parameter-name diagnostics were rejected during verification.
 
-Together with the 81 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 31,578 retained findings unclassified. These policy checks do not prove
+Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
+this leaves 31,397 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -92,7 +93,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 266 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 352 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -109,9 +110,19 @@ starter kit. Chisel's pinned `Filesystem/File.php` consumes each marker as a
 separate block comment; the ledger includes that consumer's source hash.
 `round9-resolved.jsonl` records the Blade compiler's loop-counter increment that
 must still execute before a malformed-expression guard throws.
+`round10-resolved.jsonl` records 86 accessor calls whose names do not prove shared
+object storage. This includes value factories and conservative suppression when
+the target declaration or its sharing behavior is unresolved; it does not assert
+that external containers construct fresh objects. Targets are recorded using
+resolved imports, with dynamic receivers left unknown.
+`round10-reviewed.jsonl` records 95 retained singleton accesses: 88 to Framework's
+container, one to `Once`, and six to Folio's metadata. Each has a pinned declaration
+returning an object cached with `??=` in a declared static slot. The ledger records
+the caller and declaration hashes, method, return and storage lines.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
-`reviewed-unchanged.jsonl` records 81 retained findings: 29 string-policy findings
-and 52 recommendations about repeated branches and boolean expressions. Changes
+`reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
+52 recommendations about repeated branches and boolean expressions, and the 95
+source-proved singleton accesses. Changes
 are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
@@ -153,11 +164,18 @@ the original Runner cannot finish packages containing affected switches.
   tool directive. Joining section markers changes how source tools recognize
   section boundaries. PHPDoc tag blocks and ordinary prose remain checked.
 
+- `no_singleton_access` requires resolved shared-object storage rather than an
+  accessor name. Scalar method facts survive inheritance and trait selection;
+  unknown declarations, overrides returning fresh values and callable references
+  do not establish a singleton. Duplicate declarations remain ambiguous. The
+  demo's fresh-object factory is now a negative case; real cached-object controls
+  continue to trigger the rule.
+
 Regression cases live in the corresponding rule test classes:
 `NoUnusedParametersTest`, `NoDeclarationsBeforeEarlyExitTest` and
 `UselessVariableRuleTest`, together with `NoRepeatedTypeDispatchTest` and
 `PreferNullCoalesceAssignmentTest`, `NoCatchAllExceptionsTest` and
-`NoConsecutiveBlockCommentsTest`. Controls
+`NoConsecutiveBlockCommentsTest` and `NoSingletonAccessTest`. Controls
 continue to require genuine violations. Cross-file anonymous contracts and
 inherited selectors are also exercised in reverse file order.
 

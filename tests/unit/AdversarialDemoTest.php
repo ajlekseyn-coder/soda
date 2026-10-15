@@ -164,6 +164,11 @@ final class AdversarialDemoTest extends TestCase
 
                 continue;
             }
+            if (basename($iterationFile) === '16-singleton-access.php') {
+                $this->assertSame([], $newViolations, 'A factory returning a fresh object does not prove shared singleton storage.');
+
+                continue;
+            }
             $this->assertCount(1, $newViolations, basename($iterationFile).' must motivate exactly one new rule');
             $this->assertSame($introducedRules[$index]->id(), $newViolations[0]->rule);
 
@@ -196,14 +201,14 @@ final class AdversarialDemoTest extends TestCase
         foreach ($iterationFiles as $iterationFile) {
             $phpDocCounts[$iterationFile] = count(CheckFixture::collect($iterationFile, $phpDocRules)['violations']);
         }
-        $this->assertStringContainsString((count($iterationFiles) - 9 + array_sum($phpDocCounts)).' issues', $report);
+        $this->assertStringContainsString((count($iterationFiles) - 10 + array_sum($phpDocCounts)).' issues', $report);
         $this->assertStringContainsString('$service', $report);
         $this->assertStringContainsString('Private property ledger is never read', $report);
         $this->assertStringContainsString('Research (nongating): representation_churn', $report);
         $qualityReport = strstr($report, 'Research (nongating):', true) ?: $report;
 
         foreach ($iterationFiles as $iterationFile) {
-            $expectedMentions = in_array(basename($iterationFile), ['07-boolean-parameter.php', '09-static-state.php', '12-nullable-boolean.php', '15-static-local-cache.php', '44-dynamic-construction.php', '45-prototype-copy.php', '48-method-contract-probe.php', '49-property-contract-probe.php', '50-callable-contract-probe.php'], true) ? 0 : 1;
+            $expectedMentions = in_array(basename($iterationFile), ['07-boolean-parameter.php', '09-static-state.php', '12-nullable-boolean.php', '15-static-local-cache.php', '16-singleton-access.php', '44-dynamic-construction.php', '45-prototype-copy.php', '48-method-contract-probe.php', '49-property-contract-probe.php', '50-callable-contract-probe.php'], true) ? 0 : 1;
             if ($phpDocCounts[$iterationFile] > 0) {
                 $expectedMentions = 1;
             }
