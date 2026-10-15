@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,159 after
-sixteen review rounds: 513 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 514 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,158 after
+seventeen review rounds: 514 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 515 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -27,13 +27,14 @@ multiplicity.
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
+| `multiline_property_phpdoc` | 4,637 | 4,636 | 1 |
 | `no_trivial_factories` | 127 | 78 | 49 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,369 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,385 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -67,7 +68,7 @@ and verify both the reported length and bound. A forged variable length and a
 duplicated namespace diagnostic were also rejected.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 22,399 retained findings unclassified. These policy checks do not prove
+this leaves 22,398 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -111,7 +112,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 513 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 514 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -176,6 +177,12 @@ clears it before reporting a processing failure. Its value need not be explicitl
 read: releasing the retained allocation uses its storage lifetime. The ledger
 records allocation, callback registration, release and dependent work locations
 under the same source hash.
+`round17-resolved.jsonl` records the promoted `config` property in Framework's
+ExceptionReporter. Its constructor already has a multiline prose PHPDoc and an
+exact `@param array{...} $config` entry. The type spans lines, so a single-line
+matching pattern missed it. The ledger records the parameter, constructor,
+comment hash and complete matching tag; callable parameters, quoted keys and tag
+descriptions cannot substitute for the outer parameter name.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 176 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, and the 95
@@ -185,6 +192,10 @@ The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
 
 ## Corrections
+
+- `multiline_property_phpdoc` reads complete constructor parameter tags across
+  lines. Balanced type delimiters and quoted literals keep callable arguments
+  and shape keys separate from the actual promoted property name.
 
 - `no_unused_private_state` preserves explicit null releases just as it preserves
   unsetting a slot. Releasing retained data can end an allocation or resource

@@ -14,6 +14,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeFinder;
+use PhpToken;
 
 final class MultilinePropertyPhpDoc extends Check
 {
@@ -95,10 +96,42 @@ final class MultilinePropertyPhpDoc extends Check
             return false;
         }
 
-        $name = preg_quote((string) $parameter->var->name, '/');
-        $pattern = '/^\s*\*\s*@param\s+[^\r\n$]+\s+&?\$'.$name.'(?=\s|$)/m';
+        $comment = $constructor->getDocComment()?->getText() ?? '';
+        $comment = preg_replace('/^\h*\*\h?/m', '', $comment) ?? '';
+        preg_match_all('/^\h*@param\h+(.+?)(?=^\h*@[a-zA-Z]|\z)/ms', $comment, $annotations);
+        foreach ($annotations[1] as $annotation) {
+            $hasType = preg_match('/^(?:\??[a-zA-Z_\x80-\xff\\\\]|-?[0-9]|[\'"(]|\$this\b)/', ltrim($annotation)) === 1;
+            if ($hasType && $this->doesAnnotationTarget($annotation, (string) $parameter->var->name)) {
+                return true;
+            }
+        }
 
-        return preg_match($pattern, $constructor->getDocComment()?->getText() ?? '') === 1;
+        return false;
+    }
+
+    /**
+     * Quoted keys and callable parameters cannot supply the promoted field's tag target.
+     */
+    private function doesAnnotationTarget(string $annotation, string $variable): bool
+    {
+        $typeSource = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/s', "'literal'", $annotation) ?? $annotation;
+        $depth = 0;
+        foreach (PhpToken::tokenize('<?php '.$typeSource) as $token) {
+            if ($token->id === T_VARIABLE && $depth === 0 && $token->text !== '$this') {
+                return $token->text === '$'.$variable;
+            }
+
+            $depth += match ($token->text) {
+                '<', '(', '[', '{'       => 1,
+                '>', '>>', ')', ']', '}' => -strlen($token->text),
+                default                  => 0,
+            };
+            if ($depth < 0) {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     /**

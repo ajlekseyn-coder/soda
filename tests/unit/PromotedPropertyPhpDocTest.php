@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Tests;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Documentation\MultilinePropertyPhpDoc;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +26,68 @@ final class PromotedPropertyPhpDocTest extends TestCase
             self::assertNull($hit->method);
             self::assertGreaterThan(0, $hit->line);
             self::assertStringContainsString('property::'.$names[$index].' ', $hit->message);
+        }
+    }
+
+    #[DataProvider('parameterTypes')]
+    public function testConstructorParameterTypeKeepsItsExactTarget(string $annotation, string $parameters, array $names): void
+    {
+        $code = "class Example {\n/**\n * Preserve the source options.\n *\n * @param ".$annotation."\n */\npublic function __construct(".$parameters.") {}\n}";
+        $this->testPromotedProperties($code, ['public', 'protected', 'private'], $names);
+    }
+
+    public static function parameterTypes(): iterable
+    {
+        yield 'multiline shape' => ["array{\n * stop: bool,\n *} \$config", 'public array $config', []];
+        yield 'multiline nested generics' => ["array<string,\n * array<int, string>> \$config", 'public array $config', []];
+        yield 'callable parameter is not the promoted field' => ['Closure(string $label): void $callback', 'public \Closure $callback, public string $label', ['label']];
+        yield 'multiline callable' => ["Closure(\n * string \$label,\n * int \$flags,\n *): void \$callback", 'public \Closure $callback', []];
+        yield 'nested callable in generics' => ['array<string, array<int, Closure(string $label): void>> $config', 'public array $config', []];
+        yield 'quoted dollar key is not the promoted field' => ['array{"$config": int} $other', 'public array $config', ['config']];
+        yield 'quoted dollar key does not hide the actual target' => ['array{"$other": int} $config', 'public array $config', []];
+        yield 'parameter prefix is not an exact match' => ['array $configuration', 'public array $config', ['config']];
+        yield 'description mention is not the target' => ['string $other Do not use $config here.', 'public string $config', ['config']];
+        yield 'type is required' => ['$config', 'public array $config', ['config']];
+        yield 'reference without a type is not documentation' => ['&$config', 'public array $config', ['config']];
+        yield 'reference annotation' => ['array &$config', 'public array &$config', []];
+        yield 'intersection type' => ['(\Countable&\IteratorAggregate)|array $config', 'public mixed $config', []];
+        yield 'literal integer type' => ['0|1 $config', 'public int $config', []];
+        yield 'later parameter tag remains separate' => ["array{\n * stop: bool,\n *} \$config\n * @param int \$count", 'public array $config, public int $count, public int $missing', ['missing']];
+    }
+
+    public function testStandardRunnerAcceptsAMultilineConstructorTagOnlyForItsOwnProperty(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-promoted-shape-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+class Options {
+    /**
+     * Keep the reporting options.
+     *
+     * @param array{
+     *     stop: bool,
+     * } $config
+     */
+    public function __construct(
+        private array $config,
+        private string $missing,
+    ) {}
+}
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'multiline_property_phpdoc')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+            self::assertSame('Options', $findings[0]->class);
+            self::assertSame(12, $findings[0]->line);
+            self::assertSame(0, $findings[0]->value);
+            self::assertSame(1, $findings[0]->threshold);
+            self::assertStringContainsString('property::missing ', $findings[0]->message);
+        } finally {
+            unlink($path);
         }
     }
 

@@ -8,6 +8,11 @@
 
 Properties carry state whose meaning — units, invariants, lifecycle — is rarely obvious from the type declaration alone. A one-line `/** ... */` or a tag-only block restates the type without explaining the purpose. The rule reports each selected property that lacks a multiline PHPDoc (`/**` … `*/`, at least three lines) with a prose description before the first `@` tag. Promoted constructor parameters are treated as property declarations: they accept either their own docblock or a constructor PHPDoc whose `@param` entry names the parameter exactly.
 
+Constructor `@param` types may span lines and contain array shapes, nested
+generics, callable signatures or quoted keys. Only the outer parameter name
+documents the promoted property: callable argument names, quoted dollar keys and
+mentions in the tag description do not substitute for that exact target.
+
 ## Examples
 
 ```php
