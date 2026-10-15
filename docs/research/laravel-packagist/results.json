@@ -9,15 +9,15 @@
   "files": 5875,
   "before": 62672,
   "remaining_review": "Not individually classified; no claim that every remaining diagnostic is a true positive.",
-  "final_source_sha256": "914ae737cb8165e9010289d47aa2eac3cc4168b2e7aa27378be9194ed9a8aea5",
-  "after": 62420,
-  "removed": 253,
+  "final_source_sha256": "f45187b29c3383a2092a5dfb9323f0093437070df3e040c6e8d5b0329f39d84f",
+  "after": 62419,
+  "removed": 254,
   "added": 1,
-  "resolved": 252,
+  "resolved": 253,
   "revised": 1,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 253,
+    "removed": 254,
     "added": 1
   },
   "changed_rules": {
@@ -35,6 +35,11 @@
       "before": 950,
       "after": 727,
       "net_removed": 223
+    },
+    "prefer_null_coalesce_assignment": {
+      "before": 16,
+      "after": 15,
+      "net_removed": 1
     },
     "useless_variable": {
       "before": 6,
@@ -69,6 +74,13 @@
       "before": 62426,
       "after": 62420,
       "resolved": 6,
+      "revised": 0
+    },
+    {
+      "round": 5,
+      "before": 62420,
+      "after": 62419,
+      "resolved": 1,
       "revised": 0
     }
   ],
@@ -179,8 +191,8 @@
       "files": 54,
       "source_sha256": "a1ed08bae386a620d702228460b40c8156659696ecc34be6c0e67f2fafc472e3",
       "before": 557,
-      "after": 557,
-      "removed": 0,
+      "after": 556,
+      "removed": 1,
       "added": 0
     },
     {

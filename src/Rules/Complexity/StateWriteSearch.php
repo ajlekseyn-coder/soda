@@ -10,7 +10,7 @@ use PhpParser\Node\Expr\CallLike;
 use PhpParser\NodeFinder;
 
 /**
- * Detects assignments and calls nested inside an expression subtree.
+ * Detects state changes and calls nested inside an expression subtree.
  *
  * @internal
  */
@@ -27,14 +27,12 @@ final readonly class StateWriteSearch
     }
 
     /**
-     * Report whether the subtree assigns or invokes, so reevaluation is never pure.
+     * Calls and increments also make reevaluation of an assignment target observable.
      */
     public static function hasStateWriteOrCall(Node $node): bool
     {
-        return self::hasMatch($node, static fn (Node $inner): bool => $inner instanceof Expr\Assign
-            || $inner instanceof Expr\AssignRef
-            || $inner instanceof Expr\AssignOp
-            || $inner instanceof CallLike);
+        return self::hasStateWrite($node) || self::hasMatch($node, static fn (Node $inner): bool => $inner instanceof CallLike
+            || in_array($inner->getType(), ['Expr_PreInc', 'Expr_PostInc', 'Expr_PreDec', 'Expr_PostDec'], true));
     }
 
     /**

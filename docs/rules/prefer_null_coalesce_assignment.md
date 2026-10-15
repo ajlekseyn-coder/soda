@@ -6,25 +6,34 @@
 
 ## Why
 
-`$value = $value ?? $fallback` names the target twice and asks the reader to confirm both spellings agree. The `??=` operator assigns the fallback in one step and evaluates the target once. The rule reports assignments whose right side is a null coalesce whose left operand prints exactly like the assignment target — plain variables, array dimensions, and property fetches all qualify.
+`$value = $value ?? $fallback` names the target twice and asks the reader to confirm both spellings agree. The `??=` operator assigns the fallback in one step and evaluates the target once. The rule compares assignments whose right side is a null coalesce whose left operand prints exactly like the assignment target.
 
-Targets evaluated through calls stay outside the comparison: the merged operator would evaluate them once instead of twice, which is a behavior change, not a cleanup.
+Targets evaluated through calls, assignments or increments stay outside the comparison: the merged operator would evaluate them once instead of twice, changing behavior.
+
+A property qualifies only when it is an ordinary declared mutable field on `$this`
+inside a method of a final class with no parent, traits or magic accessors. Hooked,
+readonly and unknown properties stay outside the recommendation: `??=` can skip
+an observable write when the current value is non-null. Rebound closures do not
+inherit their enclosing method's property proof.
 
 ## Examples
 
 ```php
 // ❌ the target is spelled twice
-$this->scope = $this->scope ?? 'web';
+$scope = $scope ?? 'web';
 $cache['limits'] = $cache['limits'] ?? [];
 
 // ✅ one operator carries the fallback
-$this->scope ??= 'web';
+$scope ??= 'web';
 $cache['limits'] ??= [];
 ```
 
 ```php
 // ✅ a call on the left side is evaluated for a reason and stays
 $value = resolve($value) ?? 'draft';
+
+// ✅ the model's setter may need to observe every assignment
+$subscription->type = $subscription->type ?? 'default';
 ```
 
 ## Configuration
