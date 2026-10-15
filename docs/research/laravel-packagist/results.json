@@ -9,22 +9,22 @@
   "files": 5875,
   "before": 62672,
   "remaining_review": "Not individually classified; no claim that every remaining diagnostic is a true positive.",
-  "final_source_sha256": "c3e3b7768d82fc8ac371425c6d1d686cb3ce0ba765058e3bc8db6befdc6ccb84",
-  "after": 62426,
-  "removed": 247,
+  "final_source_sha256": "914ae737cb8165e9010289d47aa2eac3cc4168b2e7aa27378be9194ed9a8aea5",
+  "after": 62420,
+  "removed": 253,
   "added": 1,
-  "resolved": 246,
+  "resolved": 252,
   "revised": 1,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 247,
+    "removed": 253,
     "added": 1
   },
   "changed_rules": {
     "no_declarations_before_early_exit": {
       "before": 171,
-      "after": 157,
-      "net_removed": 14
+      "after": 151,
+      "net_removed": 20
     },
     "no_repeated_type_dispatch": {
       "before": 40,
@@ -63,6 +63,13 @@
       "after": 62426,
       "resolved": 40,
       "revised": 0
+    },
+    {
+      "round": 4,
+      "before": 62426,
+      "after": 62420,
+      "resolved": 6,
+      "revised": 0
     }
   ],
   "packages": [
@@ -82,8 +89,8 @@
       "files": 511,
       "source_sha256": "6b1419024731e1e98a6bc9088a54d65cf8755246da6d01ebe748f6dea0358fd5",
       "before": 4455,
-      "after": 4451,
-      "removed": 4,
+      "after": 4450,
+      "removed": 5,
       "added": 0
     },
     {
@@ -202,8 +209,8 @@
       "files": 32,
       "source_sha256": "1038f31ed3aeac50e82d4a7a0a6fb08c0278385be9a3bef84890744b85ecfbe9",
       "before": 289,
-      "after": 289,
-      "removed": 0,
+      "after": 288,
+      "removed": 1,
       "added": 0
     },
     {
@@ -312,8 +319,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26660,
-      "removed": 198,
+      "after": 26657,
+      "removed": 201,
       "added": 0
     },
     {
@@ -677,8 +684,8 @@
       "files": 46,
       "source_sha256": "be4cba66b1f2987b01836efb9b4845d6da41e37b9177f6e29c292af41ada00d0",
       "before": 799,
-      "after": 799,
-      "removed": 0,
+      "after": 798,
+      "removed": 1,
       "added": 0
     },
     {

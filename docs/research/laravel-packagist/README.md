@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,426 after
-three review rounds: 246 resolved and one existing diagnostic revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 247 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 62,420 after
+four review rounds: 252 resolved and one existing diagnostic revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 253 removals and
 one addition: the revised Cloud CLI dispatch group now names three methods instead
 of four. All unchanged diagnostics match field-for-field with their original
 multiplicity.
@@ -20,14 +20,14 @@ multiplicity.
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
 | `no_unused_parameters` | 950 | 727 | 223 |
-| `no_declarations_before_early_exit` | 171 | 157 | 14 |
+| `no_declarations_before_early_exit` | 171 | 151 | 20 |
 | `useless_variable` | 6 | 3 | 3 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,177 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,187 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Scope and reproduction
@@ -57,10 +57,12 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 246 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 252 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
+`round4-resolved.jsonl` records six snapshots that must precede input mutation
+in Laravel AI, Cashier Paddle, Framework and Scout.
 `revised.jsonl` retains both versions of the Cloud CLI finding;
 `reviewed-unchanged.jsonl` records 81 retained findings: 29 string-policy findings
 and 52 recommendations about repeated branches and boolean expressions. Changes
@@ -80,7 +82,9 @@ the original Runner cannot finish packages containing affected switches.
   ancestors supply their native signatures without loading application classes.
 - `no_declarations_before_early_exit` preserves JSON operations observed through
   `json_last_error()`/`json_last_error_msg()`, reference bindings, and callables
-  containing `goto`, whose execution order cannot be inferred lexically.
+  containing `goto`, whose execution order cannot be inferred lexically. Earlier
+  snapshots also stay before writes to their inputs, including removal of array
+  keys. Writes confined to an exiting guard branch preserve the surviving path.
 - `useless_variable` preserves aliases whose names may be consumed by included
   code, dynamic variable access or symbol-table operations. It also follows writes
   through loop/catch bindings and nested destructuring assignments.

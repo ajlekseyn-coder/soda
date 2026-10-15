@@ -15,6 +15,11 @@ JSON processing stays before guards that read its error status through
 Callables containing `goto` are skipped because lexical order does not establish
 their execution order. Switch cases are inspected as separate statement lists.
 
+Input snapshots stay before intervening writes to their source variables,
+including array-key removal, increments, destructuring and loop bindings. A guard
+condition that changes an input also prevents moving its earlier snapshot.
+Writes confined to the exiting branch do not change the surviving path's inputs.
+
 ## Examples
 
 ```php

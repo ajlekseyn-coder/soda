@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\Complexity\StatementLists;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
+use Cosmira\Soda\Rules\Usage\UselessVariableMutation;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
@@ -77,7 +78,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     {
         $last = count($statements) - 1;
         foreach ($this->declarations($statements) as $index => $variable) {
-            foreach ($this->guards($statements) as $guard) {
+            foreach ($this->guards($statements) as $guard => $branch) {
                 if ($guard <= $index) {
                     continue;
                 }
@@ -85,7 +86,10 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 $firstRead = $index + 1;
                 $afterGuard = $guard + 1;
                 $usedBeforeGuard = $this->isUsed($statements, $firstRead, $guard, $variable, $finder);
-                if ($usedBeforeGuard || $this->doesGuardObserveJsonError($statements[$index], $statements[$guard], $finder)) {
+                $between = [...array_slice($statements, $firstRead, $guard - $firstRead), $branch->cond];
+                if ($usedBeforeGuard
+                    || $this->doesGuardObserveJsonError($statements[$index], $branch, $finder)
+                    || $this->doesInputChange($statements[$index], $between, $finder)) {
                     continue;
                 }
 
@@ -109,6 +113,21 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 break;
             }
         }
+    }
+
+    /**
+     * A snapshot must stay before writes to the variables used to calculate it.
+     */
+    private function doesInputChange(Stmt $declaration, array $between, NodeFinder $finder): bool
+    {
+        foreach ($finder->findInstanceOf([$declaration], Variable::class) as $input) {
+            $name = $input->name;
+            if (is_string($name) && $finder->findFirst($between, static fn ($node): bool => UselessVariableMutation::isMutationOf($node, $name)) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -171,14 +190,14 @@ final class NoDeclarationsBeforeEarlyExit extends Check
      *
      * @param list<Stmt> $statements
      *
-     * @return list<int>
+     * @return array<int, Stmt\If_>
      */
     private function guards(array $statements): array
     {
         $guards = [];
         foreach ($statements as $index => $statement) {
             if ($statement instanceof Stmt\If_ && $this->isGuard($statement)) {
-                $guards[] = $index;
+                $guards[$index] = $statement;
             }
         }
 
@@ -194,7 +213,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
             return false;
         }
 
-        $branches = [...array_map(static fn (Stmt\ElseIf_ $elseif): array => $elseif->stmts, $if->elseifs)];
+        $branches = [...array_map(static fn ($elseif): array => $elseif->stmts, $if->elseifs)];
         if ($if->else !== null) {
             $branches[] = $if->else->stmts;
         }

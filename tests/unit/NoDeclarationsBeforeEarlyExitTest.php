@@ -23,6 +23,15 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'snapshot before removing an array key' => ['function run(array $options, $ready) { $trial = $options["trial"] ?? null; unset($options["trial"]); if (!$ready) { return; } save($trial); }', 0];
+        yield 'snapshot before overwriting an input' => ['function run($input, $ready) { $original = $input; $input = normalize($input); if (!$ready) { return; } save($original); }', 0];
+        yield 'snapshot before a guard assignment' => ['function run($input) { $original = $input; if (($input = nextInput()) === null) { return; } save($original); }', 0];
+        yield 'snapshot before incrementing an input' => ['function run($input, $ready) { $original = $input; ++$input; if (!$ready) { return; } save($original); }', 0];
+        yield 'snapshot before destructuring overwrites an input' => ['function run($input, $ready) { $original = $input; [$input] = nextInputs(); if (!$ready) { return; } save($original); }', 0];
+        yield 'snapshot before a loop binding overwrites an input' => ['function run($input, $ready, $items) { $original = $input; foreach ($items as $input) {} if (!$ready) { return; } save($original); }', 0];
+        yield 'unrelated mutation permits moving the declaration' => ['function run($input, $ready, $other) { $original = $input; unset($other["trial"]); if (!$ready) { return; } save($original); }', 1];
+        yield 'input used as an index is not overwritten' => ['function run($input, $ready, $other) { $original = $input; $other[$input] = true; if (!$ready) { return; } save($original); }', 1];
+        yield 'write confined to the exiting path does not change the surviving input' => ['function run($input, $ready) { $original = $input; if (!$ready) { $input = null; return; } save($original); }', 1];
         yield 'switch cases have separate statement lists' => ['function run($status, $ready) { switch ($status) { case 1: $result = compute(); if (!$ready) { return; } useIt($result); break; case 2: useOther(); break; } }', 1];
         yield 'switch does not merge declarations across cases' => ['function run($status, $ready) { switch ($status) { case 1: $result = compute(); break; case 2: if (!$ready) { return; } useIt($result); break; } }', 0];
         yield 'JSON error guard observes the decoding operation' => ['function decode($json) { $data = json_decode($json, true); if (json_last_error() !== JSON_ERROR_NONE) { return null; } return $data; }', 0];
@@ -86,6 +95,22 @@ PHP);
         try {
             $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());
             $findings = $result->violations->filter(fn ($item): bool => $item->rule === 'no_declarations_before_early_exit')->values()->all();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testStandardRunnerPreservesSnapshotsBeforeInputMutation(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-guard-snapshots-');
+        self::assertIsString($path);
+        file_put_contents($path, '<?php function snapshot(array $options, bool $ready) { $trial = $options["trial"] ?? null; unset($options["trial"]); if (!$ready) { return; } save($trial); } function movable(array $options, bool $ready) { $trial = $options["trial"] ?? null; if (!$ready) { return; } save($trial); }');
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_declarations_before_early_exit')->values();
             self::assertCount(1, $findings);
             self::assertSame($path, $findings[0]->file);
         } finally {
