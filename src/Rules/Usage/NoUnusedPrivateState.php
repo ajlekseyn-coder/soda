@@ -15,7 +15,7 @@ use Cosmira\Soda\Reporting\Violation;
 final class NoUnusedPrivateState extends Check
 {
     /**
-     * Report private fields and constants without reads in the composed class.
+     * Report private fields and constants without reads or releases in the composed class.
      */
     public function checkProject(ProjectFacts $project): iterable
     {

@@ -6,7 +6,10 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\ProjectFacts;
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Usage\NoUnusedPrivateState;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NoUnusedPrivateStateTest extends TestCase
@@ -108,6 +111,70 @@ final class NoUnusedPrivateStateTest extends TestCase
         $findings = $this->findings(['<?php class ParentState { private int $value; function read() { return $this->value; } } class ChildState extends ParentState { private int $value; }']);
         self::assertCount(1, $findings);
         self::assertSame('ChildState', $findings[0]->class);
+    }
+
+    #[DataProvider('releases')]
+    public function testReleasingRetainedStateCountsAsUse(string $body, int $count): void
+    {
+        $findings = $this->findings(['<?php class Owner { private $held; private static $shared; function release($name, Foreign $other) { '.$body.' } }']);
+        self::assertCount($count, $findings);
+    }
+
+    public static function releases(): iterable
+    {
+        yield 'instance release' => ['$this->held = acquire(); $this->held = null;', 1];
+        yield 'static release' => ['self::$shared = acquire(); self::$shared = null;', 1];
+        yield 'late static release' => ['static::$shared = acquire(); static::$shared = NULL;', 1];
+        yield 'known receiver alias releases a value' => ['$this->held = acquire(); $alias = $this; $alias->held = null;', 1];
+        yield 'dynamic release can select an instance slot' => ['$this->held = acquire(); self::$shared = acquire(); $this->{$name} = null; self::$shared = null;', 0];
+        yield 'clearing an array element releases its retained value' => ['$this->held = [acquire()]; $this->held[0] = null;', 1];
+        yield 'ordinary scalar writes stay detectable' => ['$this->held = 0; self::$shared = 0;', 2];
+        yield 'foreign release does not consume this state' => ['$other->held = null; Foreign::$shared = null;', 2];
+        yield 'overwritten alias is no longer this owner' => ['$alias = $this; $alias = $other; $alias->held = null;', 2];
+        yield 'nested class releases its own storage' => ['$nested = new class { function release() { $this->held = null; self::$shared = null; } };', 2];
+    }
+
+    public function testTraitReleaseUsesOnlyTheSelectedMethodBodyInEitherFileOrder(): void
+    {
+        $trait = '<?php trait Holding { private $value; function retain() { $this->value = acquire(); } function release() { $this->value = null; } }';
+        $owner = '<?php class Owner { use Holding; }';
+        foreach ([[$trait, $owner], [$owner, $trait]] as $sources) {
+            self::assertSame([], $this->findings($sources));
+        }
+        self::assertCount(1, $this->findings([$trait, '<?php class Owner { use Holding; function release() {} }']));
+    }
+
+    public function testStandardRunnerRetainsStorageReleasedByAShutdownCallback(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-state-release-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+class Reserve {
+    private static ?string $buffer = null;
+    private int $unused = 0;
+    public function prepare() {
+        static::$buffer = str_repeat('x', 32768);
+        register_shutdown_function(function () {
+            static::$buffer = null;
+            emitFailure();
+        });
+        $this->unused = 1;
+    }
+}
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_unused_private_state')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+            self::assertSame('Reserve', $findings[0]->class);
+            self::assertSame(4, $findings[0]->line);
+            self::assertStringContainsString('property unused', $findings[0]->message);
+        } finally {
+            unlink($path);
+        }
     }
 
     private function findings(array $sources): array

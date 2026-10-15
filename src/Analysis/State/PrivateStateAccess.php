@@ -8,12 +8,12 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * Identifies reads of private slots separately from field and array-element writes.
+ * Identifies reads and releases of private slots separately from ordinary writes.
  */
 final class PrivateStateAccess
 {
     /**
-     * Return the referenced member key only when this node reads a known owner receiver.
+     * Reads and explicit releases on a known owner both establish storage use.
      */
     public static function member(Node $node, string $owner, array $receivers): ?string
     {
@@ -46,7 +46,7 @@ final class PrivateStateAccess
     }
 
     /**
-     * Writing an array element does not read the field's stored value; index expressions still do.
+     * Clearing a slot releases its retained value; ordinary writes leave index reads separate.
      */
     private static function isWriteOnly(Node $node): bool
     {
@@ -58,7 +58,9 @@ final class PrivateStateAccess
         }
 
         $isAssignment = $parent instanceof Expr\Assign || $parent instanceof Expr\AssignRef;
+        $isRelease = $parent instanceof Expr\Assign && $parent->expr instanceof Expr\ConstFetch
+            && $parent->expr->name->toLowerString() === 'null';
 
-        return $isAssignment && $parent->var === $current;
+        return $isAssignment && $parent->var === $current && ! $isRelease;
     }
 }

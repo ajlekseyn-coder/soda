@@ -6,7 +6,7 @@
 
 ## Why
 
-A private declaration or a write does not establish a state responsibility. A property that is assigned and incremented but never read, or a constant defined only as decoration, is dead weight: it widens the class's internal surface without contributing to its behavior. The rule composes a class with its traits — a trait member counts as part of every class that uses the trait — and reports any private property or constant that has no read anywhere in that composed surface. Public and protected state is exempt because external code may read it. Writes, including array element writes, do not protect a field; only actual reads do.
+A private declaration or a write does not establish a state responsibility. A property that is assigned and incremented but never read, or a constant defined only as decoration, is dead weight: it widens the class's internal surface without contributing to its behavior. The rule composes a class with its traits — a trait member counts as part of every class that uses the trait — and reports any private property or constant that has no read anywhere in that composed surface. Public and protected state is exempt because external code may read it. Ordinary writes, including array element writes, do not protect a field. Reads and explicit releases do: assigning `null` or unsetting a slot releases its previous value and can end a resource or allocation lifetime.
 
 ## Examples
 
@@ -68,6 +68,12 @@ class Record
 ```
 
 Reads through a `$this` alias are tracked, but a nested or anonymous class cannot read the outer class's private state, and a read from an unrelated receiver (e.g. `$other->value` on a foreign type) does not protect the field.
+
+Storage released by a later callback remains meaningful even without a value read.
+For example, an emergency memory reserve can hold a generated string until a
+shutdown callback assigns `null` before reporting an allocation failure. This
+uses the storage lifetime; a scalar overwrite such as `$this->count = 0` remains
+a write without a read.
 
 ## Configuration
 
