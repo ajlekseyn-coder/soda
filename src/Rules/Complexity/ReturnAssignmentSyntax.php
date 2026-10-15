@@ -121,12 +121,17 @@ final class ReturnAssignmentSyntax
     }
 
     /**
-     * Cache keys may read named values, but cannot invoke code or change state.
+     * Class-name literals and named cache keys cannot invoke code or change state.
      */
     private static function isStableKey(?Expr $key): bool
     {
         if ($key instanceof Node\Scalar\String_ || $key instanceof Node\Scalar\Int_) {
             return true;
+        }
+
+        if ($key instanceof Expr\ClassConstFetch) {
+            return $key->class instanceof Name && $key->name instanceof Identifier
+                && $key->name->toLowerString() === 'class';
         }
 
         if ($key instanceof Expr\PropertyFetch) {

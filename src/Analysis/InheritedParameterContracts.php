@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Analysis;
 
 use Cosmira\Soda\Analysis\Composition\FactoryDispatchPatterns;
-use Cosmira\Soda\Analysis\Control\LiteralDispatch;
 use Cosmira\Soda\Analysis\Usage\FactoryParameterDispatch;
 use Cosmira\Soda\Analysis\Usage\ParameterUseAnalysis;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
@@ -19,7 +17,7 @@ use PhpParser\NodeFinder;
  */
 final readonly class InheritedParameterContracts
 {
-    use FactoryParameterDispatch;
+    use FactoryDispatchPatterns, FactoryParameterDispatch;
 
     /**
      * Method name reserved by PHP for object construction contracts.
@@ -61,28 +59,18 @@ final readonly class InheritedParameterContracts
             'parentNames'       => $parentNames,
             'parents'           => array_map(strtolower(...), $parentNames),
             'methods'           => $methods,
-            'factoryDispatch'   => FactoryDispatchPatterns::collect($class),
+            'factoryDispatch'   => self::factoryPatterns($class),
             'parameterDispatch' => self::parameterDispatch($class, $nodes),
         ];
     }
 
     /**
-     * A literal local selection must not donate its signature to every matching sibling name.
+     * Nonlocal jumps can bypass an earlier lexical assignment.
      */
-    private static function hasLiteralSelectorInput(Expr\Variable $variable, Stmt\ClassMethod $method, array $seen): bool
+    private static function hasBindingJump(Stmt\ClassMethod $method): bool
     {
-        if (! is_string($variable->name) || isset($seen[$variable->name])) {
-            return false;
-        }
-        $seen[$variable->name] = true;
-        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\Assign::class) as $assignment) {
-            if (! self::isPriorSelectorAssignment($assignment, $variable, $method)) {
-                continue;
-            }
-            if ((new LiteralDispatch)->literal($assignment->expr) !== null) {
-                return true;
-            }
-            if ($assignment->expr instanceof Expr\Variable && self::hasLiteralSelectorInput($assignment->expr, $method, $seen)) {
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Stmt\Goto_::class) as $jump) {
+            if (self::isOwnedBy($jump, $method)) {
                 return true;
             }
         }
@@ -91,13 +79,36 @@ final readonly class InheritedParameterContracts
     }
 
     /**
-     * Only preceding writes in this callable can close the interpolated input.
+     * Late static binding can select a descendant's same-named method even when this declaration is private.
      */
-    private static function isPriorSelectorAssignment(Expr\Assign $assignment, Expr\Variable $variable, Stmt\ClassMethod $method): bool
+    private static function canVaryByReceiver(Stmt\ClassLike $class, string $name, bool $lateBound): bool
     {
-        $target = $assignment->var;
+        $target = $class->getMethod($name);
+        if ($target === null) {
+            return false;
+        }
 
-        return $target instanceof Expr\Variable && $target->name === $variable->name && $assignment->getEndFilePos() < $variable->getStartFilePos() && self::isOwnedBy($assignment, $method);
+        if ($class instanceof Stmt\Trait_) {
+            return true;
+        }
+
+        $open = $class instanceof Stmt\Class_ && ! $class->isFinal();
+
+        return $open && ($target->isPrivate() ? $lateBound : ! $target->isFinal());
+    }
+
+    /**
+     * A trait's self reference binds to the consuming class, which can replace its methods.
+     */
+    private static function isReplaceableClassCall(?Node $owner, Stmt\ClassLike $class): bool
+    {
+        if (! $owner instanceof Name) {
+            return false;
+        }
+
+        $name = $owner->toLowerString();
+
+        return $name === 'static' || ($class instanceof Stmt\Trait_ && $name === 'self');
     }
 
     /**

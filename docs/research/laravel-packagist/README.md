@@ -10,16 +10,17 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,734 after
-twenty review rounds: 938 resolved and 43 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 981 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,660 after
+twenty-one review rounds: 1,012 resolved and 43 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,055 removals and
 43 additions: the Cloud CLI dispatch group now names three methods instead of four,
 and 42 proven-empty interfaces have a more precise message. All other retained
 diagnostics match field-for-field with their original multiplicity.
 
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
-| `no_unused_parameters` | 950 | 346 | 604 |
+| `no_unused_parameters` | 950 | 278 | 672 |
+| `no_assignment_in_return` | 203 | 197 | 6 |
 | `no_mode_parameters` | 53 | 50 | 3 |
 | `no_reassigned_parameters` | 2,357 | 2,353 | 4 |
 | `no_empty_local_interfaces` | 82 | 42 | 40 |
@@ -37,7 +38,7 @@ diagnostics match field-for-field with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,522 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,572 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -106,9 +107,9 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 477 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 2,770 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 42 revised empty-interface findings in `round18-reviewed.jsonl`, this leaves
-8,244 retained findings unclassified. These policy checks do not prove
+5,877 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -243,6 +244,28 @@ Literal normalization retains the existing consecutive entry-prefix restriction;
 later writes, other inputs and computed array options remain checked. Throwing a
 new exception does not add a productive dispatch operation; calls in constructor
 arguments and before the throw remain operations.
+`round21-resolved.jsonl` records 68 additional positional hook contracts and six
+class-name cache keys. Native concatenation constrains a prefix/suffix without
+interpreting formatter functions: 55 schema types, three Query Grammar components,
+three ResourceRegistrar actions, three Blade directives and three Auth/Broadcast
+drivers, plus one Pennant driver. Same-block assignments dominate only their own later statements or branches.
+Closed native expressions, conditional closing/reopening, reference escapes, jumps
+and callable references retain their controls. The former single-consumer public
+factory-pattern helper is now a private implementation trait; its legacy factory
+pattern facts match the preceding source exactly.
+`Name::class` is a native class-name string without autoloading. Ordinary constants,
+dynamic class expressions and further/reference assignments remain checked.
+`round21-reviewed.jsonl` records 2,293 retained occurrences, including all 1,285
+reported repeated-string policies. Their decoded literal bytes, lexical owners,
+source offsets, measurements and complete diagnostic multiplicities were checked.
+This policy does not prove one domain meaning or a behavioral defect. The structural evidence
+records concrete own methods, direct trait imports and project-known interface
+ancestry. Environment review confirms 329 superglobal offsets and 16 global/FQN
+native calls; 439 namespace fallbacks/helper calls remain unclassified. Repeated
+diagnostics on one line retain their source offsets and occurrence multiplicity.
+Dynamic-invocation review additionally confirms 266 runtime-selected targets and
+12 global/FQN indirect-call helpers; 227 namespace fallbacks and one lexical magic
+constant remain outside this retained subset.
 `round20-resolved.jsonl` records 133 positional hook contracts and one nested-catch
 fallback. Native interpolated method names preserve only selected trait/inherited
 bodies and the actual positional prefix. Named/unpacked calls, callable references,
@@ -256,10 +279,13 @@ including five closure factories whose own `get_defined_vars()` calls cannot obs
 the uncaptured outer temporary. Returning the closure directly preserves its body,
 PHPDoc and reference captures.
 `revised.jsonl` retains both versions of the Cloud CLI finding and the 42 interface messages;
-`reviewed-unchanged.jsonl` records 477 retained findings: 29 string-policy findings,
+`reviewed-unchanged.jsonl` records 2,770 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
 singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
-recommendations. Changes
+recommendations. Round 21 adds 197 return-assignment and 40 literal-concatenation
+policies, 148 structural measurements and 345 explicit environment/native argument
+accesses, plus 1,285 repeated-string policies, 266 computed targets and 12 native
+indirect-call helpers. Changes
 are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.

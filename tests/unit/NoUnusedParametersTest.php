@@ -589,6 +589,43 @@ PHP);
         }
     }
 
+    #[DataProvider('nativeSelectorCases')]
+    public function testNativeComputedDispatchPreservesOnlyInheritedPositions(string $body): void
+    {
+        $root = sys_get_temp_dir().'/soda-native-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $dispatch = $root.'/Grammar.php';
+        $steps = $root.'/UuidGrammar.php';
+        file_put_contents($dispatch, '<?php namespace App; abstract class Grammar { protected function getType($column) { '.$body.' } }');
+        file_put_contents($steps, '<?php namespace App; class UuidGrammar extends Grammar { protected function typeUuid($unused, $extra = null) {} protected function other($unrelated) {} } class Standalone { protected function typeUuid($unrelated) {} }');
+
+        try {
+            foreach ([[$dispatch, $steps], [$steps, $dispatch]] as $paths) {
+                $result = (new Runner)->check($paths, RuleCatalog::standard());
+                self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+                self::assertCount(3, $findings);
+                $messages = $findings->map(static fn ($violation): string => $violation->message)->all();
+                self::assertCount(1, array_filter($messages, static fn (string $message): bool => str_contains($message, '$extra')));
+                self::assertCount(2, array_filter($messages, static fn (string $message): bool => str_contains($message, '$unrelated')));
+            }
+        } finally {
+            unlink($dispatch);
+            unlink($steps);
+            rmdir($root);
+        }
+    }
+
+    public static function nativeSelectorCases(): iterable
+    {
+        yield 'direct concatenation' => ["return \$this->{'type'.ucfirst(\$column->type)}(\$column);"];
+        yield 'opaque formatter' => ["return \$this->{'type'.unknownFormatter(\$column->type)}(\$column);"];
+        yield 'direct interpolation' => ['return $this->{"type{$column->type}"}($column);'];
+        yield 'concatenated binding' => ["\$method = 'type'.ucfirst(\$column->type); return \$this->\$method(\$column);"];
+        yield 'guarded concatenated binding' => ["if (method_exists(\$this, \$method = 'type'.ucfirst(\$column->type))) { return \$this->\$method(\$column); }"];
+        yield 'nested statement-list binding' => ["foreach (\$column->types as \$type) { if (isset(\$column->\$type)) { \$method = 'type'.ucfirst(\$type); return \$this->\$method(\$column); } }"];
+    }
+
     #[DataProvider('ownSelectorCases')]
     public function testOwnSelectorBoundaries(string $body, int $expected, string $consumers = 'class Printer { use Dispatch, Steps; }'): void
     {
@@ -612,6 +649,32 @@ PHP);
     {
         $binding = '$method = "render{$kind}";';
         $call = 'return $this->$method($input);';
+        yield 'direct concatenation' => ["return \$this->{'render'.format(\$kind)}(\$input);", 1];
+        yield 'direct wrong prefix' => ["return \$this->{'other'.format(\$kind)}(\$input);", 2];
+        yield 'direct named invocation' => ["return \$this->{'render'.format(\$kind)}(unused: \$input);", 2];
+        yield 'direct unpacked invocation' => ["return \$this->{'render'.format(\$kind)}(...[\$input]);", 2];
+        yield 'first-class reference cannot form string suffix' => ["return \$this->{'render'.suffix(...)}(\$input);", 2];
+        yield 'direct first-class reference' => ["return \$this->{'render'.format(\$kind)}(...);", 2];
+        yield 'direct foreign receiver' => ["return \$other->{'render'.format(\$kind)}(\$input);", 2];
+        yield 'direct nested invocation' => ["return function () use (\$kind, \$input) { return \$this->{'render'.format(\$kind)}(\$input); };", 2];
+        yield 'closed concatenation' => ["return \$this->{'render'.'Other'}(\$input);", 2];
+        yield 'closed numeric concatenation' => ["return \$this->{'render'. 1}(\$input);", 2];
+        yield 'closed concatenation input' => ["\$kind = 'Other'; return \$this->{'render'.\$kind}(\$input);", 2];
+        yield 'closed concatenation alias' => ["\$suffix = 'Other'; \$kind = \$suffix; return \$this->{'render'.\$kind}(\$input);", 2];
+        yield 'closed cast suffix' => ["return \$this->{'render'.(string)'Other'}(\$input);", 2];
+        yield 'closed native choice' => ["return \$this->{'render'.(\$kind ? 'Other' : 'Also')}(\$input);", 2];
+        yield 'goto bypasses binding' => ['goto invoke; '.$binding.' invoke: '.$call, 2];
+        yield 'conditional literal keeps incoming selection open' => ["if (condition()) { \$kind = 'Other'; } return \$this->{'render'.\$kind}(\$input);", 1];
+        yield 'later conditional write keeps selection open' => ["\$kind = 'Other'; if (condition()) { \$kind = \$other; } return \$this->{'render'.\$kind}(\$input);", 1];
+        yield 'closed cast through binding' => ["\$kind = (string)'Other'; return \$this->{'render'.\$kind}(\$input);", 2];
+        yield 'closed choice through binding' => ["\$kind = \$other ? 'Other' : 'Also'; return \$this->{'render'.\$kind}(\$input);", 2];
+        yield 'closed native suffix binding' => ["\$kind = 'O'.'ther'; return \$this->{'render'.\$kind}(\$input);", 2];
+        yield 'closed inline assignment' => ["return \$this->{'render'.(\$kind = 'Other')}(\$input);", 2];
+        yield 'same-block assignment' => ['if (condition()) { '.$binding.$call.' }', 1];
+        yield 'assignment dominates nested later statement' => ['if (condition()) { '.$binding.' if (other()) { '.$call.' } }', 1];
+        yield 'sibling branches do not dominate' => ['if (condition()) { '.$binding.' } else { '.$call.' }', 2];
+        yield 'nested block overwrite' => ['if (condition()) { '.$binding.' $method = $kind; '.$call.' }', 2];
+        yield 'block assignment after invocation' => ['if (condition()) { '.$call.$binding.' }', 2];
         yield 'bounded interpolation' => [$binding.$call, 1];
         yield 'native guard assignment' => ['if (method_exists($this, $method = "render{$kind}")) { '.$call.' }', 1];
         yield 'native elseif guard assignment' => ['if (condition()) { return null; } elseif (method_exists($this, $method = "render{$kind}")) { '.$call.' }', 1];

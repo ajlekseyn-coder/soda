@@ -19,6 +19,11 @@ trait FactoryParameterDispatch
     use FactoryReceiverBinding, FactorySignatures;
 
     /**
+     * PHP reserves this variable name for the current instance.
+     */
+    private const THIS_VARIABLE = 'this';
+
+    /**
      * A top-level factory binding dominates later calls, including calls in conditional branches.
      */
     private static function parameterDispatch(Stmt\ClassLike $class, array $nodes): array
@@ -70,10 +75,13 @@ trait FactoryParameterDispatch
 
         $dispatches = [];
         foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\MethodCall::class) as $call) {
+            if (! $call->name instanceof Expr || ! self::isOwnPositionalCall($call, $method)) {
+                continue;
+            }
             $assignment = self::ownSelector($call, $method);
-            $pattern = $assignment === null ? null : self::interpolatedSelector($assignment->expr, $method);
-            $guards = $pattern === null ? null : self::selectorGuards($assignment, $call, $method);
-            if ($guards !== null) {
+            $pattern = self::boundedSelector($assignment?->expr ?? $call->name, $method);
+            $guards = $assignment === null ? [] : self::selectorGuards($assignment, $call, $method);
+            if ($pattern !== null && $guards !== null) {
                 $owner = $class->namespacedName?->toLowerString() ?? $class->name->toLowerString();
                 $dispatches[] = ['caller' => $owner.'::'.$method->name->toLowerString(), 'method' => $pattern, 'arity' => count($call->args), 'guards' => $guards];
             }
@@ -87,11 +95,7 @@ trait FactoryParameterDispatch
      */
     private static function ownSelector(Expr\MethodCall $call, Stmt\ClassMethod $method): ?Expr\Assign
     {
-        $isThis = $call->var instanceof Expr\Variable && $call->var->name === 'this';
-        if (! $isThis || ! $call->name instanceof Expr\Variable || $call->isFirstClassCallable() || ! self::isOwnedBy($call, $method)) {
-            return null;
-        }
-        if (! self::hasPositionalArguments($call)) {
+        if (! $call->name instanceof Expr\Variable) {
             return null;
         }
 
@@ -103,21 +107,13 @@ trait FactoryParameterDispatch
     }
 
     /**
-     * Native interpolation establishes a literal name bound without interpreting formatter APIs.
+     * Only a positional invocation on this lexical instance establishes its protocol.
      */
-    private static function interpolatedSelector(Expr $expression, Stmt\ClassMethod $method): ?string
+    private static function isOwnPositionalCall(Expr\MethodCall $call, Stmt\ClassMethod $method): bool
     {
-        if (! $expression instanceof Node\Scalar\InterpolatedString) {
-            return null;
-        }
-        foreach ($expression->parts as $part) {
-            if ($part instanceof Expr\Variable && self::hasLiteralSelectorInput($part, $method, [])) {
-                return null;
-            }
-        }
-        $pattern = implode('', array_map(static fn ($part): string => $part instanceof Expr ? '.*' : preg_quote($part->value, '/'), $expression->parts));
+        $isThis = $call->var instanceof Expr\Variable && $call->var->name === self::THIS_VARIABLE && ! $method->isStatic();
 
-        return str_replace('.*', '', $pattern) === '' ? null : '/^'.$pattern.'$/iD';
+        return $isThis && ! $call->isFirstClassCallable() && self::isOwnedBy($call, $method) && self::hasPositionalArguments($call);
     }
 
     /**
@@ -129,8 +125,7 @@ trait FactoryParameterDispatch
         if ($guards === null) {
             return null;
         }
-        $statement = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
-        if ($statement instanceof Stmt\Expression && in_array($statement, $method->stmts ?? [], true)) {
+        if (self::doesAssignmentDominate($assignment, $call)) {
             return $guards;
         }
         $guard = self::assignmentGuard($assignment);
@@ -139,6 +134,39 @@ trait FactoryParameterDispatch
         }
 
         return [...$guards, $guard['shadow']];
+    }
+
+    /**
+     * An earlier sibling assignment dominates calls in the same statement list or its later branches.
+     */
+    private static function doesAssignmentDominate(Expr\Assign $assignment, Node $call): bool
+    {
+        $statement = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
+        $block = $statement instanceof Stmt\Expression ? $statement->getAttribute(self::PARENT_ATTRIBUTE) : null;
+        if (! $block instanceof Node) {
+            return false;
+        }
+        $statements = get_object_vars($block)['stmts'] ?? [];
+
+        return in_array($statement, $statements, true) && self::isInsideCondition($call, $block);
+    }
+
+    /**
+     * An observed virtual call preserves the factory's replaceable implementation.
+     */
+    private static function calledHook(Node $call, Stmt\ClassLike $class, Stmt\ClassMethod $method): ?string
+    {
+        $fields = get_object_vars($call);
+        $name = $fields['name'] ?? null;
+        $receiver = $fields['var'] ?? null;
+        $owner = $fields['class'] ?? null;
+        $isThis = $receiver instanceof Expr\Variable && $receiver->name === self::THIS_VARIABLE && ! $method->isStatic();
+        $isLateBound = self::isReplaceableClassCall($owner, $class);
+        if (! $name instanceof Node\Identifier || ! self::isOwnedBy($call, $method) || ! self::canVaryByReceiver($class, $name->toString(), $isLateBound)) {
+            return null;
+        }
+
+        return $isThis || $isLateBound ? $name->toLowerString() : null;
     }
 
     /**
@@ -166,7 +194,7 @@ trait FactoryParameterDispatch
      */
     private static function localFactoryName(Expr\MethodCall $call): ?string
     {
-        $isThis = $call->var instanceof Expr\Variable && $call->var->name === 'this';
+        $isThis = $call->var instanceof Expr\Variable && $call->var->name === self::THIS_VARIABLE;
         if (! $call->name instanceof Node\Identifier || $call->isFirstClassCallable() || ! $isThis) {
             return null;
         }

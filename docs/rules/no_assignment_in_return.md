@@ -49,7 +49,7 @@ function discovered(Service $service): Node
 }
 ```
 
-Array entries follow the same policy as their containing storage: a direct write to `$this` or `self`/`static` state is accepted, and lazy initialization also accepts local array caches. Keys must be literal strings or integers, named variables, or named property reads such as `$service->value`. Append targets, calls or assignments in keys, and further assignments in the value remain reported. The existing options also apply to array entries.
+Array entries follow the same policy as their containing storage: a direct write to `$this` or `self`/`static` state is accepted, and lazy initialization also accepts local array caches. Keys must be literal strings or integers, class-name literals such as `static::class` or `Model::class`, named variables, or named property reads such as `$service->value`. Append targets, calls or assignments in keys, and further assignments in the value remain reported. Ordinary class constants and dynamic class expressions remain outside the class-name allowance: resolving them can autoload a class or execute an expression. Class-name literals preserve `self`, `parent`, imported aliases and late static binding without autoloading. The existing options also apply to array entries.
 
 ## Options
 

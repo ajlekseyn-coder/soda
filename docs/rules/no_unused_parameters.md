@@ -46,11 +46,15 @@ analyzed function declaration. Factory declarations are currently read on the
 same class; arbitrary collaborator factories are not inferred.
 
 A computed call on `$this` can establish the same positional protocol for selected
-public or protected methods. Native interpolated names must contain literal text;
-the selector must come from an unconditional preceding assignment or the successful
-body of an unshadowed native `method_exists` guard. Selected caller and callee trait
+public or protected methods. Native concatenation and interpolation must contain
+literal text and an open segment. The name can be computed directly at the call,
+selected by an earlier assignment in the same statement list, or selected in the
+successful body of an unshadowed native `method_exists` guard. Literal bounds do
+not require assumptions about embedded formatter APIs. Selected caller and callee trait
 origins are respected. Closed literal or aliased selector inputs, overwritten names,
 foreign receivers, and nested callable bindings do not donate these positions.
+Nonlocal jumps invalidate binding protocols. Other computed expression operators,
+such as casts and conditional selections, are left unclassified.
 
 ## Examples
 

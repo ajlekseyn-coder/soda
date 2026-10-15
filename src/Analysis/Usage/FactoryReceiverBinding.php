@@ -190,6 +190,9 @@ trait FactoryReceiverBinding
      */
     private static function hasOpaqueBindings(Stmt\ClassMethod $method): bool
     {
+        if (self::hasBindingJump($method)) {
+            return true;
+        }
         $unsafe = (new NodeFinder)->find($method->stmts ?? [], static fn (Node $node): bool => $node instanceof Expr\Include_
             || $node instanceof Expr\Eval_ || ($node instanceof Expr\Variable && ! is_string($node->name))
             || ($node instanceof Expr\FuncCall && $node->name instanceof Name && $node->name->getLast() === 'extract'));
