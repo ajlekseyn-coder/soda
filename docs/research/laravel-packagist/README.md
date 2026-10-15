@@ -10,15 +10,18 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,660 after
-twenty-one review rounds: 1,012 resolved and 43 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,055 removals and
-43 additions: the Cloud CLI dispatch group now names three methods instead of four,
-and 42 proven-empty interfaces have a more precise message. All other retained
-diagnostics match field-for-field with their original multiplicity.
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,567 after
+twenty-two review rounds: 1,105 resolved and 50 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,155 removals and
+50 additions: the Cloud CLI dispatch group now names three methods instead of four,
+42 proven-empty interfaces have a more precise message, and seven commented-code
+ordinals exclude preceding prose. All other retained diagnostics match field-for-field
+with their original multiplicity.
 
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
+| `no_dynamic_invocation` | 506 | 505 | 1 |
+| `max_commented_out_code_lines` | 183 | 91 | 92 |
 | `no_unused_parameters` | 950 | 278 | 672 |
 | `no_assignment_in_return` | 203 | 197 | 6 |
 | `no_mode_parameters` | 53 | 50 | 3 |
@@ -38,7 +41,7 @@ diagnostics match field-for-field with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,572 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,637 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -107,10 +110,10 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 2,770 individually reviewed findings in `reviewed-unchanged.jsonl`
-and 42 revised empty-interface findings in `round18-reviewed.jsonl`, this leaves
-5,877 retained findings unclassified. These policy checks do not prove
-the behavior of the remaining semantic rules.
+Together with the 2,844 individually reviewed findings in `reviewed-unchanged.jsonl`
+and 49 revised retained findings in `round18-reviewed.jsonl` and
+`round22-reviewed-revised.jsonl`, this leaves 5,703 retained findings unclassified.
+These policy checks do not prove the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
 
@@ -153,7 +156,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 804 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,105 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -244,6 +247,18 @@ Literal normalization retains the existing consecutive entry-prefix restriction;
 later writes, other inputs and computed array options remain checked. Throwing a
 new exception does not add a productive dispatch operation; calls in constructor
 arguments and before the throw remain operations.
+`round22-resolved.jsonl` records 92 prose comments and one lexical magic-constant
+method name. Candidate comment lines must parse as complete PHP or a delimited
+code fragment; natural-language explanations
+no longer qualify merely because they mention a class, function or variable.
+All 81 code-only findings remain, while ten Surveyor documentation examples remain
+unclassified. Seven retained ordinals change after prose is removed; both versions
+appear in `round22-revised.jsonl`, with source review in
+`round22-reviewed-revised.jsonl`. The other 74 reviewed code fragments are recorded
+in `round22-reviewed.jsonl`. Shell-execution quotes retain their PHP meaning.
+Native string literals and string-valued magic constants supply static method
+names, including lexical `__FUNCTION__`; integer `__LINE__` and computed names
+retain their controls.
 `round21-resolved.jsonl` records 68 additional positional hook contracts and six
 class-name cache keys. Native concatenation constrains a prefix/suffix without
 interpreting formatter functions: 55 schema types, three Query Grammar components,
@@ -264,8 +279,8 @@ ancestry. Environment review confirms 329 superglobal offsets and 16 global/FQN
 native calls; 439 namespace fallbacks/helper calls remain unclassified. Repeated
 diagnostics on one line retain their source offsets and occurrence multiplicity.
 Dynamic-invocation review additionally confirms 266 runtime-selected targets and
-12 global/FQN indirect-call helpers; 227 namespace fallbacks and one lexical magic
-constant remain outside this retained subset.
+12 global/FQN indirect-call helpers; 227 namespace fallbacks remain outside this
+retained subset. Round 22 removes the lexical magic-constant false positive.
 `round20-resolved.jsonl` records 133 positional hook contracts and one nested-catch
 fallback. Native interpolated method names preserve only selected trait/inherited
 bodies and the actual positional prefix. Named/unpacked calls, callable references,
@@ -278,14 +293,15 @@ the 16 schema modifiers receive two slots through inherited `addModifiers`.
 including five closure factories whose own `get_defined_vars()` calls cannot observe
 the uncaptured outer temporary. Returning the closure directly preserves its body,
 PHPDoc and reference captures.
-`revised.jsonl` retains both versions of the Cloud CLI finding and the 42 interface messages;
-`reviewed-unchanged.jsonl` records 2,770 retained findings: 29 string-policy findings,
+`revised.jsonl` retains both versions of the Cloud CLI finding, the 42 interface messages
+and seven commented-code ordinals;
+`reviewed-unchanged.jsonl` records 2,844 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
 singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
 recommendations. Round 21 adds 197 return-assignment and 40 literal-concatenation
 policies, 148 structural measurements and 345 explicit environment/native argument
 accesses, plus 1,285 repeated-string policies, 266 computed targets and 12 native
-indirect-call helpers. Changes
+indirect-call helpers. Round 22 adds 74 unchanged commented-code fragments. Changes
 are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
@@ -364,7 +380,8 @@ Regression cases live in the corresponding rule test classes:
 `UselessVariableRuleTest`, together with `NoRepeatedTypeDispatchTest` and
 `PreferNullCoalesceAssignmentTest`, `NoCatchAllExceptionsTest` and
 `NoConsecutiveBlockCommentsTest`, `NoSingletonAccessTest` and
-`NoTrivialFactoriesTest`. Controls
+`NoTrivialFactoriesTest`, `NoCommentedOutCodeTest` and
+`NoDynamicInvocationTest`. Controls
 continue to require genuine violations. Cross-file anonymous contracts and
 inherited selectors are also exercised in reverse file order.
 

@@ -8,6 +8,10 @@
 
 Commented-out code is dead weight that still looks alive: readers must parse it, wonder why it is there, and decide whether it is safe to delete. Version control already preserves every previous state of the file, so keeping the code as a comment adds risk without adding information. The rule reports each comment line that contains code and advises deleting dead code and trusting version control; preserve an explanation only when it documents why.
 
+Only ordinary PHP comments are inspected. Docblocks, text inside string literals and inline examples enclosed in backticks within explanatory prose remain documentation. A reported line must parse as PHP syntax: a statement, declaration or an expression fragment such as an array item or chained call. Unfinished argument lists and declaration or control headers can continue on following comment lines. Words such as `class`, `interface` and `function` inside explanatory prose do not establish disabled code.
+
+Findings belong to the source file, with the original physical comment line and no callable or type owner. Their `value` is the one-based position among that file's findings; the threshold is zero. Removing a prose false positive can therefore renumber later findings without changing their source locations or messages.
+
 ## Examples
 
 ```php
@@ -31,6 +35,8 @@ public function total(): int
 ```php
 // ✅ accepted: documentation, not disabled code
 // Use `new Worker()` to start processing.
+// We will resolve the class name before invoking it.
+// call $plan->setKey() if setKey method exists
 ```
 
 ## Configuration

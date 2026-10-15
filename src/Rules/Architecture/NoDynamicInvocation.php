@@ -39,12 +39,14 @@ final class NoDynamicInvocation extends Check
     }
 
     /**
-     * Recognize method names selected at runtime instead of declared identifiers.
+     * Native string magic constants retain their declaration context through trait aliases and closures.
      */
     private static function isDynamicCall(Node $node): bool
     {
-        return (($node instanceof Expr\MethodCall || $node instanceof Expr\NullsafeMethodCall) && ! $node->name instanceof Node\Identifier)
-            || ($node instanceof Expr\StaticCall && ! $node->name instanceof Node\Identifier);
+        return ($node instanceof Expr\MethodCall || $node instanceof Expr\NullsafeMethodCall || $node instanceof Expr\StaticCall)
+            && ! $node->name instanceof Node\Identifier
+            && ! $node->name instanceof Node\Scalar\String_
+            && (! $node->name instanceof Node\Scalar\MagicConst || $node->name instanceof Node\Scalar\MagicConst\Line);
     }
 
     /**
