@@ -23,6 +23,26 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'prefix increment remains before the exit' => ['function run(&$counter, $ready) { $label = "item-".++$counter; if (!$ready) { return; } save($label); }', 0];
+        yield 'postfix increment remains before the exit' => ['function run(&$counter, $ready) { $number = $counter++; if (!$ready) { return; } save($number); }', 0];
+        yield 'prefix decrement remains before the exit' => ['function run(&$counter, $ready) { $number = --$counter; if (!$ready) { return; } save($number); }', 0];
+        yield 'postfix decrement remains before the exit' => ['function run(&$counter, $ready) { $number = $counter--; if (!$ready) { return; } save($number); }', 0];
+        yield 'property write remains before the exit' => ['function run($state, $ready) { $number = ($state->number = 10); if (!$ready) { return; } save($number); }', 0];
+        yield 'compound write remains before the exit' => ['function run(&$counter, $ready) { $number = ($counter += 10); if (!$ready) { return; } save($number); }', 0];
+        yield 'reference write remains before the exit' => ['function run(&$state, &$input, $ready) { $number = ($state =& $input); if (!$ready) { return; } save($number); }', 0];
+        yield 'conditional write may run before the exit' => ['function run(&$counter, $enabled, $ready) { $number = $enabled ? ++$counter : 0; if (!$ready) { return; } save($number); }', 0];
+        yield 'call argument write remains before the exit' => ['function run(&$counter, $ready) { $number = format(++$counter); if (!$ready) { return; } save($number); }', 0];
+        yield 'yield remains before the exit' => ['function run($ready) { $result = yield "step"; if (!$ready) { return; } save($result); }', 0];
+        yield 'yield delegation remains before the exit' => ['function run($steps, $ready) { $result = yield from $steps; if (!$ready) { return; } save($result); }', 0];
+        yield 'output remains before the exit' => ['function run($ready) { $result = print "step"; if (!$ready) { return; } save($result); }', 0];
+        yield 'included code remains before the exit' => ['function run($path, $ready) { $result = include $path; if (!$ready) { return; } save($result); }', 0];
+        yield 'evaluated code remains before the exit' => ['function run($code, $ready) { $result = eval($code); if (!$ready) { return; } save($result); }', 0];
+        yield 'throwing expression remains before the exit' => ['function run($error, $ready) { $result = throw $error; if (!$ready) { return; } save($result); }', 0];
+        yield 'termination remains before the exit' => ['function run($ready) { $result = exit(1); if (!$ready) { return; } save($result); }', 0];
+        yield 'closure body is deferred' => ['function run(&$counter, $ready) { $task = function () use (&$counter) { return ++$counter; }; if (!$ready) { return; } save($task); }', 1];
+        yield 'arrow body is deferred' => ['function run($counter, $ready) { $task = fn () => ++$counter; if (!$ready) { return; } save($task); }', 1];
+        yield 'anonymous class method is deferred' => ['function run($ready) { $task = new class { function next() { return ++$this->count; } }; if (!$ready) { return; } save($task); }', 1];
+        yield 'anonymous class argument is eager' => ['function run(&$counter, $ready) { $task = new class(++$counter) {}; if (!$ready) { return; } save($task); }', 0];
         yield 'snapshot before removing an array key' => ['function run(array $options, $ready) { $trial = $options["trial"] ?? null; unset($options["trial"]); if (!$ready) { return; } save($trial); }', 0];
         yield 'snapshot before overwriting an input' => ['function run($input, $ready) { $original = $input; $input = normalize($input); if (!$ready) { return; } save($original); }', 0];
         yield 'snapshot before a guard assignment' => ['function run($input) { $original = $input; if (($input = nextInput()) === null) { return; } save($original); }', 0];
@@ -113,6 +133,36 @@ PHP);
             $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_declarations_before_early_exit')->values();
             self::assertCount(1, $findings);
             self::assertSame($path, $findings[0]->file);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testStandardRunnerPreservesEffectsBeforeAnExit(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-guard-effects-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+function countAttempt(&$attempts, bool $ready) {
+    $label = "attempt-".++$attempts;
+    if (!$ready) { return; }
+    save($label);
+}
+function movable($attempt, bool $ready) {
+    $label = "attempt-".$attempt;
+    if (!$ready) { return; }
+    save($label);
+}
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_declarations_before_early_exit')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+            self::assertSame(8, $findings[0]->line);
+            self::assertStringContainsString('line 9', $findings[0]->message);
         } finally {
             unlink($path);
         }

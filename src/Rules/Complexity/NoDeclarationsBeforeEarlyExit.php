@@ -9,6 +9,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Rules\Usage\UselessVariableMutation;
+use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
@@ -118,7 +119,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     /**
      * A snapshot must stay before writes to the variables used to calculate it.
      */
-    private function doesInputChange(Stmt $declaration, array $between, NodeFinder $finder): bool
+    private function doesInputChange(Node $declaration, array $between, NodeFinder $finder): bool
     {
         foreach ($finder->findInstanceOf([$declaration], Variable::class) as $input) {
             $name = $input->name;
@@ -133,7 +134,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     /**
      * Moving JSON processing past its error check would inspect an earlier operation's status.
      */
-    private function doesGuardObserveJsonError(Stmt $declaration, Stmt $guard, NodeFinder $finder): bool
+    private function doesGuardObserveJsonError(Node $declaration, Node $guard, NodeFinder $finder): bool
     {
         $processesJson = $finder->findFirst([$declaration], static fn ($node): bool => $node instanceof Expr\FuncCall
             && $node->name instanceof Name && in_array(strtolower($node->name->toString()), ['json_decode', 'json_encode'], true));
@@ -166,14 +167,14 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     /**
      * Accept statement-level assignments to plain local variables.
      */
-    private function declaredVariable(Stmt $statement): ?string
+    private function declaredVariable(Node $statement): ?string
     {
         if (! $statement instanceof Stmt\Expression) {
             return null;
         }
 
         $expression = $statement->expr;
-        if (! $expression instanceof Expr\Assign) {
+        if (! $expression instanceof Expr\Assign || $this->hasEagerEffect($expression->expr)) {
             return null;
         }
 
@@ -183,6 +184,34 @@ final class NoDeclarationsBeforeEarlyExit extends Check
         }
 
         return $target->name;
+    }
+
+    /**
+     * Explicit effects must also run on the exiting path; nested callable bodies are deferred.
+     */
+    private function hasEagerEffect(Node $node): bool
+    {
+        if ($node instanceof FunctionLike || $node->getType() === 'Stmt_Class') {
+            return false;
+        }
+
+        if (str_starts_with($node->getType(), 'Expr_AssignOp_') || in_array($node->getType(), [
+            'Expr_Assign', 'Expr_AssignRef', 'Expr_PreInc', 'Expr_PostInc', 'Expr_PreDec', 'Expr_PostDec',
+            'Expr_Yield', 'Expr_YieldFrom', 'Expr_Print', 'Expr_Include', 'Expr_Eval', 'Expr_Exit', 'Expr_Throw',
+        ], true)) {
+            return true;
+        }
+
+        foreach ($node->getSubNodeNames() as $name) {
+            $value = get_object_vars($node)[$name];
+            foreach (is_array($value) ? $value : [$value] as $child) {
+                if ($child instanceof Node && $this->hasEagerEffect($child)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

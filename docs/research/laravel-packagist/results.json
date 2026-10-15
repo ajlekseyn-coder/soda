@@ -8,16 +8,16 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Four standard policies have 30,747 source-grounded findings; 81 other retained findings were reviewed individually. The remaining 31,579 findings are not yet classified.",
-  "final_source_sha256": "3aa0ad8eb121ad71b16587a1f5d65663b48c1a12ee05d3485cc35da5f2e8083d",
-  "after": 62407,
-  "removed": 266,
+  "remaining_review": "Four standard policies have 30,747 source-grounded findings; 81 other retained findings were reviewed individually. The remaining 31,578 findings are not yet classified.",
+  "final_source_sha256": "1a95d15430901367bfbd56a6c242d1e20b14b83fc2ed6aa30bb3fd8cede28837",
+  "after": 62406,
+  "removed": 267,
   "added": 1,
-  "resolved": 265,
+  "resolved": 266,
   "revised": 1,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 266,
+    "removed": 267,
     "added": 1
   },
   "changed_rules": {
@@ -33,8 +33,8 @@
     },
     "no_declarations_before_early_exit": {
       "before": 171,
-      "after": 151,
-      "net_removed": 20
+      "after": 150,
+      "net_removed": 21
     },
     "no_repeated_type_dispatch": {
       "before": 40,
@@ -112,6 +112,13 @@
       "before": 62411,
       "after": 62407,
       "resolved": 4,
+      "revised": 0
+    },
+    {
+      "round": 9,
+      "before": 62407,
+      "after": 62406,
+      "resolved": 1,
       "revised": 0
     }
   ],
@@ -362,8 +369,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26657,
-      "removed": 201,
+      "after": 26656,
+      "removed": 202,
       "added": 0
     },
     {
@@ -935,7 +942,7 @@
   "review_coverage": {
     "source_grounded_policy_findings": 30747,
     "individually_reviewed_retained": 81,
-    "remaining_unclassified": 31579,
+    "remaining_unclassified": 31578,
     "policy_proof": "verified-policies.json"
   }
 }

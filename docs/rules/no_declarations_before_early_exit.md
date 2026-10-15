@@ -20,6 +20,12 @@ including array-key removal, increments, destructuring and loop bindings. A guar
 condition that changes an input also prevents moving its earlier snapshot.
 Writes confined to the exiting branch do not change the surviving path's inputs.
 
+An initializer with an explicit write, increment or decrement stays in place:
+its state change also runs on the exiting path. Output, included or evaluated
+code, generator yields and explicit termination likewise prevent moving the
+initializer. Closure and arrow function bodies are deferred. Anonymous class
+bodies are separate scopes; constructor argument expressions are inspected.
+
 ## Examples
 
 ```php
