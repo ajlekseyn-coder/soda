@@ -11,8 +11,8 @@ use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
-use PhpParser\Node\Stmt\Else_;
 use PhpParser\NodeFinder;
 
 /**
@@ -56,6 +56,10 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 continue;
             }
 
+            if ($finder->findFirst([$scope], static fn ($node): bool => $node->getType() === 'Stmt_Goto') !== null) {
+                continue;
+            }
+
             foreach ([$statements, ...$lists->within($scope)] as $list) {
                 yield from $this->declarationsBehindGuards($list, $facts, $finder);
             }
@@ -81,7 +85,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 $firstRead = $index + 1;
                 $afterGuard = $guard + 1;
                 $usedBeforeGuard = $this->isUsed($statements, $firstRead, $guard, $variable, $finder);
-                if ($usedBeforeGuard) {
+                if ($usedBeforeGuard || $this->doesGuardObserveJsonError($statements[$index], $statements[$guard], $finder)) {
                     continue;
                 }
 
@@ -105,6 +109,19 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 break;
             }
         }
+    }
+
+    /**
+     * Moving JSON processing past its error check would inspect an earlier operation's status.
+     */
+    private function doesGuardObserveJsonError(Stmt $declaration, Stmt $guard, NodeFinder $finder): bool
+    {
+        $processesJson = $finder->findFirst([$declaration], static fn ($node): bool => $node instanceof Expr\FuncCall
+            && $node->name instanceof Name && in_array(strtolower($node->name->toString()), ['json_decode', 'json_encode'], true));
+        $readsError = $finder->findFirst([$guard], static fn ($node): bool => $node instanceof Expr\FuncCall
+            && $node->name instanceof Name && in_array(strtolower($node->name->toString()), ['json_last_error', 'json_last_error_msg'], true));
+
+        return $processesJson !== null && $readsError !== null;
     }
 
     /**
@@ -137,7 +154,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
         }
 
         $expression = $statement->expr;
-        if (! $expression instanceof Expr\Assign && ! $expression instanceof Expr\AssignRef) {
+        if (! $expression instanceof Expr\Assign) {
             return null;
         }
 
@@ -178,7 +195,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
         }
 
         $branches = [...array_map(static fn (Stmt\ElseIf_ $elseif): array => $elseif->stmts, $if->elseifs)];
-        if ($if->else instanceof Else_) {
+        if ($if->else !== null) {
             $branches[] = $if->else->stmts;
         }
 

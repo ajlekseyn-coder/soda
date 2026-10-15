@@ -40,7 +40,6 @@ final class ControlBodies
             $node instanceof Stmt\Do_,
             $node instanceof Stmt\TryCatch,
             $node instanceof Stmt\Catch_,
-            $node instanceof Stmt\Switch_,
             $node instanceof Stmt\Case_ => $node->stmts,
             default                     => [],
         };

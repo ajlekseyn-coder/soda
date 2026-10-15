@@ -35,7 +35,7 @@ final readonly class ParameterUseAnalysis
      */
     private function node(Node $node, array $state): array
     {
-        if ($node instanceof Stmt\ClassLike || $node instanceof Stmt\Function_) {
+        if (in_array($node->getType(), ['Stmt_Class', 'Stmt_Interface', 'Stmt_Trait', 'Stmt_Enum', 'Stmt_Function'], true)) {
             return $state;
         }
 
@@ -47,7 +47,57 @@ final readonly class ParameterUseAnalysis
             return $this->branches($node, $state);
         }
 
+        if ($node instanceof Stmt\TryCatch) {
+            return $this->tryCatch($node, $state);
+        }
+
+        if ($node instanceof Stmt\Switch_) {
+            return $this->switchPaths($node, $state);
+        }
+
         return $node instanceof Expr ? $this->expression($node, $state) : $this->children($node, $state);
+    }
+
+    /**
+     * An exit in try does not prevent a catch or finally body from reading an incoming value.
+     */
+    private function tryCatch(Stmt\TryCatch $node, array $state): array
+    {
+        $paths = [$this->scan($node->stmts, $state)];
+        foreach ($node->catches as $catch) {
+            $paths[] = $this->scan($catch->stmts, $state);
+        }
+
+        $joined = $this->join($paths);
+        if ($node->finally === null) {
+            return $joined;
+        }
+
+        // An exception can reach finally before the try body overwrites an input.
+        $beforeFinally = $this->join([$state, ...array_map(static fn (array $path): array => array_replace($path, ['continues' => true]), $paths)]);
+        $finally = $this->scan($node->finally->stmts, $beforeFinally);
+
+        return array_replace($finally, ['continues' => $joined['continues'] && $finally['continues']]);
+    }
+
+    /**
+     * A switch selects alternative entry points rather than executing every case in order.
+     */
+    private function switchPaths(Stmt\Switch_ $node, array $state): array
+    {
+        $remaining = $this->scan([$node->cond], $state);
+        $paths = [];
+        $hasDefault = false;
+        foreach ($node->cases as $case) {
+            $hasDefault = $hasDefault || $case->cond === null;
+            $paths[] = $this->scan([$case->cond, ...$case->stmts], $remaining);
+        }
+
+        if (! $hasDefault) {
+            $paths[] = $remaining;
+        }
+
+        return $this->join($paths);
     }
 
     /**

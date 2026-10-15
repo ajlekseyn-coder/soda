@@ -28,11 +28,8 @@ final readonly class InheritedParameterContracts
     {
         $types = [];
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\ClassLike::class) as $class) {
-            if ($class->name === null) {
-                continue;
-            }
-
-            $name = strtolower($class->namespacedName?->toString() ?? $class->name->toString());
+            $name = $class->name === null ? CallableIdentity::type($class) : ($class->namespacedName?->toString() ?? $class->name->toString());
+            $name = strtolower($name);
             $types[$name] = self::declaration($class);
         }
 

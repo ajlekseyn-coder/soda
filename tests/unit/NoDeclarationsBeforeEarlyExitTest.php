@@ -23,6 +23,13 @@ final class NoDeclarationsBeforeEarlyExitTest extends TestCase
 
     public static function bodies(): iterable
     {
+        yield 'switch cases have separate statement lists' => ['function run($status, $ready) { switch ($status) { case 1: $result = compute(); if (!$ready) { return; } useIt($result); break; case 2: useOther(); break; } }', 1];
+        yield 'switch does not merge declarations across cases' => ['function run($status, $ready) { switch ($status) { case 1: $result = compute(); break; case 2: if (!$ready) { return; } useIt($result); break; } }', 0];
+        yield 'JSON error guard observes the decoding operation' => ['function decode($json) { $data = json_decode($json, true); if (json_last_error() !== JSON_ERROR_NONE) { return null; } return $data; }', 0];
+        yield 'unrelated guard can precede JSON decoding' => ['function decode($json, $ready) { $data = json_decode($json, true); if (!$ready) { return null; } return $data; }', 1];
+        yield 'JSON error message observes the encoding operation' => ['function encode($data) { $json = json_encode($data); if (json_last_error_msg() !== "No error") { throw new RuntimeException(); } return $json; }', 0];
+        yield 'retry jump must not restart the clock' => ['function retry($callback) { $start = time(); beginning: if ($output = $callback()) { return $output; } if (time() - $start < 10) { goto beginning; } return null; }', 0];
+        yield 'reference assignment establishes an observable binding' => ['function run(&$target, &$source, $ready) { $target = &$source; if (!$ready) { return; } consume($target); }', 0];
         yield 'nested closure checked once' => ['function outer() { register(function ($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } }); }', 1];
         yield 'nested named function checked once' => ['function outer() { function inner($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } } }', 1];
         yield 'anonymous class method checked once' => ['function outer() { return new class { function run($items) { foreach ($items as $item) { $prepared = prepare($item); if ($item->skip) { continue; } save($prepared); } } }; }', 1];

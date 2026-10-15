@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Cosmira\Soda;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Architecture\NoRepeatedTypeDispatch;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
@@ -44,6 +46,50 @@ final class NoRepeatedTypeDispatchTest extends TestCase
             function print($item) { return match ($item->kind) { "pdf" => printPdf(), "csv" => printCsv() }; }
             function save($item) { return match ($item->kind) { "csv" => saveCsv(), "pdf" => savePdf() }; }
         }'));
+    }
+
+    public function testScalarAlternativesNeedTheSameSelector(): void
+    {
+        self::assertSame([], $this->findings('<?php class Collection {
+            function join() { $count = $this->count(); if ($count === 0) {} if ($count === 1) {} }
+            function shift($count) { if ($count === 0) {} if ($count === 1) {} }
+        }'));
+        self::assertSame([], $this->findings('<?php class Reports {
+            function print($item) { return match ($item->format) { "pdf" => 1, "csv" => 2 }; }
+            function save($item) { return match ($item->destination) { "pdf" => 1, "csv" => 2 }; }
+        }'));
+        self::assertCount(1, $this->findings('<?php class Reports {
+            function print($item) { $alias = $item; return match ($alias->kind) { 0 => 1, 1 => 2 }; }
+            function save($item) { return match ($item->kind) { 0 => 3, 1 => 4 }; }
+        }'));
+    }
+
+    public function testStandardRunnerKeepsSelectorsAcrossCompositionAndFileOrder(): void
+    {
+        $directory = sys_get_temp_dir().'/soda-dispatch-'.bin2hex(random_bytes(6));
+        mkdir($directory);
+        $parent = $directory.'/Parent.php';
+        $child = $directory.'/Child.php';
+        file_put_contents($parent, '<?php class PrivateBase { private $kind; function first() { return match ($this->kind) { "pdf" => 1, "csv" => 2 }; } }
+            class BaseCollection { function join() { $count = $this->count(); if ($count === 0) {} if ($count === 1) {} } }
+            trait Printer { function print($item) { return match ($item->kind) { "pdf" => 1, "csv" => 2 }; } }');
+        file_put_contents($child, '<?php class PrivateChild extends PrivateBase { private $kind; function second() { return match ($this->kind) { "pdf" => 1, "csv" => 2 }; } }
+            class Collection extends BaseCollection { function shift($count) { if ($count === 0) {} if ($count === 1) {} } }
+            class Reports { use Printer; function save($item) { return match ($item->kind) { "csv" => 3, "pdf" => 4 }; } }');
+
+        try {
+            foreach ([[$parent, $child], [$child, $parent]] as $files) {
+                $result = (new Runner)->check($files, RuleCatalog::standard());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_repeated_type_dispatch')->values();
+                self::assertCount(1, $findings);
+                self::assertSame('Reports', $findings[0]->class);
+                self::assertSame(2, $findings[0]->value);
+            }
+        } finally {
+            unlink($parent);
+            unlink($child);
+            rmdir($directory);
+        }
     }
 
     public function testDifferentFamiliesAndDifferentClassesRemainSeparate(): void

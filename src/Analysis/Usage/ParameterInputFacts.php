@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis\Usage;
 
+use Cosmira\Soda\Analysis\CallableIdentity;
 use Cosmira\Soda\Analysis\NativeStreamContract;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -27,10 +28,11 @@ final readonly class ParameterInputFacts
                 continue;
             }
 
-            [$class, $method, $identity] = self::identity($callable);
+            [$class, $method, $identity, $contractClass] = self::identity($callable);
             foreach (self::unusedInputs($callable) as $position => $parameter) {
                 $candidates[] = [
                     'class'          => $class, 'method' => $method, 'identity' => $identity,
+                    'contractClass'  => $contractClass,
                     'publicInstance' => $callable instanceof Stmt\ClassMethod && $callable->isPublic() && ! $callable->isStatic(),
                     'position'       => $position, 'name' => $parameter->var->name,
                     'line'           => $parameter->getStartLine(),
@@ -51,7 +53,9 @@ final readonly class ParameterInputFacts
         $method = $callable instanceof Stmt\ClassMethod ? $callable->name->toString() : null;
         $function = $callable instanceof Stmt\Function_ ? ($callable->namespacedName?->toString() ?? $callable->name->toString()) : '';
 
-        return [$class, $method, $method === null ? $function : $class.'::'.$method];
+        $contractClass = $owner instanceof Stmt\ClassLike ? CallableIdentity::type($owner) : null;
+
+        return [$class, $method, $method === null ? $function : $class.'::'.$method, $contractClass];
     }
 
     /**
@@ -60,7 +64,7 @@ final readonly class ParameterInputFacts
     private static function unusedInputs(Node\FunctionLike $callable): iterable
     {
         $unused = [];
-        $nativeArity = NativeStreamContract::arity($callable);
+        $nativeArity = self::nativeArity($callable);
         foreach ($callable->getParams() as $position => $parameter) {
             if ($position < $nativeArity) {
                 continue;
@@ -83,5 +87,19 @@ final readonly class ParameterInputFacts
         }
 
         yield from $unused;
+    }
+
+    /**
+     * PHP fixes magic method signatures even when their bodies ignore the supplied values.
+     */
+    private static function nativeArity(Node\FunctionLike $callable): int
+    {
+        $magic = $callable instanceof Stmt\ClassMethod ? match (strtolower($callable->name->toString())) {
+            '__call', '__callstatic', '__set'                             => 2,
+            '__get', '__isset', '__unset', '__set_state', '__unserialize' => 1,
+            default                                                       => 0,
+        } : 0;
+
+        return max($magic, NativeStreamContract::arity($callable));
     }
 }

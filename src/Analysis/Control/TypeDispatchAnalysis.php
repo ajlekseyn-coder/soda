@@ -14,12 +14,19 @@ use PhpParser\Node\Stmt;
 final class TypeDispatchAnalysis
 {
     /**
+     * Scalar alternatives need the selector's identity as well as their literal values.
+     */
+    private const SCALAR = 'scalar:';
+
+    /**
      * Direct receiver aliases scoped to the method currently being scanned.
      */
     private array $aliases = [];
 
     /**
      * Keep separate receivers separate; collect each family once per method.
+     *
+     * @return list<array{types: list<string>, selector: ?string}>
      */
     public function decisions(Stmt\ClassMethod $method): array
     {
@@ -109,9 +116,10 @@ final class TypeDispatchAnalysis
             return;
         }
 
-        $values = $groups[$receiver] ?? [];
+        $key = (str_starts_with($value, 'value:') ? self::SCALAR : 'type:').$receiver;
+        $values = $groups[$key] ?? [];
         $values[$value] = true;
-        $groups[$receiver] = $values;
+        $groups[$key] = $values;
     }
 
     /**
@@ -138,11 +146,17 @@ final class TypeDispatchAnalysis
     private function families(array $groups): array
     {
         $sets = [];
-        foreach ($groups as $types) {
+        foreach ($groups as $receiver => $types) {
+            $scalar = str_starts_with($receiver, self::SCALAR);
+            // A call-derived alias is local to this method, even when another input has the same name.
+            if ($scalar && str_contains($receiver, '@')) {
+                continue;
+            }
+
             if (count($types) >= 2) {
                 $names = array_keys($types);
                 sort($names);
-                $sets[] = $names;
+                $sets[] = ['types' => $names, 'selector' => $scalar ? substr($receiver, strlen(self::SCALAR)) : null];
             }
         }
 

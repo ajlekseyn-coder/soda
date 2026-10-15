@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Usage;
 
-use Closure;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
-use PhpParser\Node\ClosureUse;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\Closure as ExprClosure;
@@ -154,7 +153,19 @@ final readonly class UselessVariableAnalyzer
     {
         return $this->isPassedByRef($var, $after)
             || $this->isInClosure($var, $after)
-            || $this->isObjectMutated($var, $after);
+            || $this->isObjectMutated($var, $after)
+            || $this->isScopeObserved($after);
+    }
+
+    /**
+     * Included code and symbol-table operations can consume locals without variable nodes.
+     */
+    private function isScopeObserved(array $nodes): bool
+    {
+        return $this->walkScope($nodes, static fn (Node $node): bool => in_array($node->getType(), ['Expr_Include', 'Expr_Eval'], true)
+            || ($node instanceof Variable && ! is_string($node->name))
+            || ($node instanceof Expr\FuncCall && $node->name instanceof Node\Name && ! $node->isFirstClassCallable()
+                && in_array(strtolower($node->name->toString()), ['compact', 'get_defined_vars', 'extract'], true))) !== [];
     }
 
     /**
@@ -205,7 +216,7 @@ final readonly class UselessVariableAnalyzer
      *
      * @return Node[]
      */
-    private function walkScope(array $nodes, Closure $predicate): array
+    private function walkScope(array $nodes, callable $predicate): array
     {
         $found = [];
 
@@ -245,8 +256,7 @@ final readonly class UselessVariableAnalyzer
      */
     private function hasCapturedVar(ExprClosure $closure, string $var): bool
     {
-        return array_filter($closure->uses, static fn (ClosureUse $use): bool => $use->var instanceof Variable
-            && $use->var->name === $var) !== [];
+        return array_filter($closure->uses, static fn ($use): bool => $use->var->name === $var) !== [];
     }
 
     /**
@@ -265,7 +275,7 @@ final readonly class UselessVariableAnalyzer
      *
      * @return Node[]
      */
-    private function walkSubNodes(Node $node, Closure $predicate): array
+    private function walkSubNodes(Node $node, callable $predicate): array
     {
         $found = [];
 

@@ -10,6 +10,11 @@ A variable declared before `return`, `throw`, `break`, or `continue` pays its co
 
 The guard must exit every branch: an `if` without `else` counts when its body ends with an exit, and an `if` with `else` or `elseif` counts when every branch does. Reads inside the guard condition or body keep the declaration in place, because the early-exit path genuinely needs the value. Closure captures count as reads. Loops take part through `continue` and `break` guards in their bodies.
 
+JSON processing stays before guards that read its error status through
+`json_last_error()` or `json_last_error_msg()`. Reference bindings are excluded.
+Callables containing `goto` are skipped because lexical order does not establish
+their execution order. Switch cases are inspected as separate statement lists.
+
 ## Examples
 
 ```php

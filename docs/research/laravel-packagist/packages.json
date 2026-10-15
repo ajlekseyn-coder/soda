@@ -1,0 +1,502 @@
+{
+  "date": "2026-10-15",
+  "registry": "https://packagist.org/packages/list.json?vendor=laravel",
+  "selection": "Newest stable version in Packagist p2 order, otherwise first development version; exact references pinned below.",
+  "packages": [
+    {
+      "name": "laravel/agent-detector",
+      "version": "v2.0.4",
+      "reference": "2e4f1e00f75afa82ce2ade999c6e72b3c81d03c5",
+      "dist": "https://api.github.com/repos/laravel/agent-detector/zipball/2e4f1e00f75afa82ce2ade999c6e72b3c81d03c5"
+    },
+    {
+      "name": "laravel/ai",
+      "version": "v1.2.2",
+      "reference": "a7cf132d710aed338688d117b3889371f4d95f20",
+      "dist": "https://api.github.com/repos/laravel/ai/zipball/a7cf132d710aed338688d117b3889371f4d95f20"
+    },
+    {
+      "name": "laravel/airlock",
+      "version": "v4.3.3",
+      "reference": "fee27a573d1a013af3721d86153a65e0b11927e6",
+      "dist": "https://api.github.com/repos/laravel/sanctum/zipball/fee27a573d1a013af3721d86153a65e0b11927e6"
+    },
+    {
+      "name": "laravel/blank-livewire-starter-kit",
+      "version": "dev-main",
+      "reference": "5954bfb0062ac790de9581e3c9c7836000049c55",
+      "dist": "https://api.github.com/repos/laravel/blank-livewire-starter-kit/zipball/5954bfb0062ac790de9581e3c9c7836000049c55"
+    },
+    {
+      "name": "laravel/blank-react-starter-kit",
+      "version": "dev-main",
+      "reference": "17784f24302a610e75140564c4288ad4cbf7bf1c",
+      "dist": "https://api.github.com/repos/laravel/blank-react-starter-kit/zipball/17784f24302a610e75140564c4288ad4cbf7bf1c"
+    },
+    {
+      "name": "laravel/blank-svelte-starter-kit",
+      "version": "dev-main",
+      "reference": "854f1b1b10c8dcc561df55d9b4f73b0d78683a42",
+      "dist": "https://api.github.com/repos/laravel/blank-svelte-starter-kit/zipball/854f1b1b10c8dcc561df55d9b4f73b0d78683a42"
+    },
+    {
+      "name": "laravel/blank-vue-starter-kit",
+      "version": "dev-main",
+      "reference": "00bda9d77760499b03751d3105bd116aafb375bb",
+      "dist": "https://api.github.com/repos/laravel/blank-vue-starter-kit/zipball/00bda9d77760499b03751d3105bd116aafb375bb"
+    },
+    {
+      "name": "laravel/boost",
+      "version": "v2.10.3",
+      "reference": "75c269a8a53e931c7252e7cd562e1a209356a7c6",
+      "dist": "https://api.github.com/repos/laravel/boost/zipball/75c269a8a53e931c7252e7cd562e1a209356a7c6"
+    },
+    {
+      "name": "laravel/breeze",
+      "version": "v2.4.2",
+      "reference": "4f20e7b2cc8d25daa85d8647241a89c8e0930305",
+      "dist": "https://api.github.com/repos/laravel/breeze/zipball/4f20e7b2cc8d25daa85d8647241a89c8e0930305"
+    },
+    {
+      "name": "laravel/browser-kit-testing",
+      "version": "v7.2.8",
+      "reference": "7741e237dade26274109d1abae419599f51a911c",
+      "dist": "https://api.github.com/repos/laravel/browser-kit-testing/zipball/7741e237dade26274109d1abae419599f51a911c"
+    },
+    {
+      "name": "laravel/cashier",
+      "version": "v16.9.0",
+      "reference": "40fdf5d0461b2f788615dc98931bedd784bceea0",
+      "dist": "https://api.github.com/repos/laravel/cashier-stripe/zipball/40fdf5d0461b2f788615dc98931bedd784bceea0"
+    },
+    {
+      "name": "laravel/cashier-braintree",
+      "version": "v3.1.2",
+      "reference": "12f0342050b0ec40a64727122b5e6e99e6f94d0b",
+      "dist": "https://api.github.com/repos/laravel/cashier-braintree/zipball/12f0342050b0ec40a64727122b5e6e99e6f94d0b"
+    },
+    {
+      "name": "laravel/cashier-mollie",
+      "version": "v1.16.2",
+      "reference": "6acdadc69b00bde337c37a10b6e2f1838ac93217",
+      "dist": "https://api.github.com/repos/laravel/cashier-mollie/zipball/6acdadc69b00bde337c37a10b6e2f1838ac93217"
+    },
+    {
+      "name": "laravel/cashier-paddle",
+      "version": "v2.8.1",
+      "reference": "5bc8b16a94cc3359e874a6025b762e1345cf46cf",
+      "dist": "https://api.github.com/repos/laravel/cashier-paddle/zipball/5bc8b16a94cc3359e874a6025b762e1345cf46cf"
+    },
+    {
+      "name": "laravel/chisel",
+      "version": "v0.1.1",
+      "reference": "c2ac11cd1c6b763b412aa26b9d95fce70a489d31",
+      "dist": "https://api.github.com/repos/laravel/chisel/zipball/c2ac11cd1c6b763b412aa26b9d95fce70a489d31"
+    },
+    {
+      "name": "laravel/cloud-cli",
+      "version": "v0.6.5",
+      "reference": "7dda4df176e0cb69d1c988886ea9bf9d025f850e",
+      "dist": "https://api.github.com/repos/laravel/cloud-cli/zipball/7dda4df176e0cb69d1c988886ea9bf9d025f850e"
+    },
+    {
+      "name": "laravel/database",
+      "version": "8.83.0",
+      "reference": "ce7a3de3ea0f577fa4fa097bb9f7d779068e4a07",
+      "dist": "https://api.github.com/repos/Luracast/Laravel-Database/zipball/ce7a3de3ea0f577fa4fa097bb9f7d779068e4a07"
+    },
+    {
+      "name": "laravel/doctor",
+      "version": "v0.1.0",
+      "reference": "6e634a0746f70f9dd9abaf4d9c8a4b81ceebdd4c",
+      "dist": "https://api.github.com/repos/laravel/doctor/zipball/6e634a0746f70f9dd9abaf4d9c8a4b81ceebdd4c"
+    },
+    {
+      "name": "laravel/dusk",
+      "version": "v8.7.2",
+      "reference": "a12cbd9d33d44006ba08e36407cb9f19ac73e944",
+      "dist": "https://api.github.com/repos/laravel/dusk/zipball/a12cbd9d33d44006ba08e36407cb9f19ac73e944"
+    },
+    {
+      "name": "laravel/envoy",
+      "version": "v2.12.2",
+      "reference": "2f475252d9f2ab45e259d9b24e18cd179a6814df",
+      "dist": "https://api.github.com/repos/laravel/envoy/zipball/2f475252d9f2ab45e259d9b24e18cd179a6814df"
+    },
+    {
+      "name": "laravel/folio",
+      "version": "v1.2.0",
+      "reference": "b79f01771064959ebff7f90ea52ce1bf164bc287",
+      "dist": "https://api.github.com/repos/laravel/folio/zipball/b79f01771064959ebff7f90ea52ce1bf164bc287"
+    },
+    {
+      "name": "laravel/forge-cli",
+      "version": "v2.0.4",
+      "reference": "4845d87d01f6312831091ca3bd41f2deac1c384f",
+      "dist": "https://api.github.com/repos/laravel/forge-cli/zipball/4845d87d01f6312831091ca3bd41f2deac1c384f"
+    },
+    {
+      "name": "laravel/forge-sdk",
+      "version": "v4.1.1",
+      "reference": "9b5697ff4a1d14a6ee61e27fe9fc6de2290feae7",
+      "dist": "https://api.github.com/repos/laravel/forge-sdk/zipball/9b5697ff4a1d14a6ee61e27fe9fc6de2290feae7"
+    },
+    {
+      "name": "laravel/fortify",
+      "version": "v1.41.0",
+      "reference": "c456642584c102f6a6aafee9932299542da637b5",
+      "dist": "https://api.github.com/repos/laravel/fortify/zipball/c456642584c102f6a6aafee9932299542da637b5"
+    },
+    {
+      "name": "laravel/framework",
+      "version": "v13.36.0",
+      "reference": "e5626e38137cf0d82b1e52f15b16283e8442c13c",
+      "dist": "https://api.github.com/repos/laravel/framework/zipball/e5626e38137cf0d82b1e52f15b16283e8442c13c"
+    },
+    {
+      "name": "laravel/head",
+      "version": "v0.2.2",
+      "reference": "09e88a09c0ca08533be94863a4d3e95016b6d88f",
+      "dist": "https://api.github.com/repos/laravel/head/zipball/09e88a09c0ca08533be94863a4d3e95016b6d88f"
+    },
+    {
+      "name": "laravel/helpers",
+      "version": "v1.8.3",
+      "reference": "5915be977c7cc05fe2498d561b8c026ee56567dd",
+      "dist": "https://api.github.com/repos/laravel/helpers/zipball/5915be977c7cc05fe2498d561b8c026ee56567dd"
+    },
+    {
+      "name": "laravel/homestead",
+      "version": "v15.0.3",
+      "reference": "e466c30122e4e886171c6397d63c3cc7dd16770c",
+      "dist": "https://api.github.com/repos/laravel/homestead/zipball/e466c30122e4e886171c6397d63c3cc7dd16770c"
+    },
+    {
+      "name": "laravel/horizon",
+      "version": "v5.50.1",
+      "reference": "9d65cae809688179ce2c4ace64eb75e886e245c5",
+      "dist": "https://api.github.com/repos/laravel/horizon/zipball/9d65cae809688179ce2c4ace64eb75e886e245c5"
+    },
+    {
+      "name": "laravel/installer",
+      "version": "v5.32.0",
+      "reference": "6d47ce9f44a42da0d06d50acdfa80f8c9b13c8c3",
+      "dist": "https://api.github.com/repos/laravel/installer/zipball/6d47ce9f44a42da0d06d50acdfa80f8c9b13c8c3"
+    },
+    {
+      "name": "laravel/jetstream",
+      "version": "v5.5.3",
+      "reference": "61cac5cde455311890f6981fb2da47acd298e4e2",
+      "dist": "https://api.github.com/repos/laravel/jetstream/zipball/61cac5cde455311890f6981fb2da47acd298e4e2"
+    },
+    {
+      "name": "laravel/laravel",
+      "version": "v13.11.0",
+      "reference": "06d016a364a37430eec9cbc52209adce3d7667ce",
+      "dist": "https://api.github.com/repos/laravel/laravel/zipball/06d016a364a37430eec9cbc52209adce3d7667ce"
+    },
+    {
+      "name": "laravel/legacy-encrypter",
+      "version": "v1.0.0",
+      "reference": "4047fc1e6a9346501ba48ba3f79509534875dea3",
+      "dist": "https://api.github.com/repos/laravel/legacy-encrypter/zipball/4047fc1e6a9346501ba48ba3f79509534875dea3"
+    },
+    {
+      "name": "laravel/legacy-factories",
+      "version": "v1.4.2",
+      "reference": "fdaadc5c7cc656503704ad87a6d5fad961cc5c8a",
+      "dist": "https://api.github.com/repos/laravel/legacy-factories/zipball/fdaadc5c7cc656503704ad87a6d5fad961cc5c8a"
+    },
+    {
+      "name": "laravel/liferaft",
+      "version": "v1.0.0",
+      "reference": "45a3306464f44a37d36252dcedefe250e81a4a92",
+      "dist": "https://api.github.com/repos/laravel/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92",
+      "download_error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "laravel/livewire-starter-kit",
+      "version": "v1.0.1",
+      "reference": "8e54da01418915757eb9f6e4bbb4f5213651bb17",
+      "dist": "https://api.github.com/repos/laravel/livewire-starter-kit/zipball/8e54da01418915757eb9f6e4bbb4f5213651bb17"
+    },
+    {
+      "name": "laravel/lsp",
+      "version": "v0.0.32",
+      "reference": "557d8c9596162e28f80df7debf3ad9f45f5255cc",
+      "dist": "https://api.github.com/repos/laravel/lsp/zipball/557d8c9596162e28f80df7debf3ad9f45f5255cc"
+    },
+    {
+      "name": "laravel/lumen",
+      "version": "v10.0.0",
+      "reference": "b18a7652aa2dec5fd96c23693933fef32eca9a88",
+      "dist": "https://api.github.com/repos/laravel/lumen/zipball/b18a7652aa2dec5fd96c23693933fef32eca9a88"
+    },
+    {
+      "name": "laravel/lumen-framework",
+      "version": "v11.2.0",
+      "reference": "4eb662c94101689c42e48dd395d8f340baefbcac",
+      "dist": "https://api.github.com/repos/laravel/lumen-framework/zipball/4eb662c94101689c42e48dd395d8f340baefbcac"
+    },
+    {
+      "name": "laravel/lumen-installer",
+      "version": "v1.3.0",
+      "reference": "a1c454f45314dc4e885a4d0c80b771f4d40c94e9",
+      "dist": "https://api.github.com/repos/laravel/lumen-installer/zipball/a1c454f45314dc4e885a4d0c80b771f4d40c94e9"
+    },
+    {
+      "name": "laravel/mcp",
+      "version": "v1.0.2",
+      "reference": "26c7803551028653beab49af0e672ae38607b772",
+      "dist": "https://api.github.com/repos/laravel/mcp/zipball/26c7803551028653beab49af0e672ae38607b772"
+    },
+    {
+      "name": "laravel/nexmo-notification-channel",
+      "version": "v3.3.5",
+      "reference": "d7a6cd7a810e08095709d4ab7a4e1c4489b1be33",
+      "dist": "https://api.github.com/repos/laravel/vonage-notification-channel/zipball/d7a6cd7a810e08095709d4ab7a4e1c4489b1be33"
+    },
+    {
+      "name": "laravel/nightwatch",
+      "version": "v1.30.3",
+      "reference": "bf9cff3dc7af5809379c21faa22a5c5d3ec17d58",
+      "dist": "https://api.github.com/repos/laravel/nightwatch/zipball/bf9cff3dc7af5809379c21faa22a5c5d3ec17d58"
+    },
+    {
+      "name": "laravel/nova-devtool",
+      "version": "v1.10.2",
+      "reference": "9a78d2570953b7d1f3635e4ffd5bfb87a72ce5af",
+      "dist": "https://api.github.com/repos/laravel/nova-devtool/zipball/9a78d2570953b7d1f3635e4ffd5bfb87a72ce5af"
+    },
+    {
+      "name": "laravel/nova-log-viewer",
+      "version": "v1.3.0",
+      "reference": "c99c87ae0a97c0bcc9136d5fbcefd661b90b2610",
+      "dist": "https://api.github.com/repos/laravel/nova-log-viewer/zipball/c99c87ae0a97c0bcc9136d5fbcefd661b90b2610"
+    },
+    {
+      "name": "laravel/nova-pennant",
+      "version": "v1.3.0",
+      "reference": "809eee1daee8e9ab66e93adfde84ff56015f5401",
+      "dist": "https://api.github.com/repos/laravel/nova-pennant/zipball/809eee1daee8e9ab66e93adfde84ff56015f5401"
+    },
+    {
+      "name": "laravel/octane",
+      "version": "v2.22.0",
+      "reference": "c49ff458e94bf14b382f6414c6b9ddb39ac82b28",
+      "dist": "https://api.github.com/repos/laravel/octane/zipball/c49ff458e94bf14b382f6414c6b9ddb39ac82b28"
+    },
+    {
+      "name": "laravel/pail",
+      "version": "v1.2.7",
+      "reference": "2f7d27dada8effc48b8c424445a69cca7007daaa",
+      "dist": "https://api.github.com/repos/laravel/pail/zipball/2f7d27dada8effc48b8c424445a69cca7007daaa"
+    },
+    {
+      "name": "laravel/pao",
+      "version": "v1.1.5",
+      "reference": "620424f1ce744d96937fb6be60a94793e79b67ad",
+      "dist": "https://api.github.com/repos/laravel/pao/zipball/620424f1ce744d96937fb6be60a94793e79b67ad"
+    },
+    {
+      "name": "laravel/passkeys",
+      "version": "v0.2.1",
+      "reference": "a76656ada41b2b4a591f075eddae5ddc67e8ab9c",
+      "dist": "https://api.github.com/repos/laravel/passkeys-server/zipball/a76656ada41b2b4a591f075eddae5ddc67e8ab9c"
+    },
+    {
+      "name": "laravel/passport",
+      "version": "v13.10.0",
+      "reference": "f5f5e9f64559dd52339daa0d6102cb1c30e4a0d7",
+      "dist": "https://api.github.com/repos/laravel/passport/zipball/f5f5e9f64559dd52339daa0d6102cb1c30e4a0d7"
+    },
+    {
+      "name": "laravel/pennant",
+      "version": "v1.26.0",
+      "reference": "a343096b4b01a23a5dfadf92b0907f710134d5e0",
+      "dist": "https://api.github.com/repos/laravel/pennant/zipball/a343096b4b01a23a5dfadf92b0907f710134d5e0"
+    },
+    {
+      "name": "laravel/pint",
+      "version": "v1.32.1",
+      "reference": "006bd7825eb01daf92959d060b89cd9514fe4253",
+      "dist": "https://api.github.com/repos/laravel/pint/zipball/006bd7825eb01daf92959d060b89cd9514fe4253",
+      "source_supplement": "git tag v1.32.1; Composer dist omits application sources"
+    },
+    {
+      "name": "laravel/prompts",
+      "version": "v0.3.26",
+      "reference": "2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0",
+      "dist": "https://api.github.com/repos/laravel/prompts/zipball/2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0"
+    },
+    {
+      "name": "laravel/pulse",
+      "version": "v1.8.1",
+      "reference": "0f828f61f92656de7f0d0bc83bacbf6908ed8460",
+      "dist": "https://api.github.com/repos/laravel/pulse/zipball/0f828f61f92656de7f0d0bc83bacbf6908ed8460"
+    },
+    {
+      "name": "laravel/ranger",
+      "version": "v0.5.1",
+      "reference": "56d06fc93db115b4ff37d82e1a5b1afa3df97e9b",
+      "dist": "https://api.github.com/repos/laravel/ranger/zipball/56d06fc93db115b4ff37d82e1a5b1afa3df97e9b"
+    },
+    {
+      "name": "laravel/react-starter-kit",
+      "version": "v1.0.1",
+      "reference": "53720687617d62d0813775970439e22fc9518487",
+      "dist": "https://api.github.com/repos/laravel/react-starter-kit/zipball/53720687617d62d0813775970439e22fc9518487"
+    },
+    {
+      "name": "laravel/reverb",
+      "version": "v1.12.0",
+      "reference": "e233471f53641a447d3b7a2150446d47a0e8c043",
+      "dist": "https://api.github.com/repos/laravel/reverb/zipball/e233471f53641a447d3b7a2150446d47a0e8c043"
+    },
+    {
+      "name": "laravel/roster",
+      "version": "v1.0.0",
+      "reference": "89e518bd88ae98ff50f6082f6b517c8d8e8245fa",
+      "dist": "https://api.github.com/repos/laravel/roster/zipball/89e518bd88ae98ff50f6082f6b517c8d8e8245fa"
+    },
+    {
+      "name": "laravel/sail",
+      "version": "v1.69.0",
+      "reference": "3587ac9d68e8f2eaf36bd9fb003a4555861dca9d",
+      "dist": "https://api.github.com/repos/laravel/sail/zipball/3587ac9d68e8f2eaf36bd9fb003a4555861dca9d"
+    },
+    {
+      "name": "laravel/sanctum",
+      "version": "v4.3.3",
+      "reference": "fee27a573d1a013af3721d86153a65e0b11927e6",
+      "dist": "https://api.github.com/repos/laravel/sanctum/zipball/fee27a573d1a013af3721d86153a65e0b11927e6"
+    },
+    {
+      "name": "laravel/scout",
+      "version": "v11.9.0",
+      "reference": "07a6255b0cf2420426a80fd0e58a96b44afbfd40",
+      "dist": "https://api.github.com/repos/laravel/scout/zipball/07a6255b0cf2420426a80fd0e58a96b44afbfd40"
+    },
+    {
+      "name": "laravel/sentinel",
+      "version": "v1.1.0",
+      "reference": "972d9885d9d14312a118e9565c4e6ecc5e751ea1",
+      "dist": "https://api.github.com/repos/laravel/sentinel/zipball/972d9885d9d14312a118e9565c4e6ecc5e751ea1"
+    },
+    {
+      "name": "laravel/serializable-closure",
+      "version": "v2.1.0",
+      "reference": "2d5869a838bbcf37e0d8b0568fc41914e81374b5",
+      "dist": "https://api.github.com/repos/laravel/serializable-closure/zipball/2d5869a838bbcf37e0d8b0568fc41914e81374b5"
+    },
+    {
+      "name": "laravel/slack-notification-channel",
+      "version": "v3.10.0",
+      "reference": "f5690359278aaebf5a0e5b07659caea95b6ded40",
+      "dist": "https://api.github.com/repos/laravel/slack-notification-channel/zipball/f5690359278aaebf5a0e5b07659caea95b6ded40"
+    },
+    {
+      "name": "laravel/socialite",
+      "version": "v5.31.0",
+      "reference": "f721b2cbec327ab820bd6aabea6ab211cfcc9f08",
+      "dist": "https://api.github.com/repos/laravel/socialite/zipball/f721b2cbec327ab820bd6aabea6ab211cfcc9f08"
+    },
+    {
+      "name": "laravel/spark-installer",
+      "version": "v3.2.1",
+      "reference": "4c8dcd2750243070bcd98296b742a873a66d8c37",
+      "dist": "https://api.github.com/repos/laravel/spark-installer/zipball/4c8dcd2750243070bcd98296b742a873a66d8c37"
+    },
+    {
+      "name": "laravel/surveyor",
+      "version": "v0.3.0",
+      "reference": "af01270c7f2b5573969a3fc4dd3814a12500c758",
+      "dist": "https://api.github.com/repos/laravel/surveyor/zipball/af01270c7f2b5573969a3fc4dd3814a12500c758"
+    },
+    {
+      "name": "laravel/svelte-starter-kit",
+      "version": "dev-main",
+      "reference": "76d6cf46b6cc7236121a75b9e4f1bea8809cb490",
+      "dist": "https://api.github.com/repos/laravel/svelte-starter-kit/zipball/76d6cf46b6cc7236121a75b9e4f1bea8809cb490"
+    },
+    {
+      "name": "laravel/symfony-on-cloud",
+      "version": "v0.1.0",
+      "reference": "902f989f2c325c1affef04fdbd7adb9a81e0ebc8",
+      "dist": "https://api.github.com/repos/laravel/symfony-on-cloud/zipball/902f989f2c325c1affef04fdbd7adb9a81e0ebc8"
+    },
+    {
+      "name": "laravel/telescope",
+      "version": "v5.26.0",
+      "reference": "bedfc50a3561c93cd89064643139a51c56bfd8a6",
+      "dist": "https://api.github.com/repos/laravel/telescope/zipball/bedfc50a3561c93cd89064643139a51c56bfd8a6"
+    },
+    {
+      "name": "laravel/tinker",
+      "version": "v3.0.2",
+      "reference": "4faba77764bd33411735936acdf30446d058c78b",
+      "dist": "https://api.github.com/repos/laravel/tinker/zipball/4faba77764bd33411735936acdf30446d058c78b"
+    },
+    {
+      "name": "laravel/ui",
+      "version": "v4.6.3",
+      "reference": "ff27db15416c1ed8ad9848f5692e47595dd5de27",
+      "dist": "https://api.github.com/repos/laravel/ui/zipball/ff27db15416c1ed8ad9848f5692e47595dd5de27"
+    },
+    {
+      "name": "laravel/valet",
+      "version": "v4.12.0",
+      "reference": "6cc4892742e36412273a3f43caf673950f5bce7b",
+      "dist": "https://api.github.com/repos/laravel/valet/zipball/6cc4892742e36412273a3f43caf673950f5bce7b"
+    },
+    {
+      "name": "laravel/vapor-cli",
+      "version": "v1.70.5",
+      "reference": "809d5042c36ca7646e477a23f57d59082f2624ad",
+      "dist": "https://api.github.com/repos/laravel/vapor-cli/zipball/809d5042c36ca7646e477a23f57d59082f2624ad"
+    },
+    {
+      "name": "laravel/vapor-core",
+      "version": "v2.47.0",
+      "reference": "09a267e54650ea2c4cc8e0fa18357c207934db7c",
+      "dist": "https://api.github.com/repos/laravel/vapor-core/zipball/09a267e54650ea2c4cc8e0fa18357c207934db7c"
+    },
+    {
+      "name": "laravel/vapor-ui",
+      "version": "v1.7.4",
+      "reference": "873d82bf8eb9d5018fc7909aaa95cf4f5cba52d4",
+      "dist": "https://api.github.com/repos/laravel/vapor-ui/zipball/873d82bf8eb9d5018fc7909aaa95cf4f5cba52d4"
+    },
+    {
+      "name": "laravel/vet",
+      "version": "v0.2.1",
+      "reference": "7b10fd2beecf9f386c92731729c9f33a152b213b",
+      "dist": "https://api.github.com/repos/laravel/vet/zipball/7b10fd2beecf9f386c92731729c9f33a152b213b",
+      "source_supplement": "git tag v0.2.1; Composer dist omits application sources"
+    },
+    {
+      "name": "laravel/vonage-notification-channel",
+      "version": "v3.3.5",
+      "reference": "d7a6cd7a810e08095709d4ab7a4e1c4489b1be33",
+      "dist": "https://api.github.com/repos/laravel/vonage-notification-channel/zipball/d7a6cd7a810e08095709d4ab7a4e1c4489b1be33"
+    },
+    {
+      "name": "laravel/vue-starter-kit",
+      "version": "v1.0.2",
+      "reference": "dbf7c0f51cd174d08bc33587c617a93c343898f9",
+      "dist": "https://api.github.com/repos/laravel/vue-starter-kit/zipball/dbf7c0f51cd174d08bc33587c617a93c343898f9"
+    },
+    {
+      "name": "laravel/wayfinder",
+      "version": "v0.1.22",
+      "reference": "13cae0fad48009925f05f0a1d3edb13476560fa0",
+      "dist": "https://api.github.com/repos/laravel/wayfinder/zipball/13cae0fad48009925f05f0a1d3edb13476560fa0"
+    },
+    {
+      "name": "laravel/workos",
+      "version": "v0.6.0",
+      "reference": "4114d6adaef9747d4fea74d4abe54516c67f50e7",
+      "dist": "https://api.github.com/repos/laravel/workos/zipball/4114d6adaef9747d4fea74d4abe54516c67f50e7"
+    }
+  ]
+}

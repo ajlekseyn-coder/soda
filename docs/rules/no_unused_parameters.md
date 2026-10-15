@@ -8,6 +8,16 @@
 
 An unused input is either dead weight — a leftover from a changed implementation — or an undocumented contract. Both hurt: readers must reason about a value that never matters, and callers pay for arguments that do nothing. The rule reports unused parameters and advises removing them when the signature is owned locally. It is deliberately conservative: positions required by an implemented interface or parent method, callback positions before the last used slot (e.g. stream and array-callback signatures), promoted constructor properties, and explicitly configured external contracts are preserved. A parameter that is only overwritten before being read counts as unused because the incoming value never survives to a read.
 
+PHP's fixed magic-method positions are also preserved; `__invoke` and ordinary
+constructors retain their own signatures. Reads through `func_get_args()`,
+`func_get_arg()`, `compact()` and included code count within their owning callable.
+An exit in a `try` block or switch case does not hide reads in alternative paths
+or `finally`.
+
+Anonymous classes retain declared parent and interface contracts. Their identities
+are scoped to the source file, and additional parameters beyond the inherited
+signature remain eligible for diagnostics.
+
 ## Examples
 
 ```php

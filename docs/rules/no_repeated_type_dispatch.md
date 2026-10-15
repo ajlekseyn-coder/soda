@@ -8,6 +8,11 @@
 
 When two or more methods of the same class each dispatch on the same type set (`instanceof` checks, `match` on `::class`, `get_class` switches) or the same scalar discriminator family, adding a new variant means hunting down every dispatch site. The rule groups identical dispatch families per class and reports them when they appear in at least `minMethods` distinct methods, and advises centralizing the type-specific operation instead of repeating the dispatch. Dispatch inside a single method does not count, and nested callables do not contribute to their owner.
 
+Scalar alternatives must also share a selector. Matching literals alone do not
+connect a computed collection size to a method's removal count, or two different
+properties to each other. Call-derived locals have no shared identity across
+methods. A parent's private field remains distinct from a same-named child field.
+
 ## Examples
 
 ```php

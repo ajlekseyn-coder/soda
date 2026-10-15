@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Usage\UselessVariableAnalyzer;
 use PHPUnit\Framework\TestCase;
 
@@ -54,6 +56,61 @@ PHP));
         $this->assertTrue($this->hasViolation(
             'function test($b) { $a = $b; return $a; }',
         ));
+    }
+
+    public function testLoopBindingsAndDestructuringKeepIndependentValues(): void
+    {
+        foreach ([
+            'function bind($abstract, $types) { $concrete = $abstract; foreach ($types as $abstract) { bind($abstract, $concrete); } }',
+            'function keys($key, $items) { $original = $key; foreach ($items as $key => $value) { consume($key, $original); } }',
+            'function scan($cursor) { $initial = $cursor; do { [$cursor, $batch] = scan($cursor); } while ($cursor !== $initial); }',
+            'function scan($cursor) { $initial = $cursor; list($cursor, $batch) = scan($cursor); return $initial; }',
+            'function read($input, $rows) { $original = $input; foreach ($rows as [$input]) { consume($original); } }',
+            'function read($input) { $original = $input; [[$input]] = rows(); return $original; }',
+            'function recover($error) { $original = $error; try { attempt(); } catch (Exception $error) { consume($original); } }',
+        ] as $source) {
+            self::assertSame([], $this->violations($source), $source);
+        }
+
+        self::assertTrue($this->hasViolation('function values($items) { $copy = $items; foreach ($items as $item) { consume($copy, $item); } }'));
+        self::assertTrue($this->hasViolation('function indexes($index, $rows) { $copy = $index; [$rows[$index]] = values(); return $copy; }'));
+    }
+
+    public function testStandardRunnerPreservesLoopSnapshotsAndStillDetectsAliases(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-alias-mutations-');
+        self::assertIsString($path);
+        file_put_contents($path, <<<'PHP'
+<?php
+function bind($abstract, $types) { $concrete = $abstract; foreach ($types as $abstract) { bind($abstract, $concrete); } }
+function scan($cursor) { $initial = $cursor; do { [$cursor, $batch] = scan($cursor); } while ($cursor !== $initial); }
+function alias($input) { $copy = $input; return $copy; }
+PHP);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'useless_variable')->values();
+            self::assertCount(1, $findings);
+            self::assertSame(4, $findings[0]->line);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testIncludedFilesAndSymbolTablesCanObserveAliasNames(): void
+    {
+        foreach ([
+            'require $path;',
+            'include_once $path;',
+            'eval($code);',
+            'consume(get_defined_vars());',
+            'consume(compact("factory"));',
+            'consume($$name);',
+        ] as $statement) {
+            self::assertSame([], $this->violations('function load($path) { $factory = $this; '.$statement.' return $factory; }'), $statement);
+        }
+
+        self::assertTrue($this->hasViolation('function load($path) { $factory = $this; consume($path); return $factory; }'));
     }
 
     /** Case 2 — alias passed to a function: $a = $b; foo($a); */

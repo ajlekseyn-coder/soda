@@ -1,0 +1,878 @@
+{
+  "date": "2026-10-15",
+  "baseline_revision": "44638f969b67ce8f8726e121a8bc28f4c91cbe66",
+  "baseline_patch": "Remove Switch_ from the statements() match in src/Analysis/Complexity/ControlBodies.php so the baseline can finish.",
+  "baseline_source_sha256": "cfaf709897157178e55be8d3574fda59fd2917fd15c067c4da3edcf4856e93c5",
+  "php": "8.5.11",
+  "requested_packages": 82,
+  "analyzed_packages": 81,
+  "files": 5875,
+  "before": 62672,
+  "remaining_review": "Not individually classified; no claim that every remaining diagnostic is a true positive.",
+  "final_source_sha256": "0ab2a20e5a903f7091a559075995d00982fbe6af0c0cd912641a8bee3133cf31",
+  "after": 62466,
+  "removed": 207,
+  "added": 1,
+  "resolved": 206,
+  "revised": 1,
+  "new": 0,
+  "diagnostic_multiset": {
+    "removed": 207,
+    "added": 1
+  },
+  "changed_rules": {
+    "no_declarations_before_early_exit": {
+      "before": 171,
+      "after": 157,
+      "net_removed": 14
+    },
+    "no_repeated_type_dispatch": {
+      "before": 40,
+      "after": 34,
+      "net_removed": 6
+    },
+    "no_unused_parameters": {
+      "before": 950,
+      "after": 767,
+      "net_removed": 183
+    },
+    "useless_variable": {
+      "before": 6,
+      "after": 3,
+      "net_removed": 3
+    }
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "before": 62672,
+      "after": 62547,
+      "resolved": 125,
+      "revised": 0
+    },
+    {
+      "round": 2,
+      "before": 62547,
+      "after": 62466,
+      "resolved": 81,
+      "revised": 1
+    }
+  ],
+  "packages": [
+    {
+      "name": "laravel/agent-detector",
+      "status": "analyzed",
+      "files": 4,
+      "source_sha256": "66daeb8b1b513b15eca4f58ba332170f7a35514a3c576321f96e5919c41bdb7d",
+      "before": 17,
+      "after": 17,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/ai",
+      "status": "analyzed",
+      "files": 511,
+      "source_sha256": "6b1419024731e1e98a6bc9088a54d65cf8755246da6d01ebe748f6dea0358fd5",
+      "before": 4455,
+      "after": 4454,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/airlock",
+      "status": "analyzed",
+      "files": 20,
+      "source_sha256": "2d86981f8a6b96992738d1dad6b28713dff04bdaf99320d26ab1e1b262889f72",
+      "before": 107,
+      "after": 107,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/blank-livewire-starter-kit",
+      "status": "analyzed",
+      "files": 5,
+      "source_sha256": "0d051b93047079be82984ef7262a1900f860e66ac0bdc80f88ce52741ed60dea",
+      "before": 3,
+      "after": 3,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/blank-react-starter-kit",
+      "status": "analyzed",
+      "files": 6,
+      "source_sha256": "0ffe71be36fc0e7d516c41ea511611e82dc33d61d99c22196caeb580dbb38734",
+      "before": 3,
+      "after": 3,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/blank-svelte-starter-kit",
+      "status": "analyzed",
+      "files": 6,
+      "source_sha256": "0ffe71be36fc0e7d516c41ea511611e82dc33d61d99c22196caeb580dbb38734",
+      "before": 3,
+      "after": 3,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/blank-vue-starter-kit",
+      "status": "analyzed",
+      "files": 6,
+      "source_sha256": "0ffe71be36fc0e7d516c41ea511611e82dc33d61d99c22196caeb580dbb38734",
+      "before": 3,
+      "after": 3,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/boost",
+      "status": "analyzed",
+      "files": 103,
+      "source_sha256": "de4c6937002ae525f1b4c95a9d6fcfce33f34f6ec39176ea4b52f49e3d5947eb",
+      "before": 1404,
+      "after": 1400,
+      "removed": 4,
+      "added": 0
+    },
+    {
+      "name": "laravel/breeze",
+      "status": "analyzed",
+      "files": 6,
+      "source_sha256": "a80aee2cb5e26c4d8695f2b2ed93ceb1f2564da2f4ad316f36f355fe1cb8e433",
+      "before": 210,
+      "after": 210,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/browser-kit-testing",
+      "status": "analyzed",
+      "files": 23,
+      "source_sha256": "31b84a90518c28d9281317caafdede3423f838b9bd0ae87f6e74aab727a23914",
+      "before": 306,
+      "after": 305,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/cashier",
+      "status": "analyzed",
+      "files": 54,
+      "source_sha256": "a1ed08bae386a620d702228460b40c8156659696ecc34be6c0e67f2fafc472e3",
+      "before": 557,
+      "after": 557,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/cashier-braintree",
+      "status": "analyzed",
+      "files": 8,
+      "source_sha256": "19943bf3face44a268a887e74a412508418e94057fb1d45fc41604ab97c80c28",
+      "before": 105,
+      "after": 105,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/cashier-mollie",
+      "status": "analyzed",
+      "files": 102,
+      "source_sha256": "ec737233f07bcb4d47f841180dfd345586ef1274cd8fd46a06d639400a3b6239",
+      "before": 584,
+      "after": 584,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/cashier-paddle",
+      "status": "analyzed",
+      "files": 32,
+      "source_sha256": "1038f31ed3aeac50e82d4a7a0a6fb08c0278385be9a3bef84890744b85ecfbe9",
+      "before": 289,
+      "after": 289,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/chisel",
+      "status": "analyzed",
+      "files": 13,
+      "source_sha256": "62c52fa5b529bc00c48ad580abbf772fc109df2ba26caf71c399421f5290e85f",
+      "before": 150,
+      "after": 150,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/cloud-cli",
+      "status": "analyzed",
+      "files": 357,
+      "source_sha256": "3ea5350641b44002d137efb9a8509d2855e92fc428188b510f9dbb40d6d5c734",
+      "before": 4064,
+      "after": 4063,
+      "removed": 2,
+      "added": 1
+    },
+    {
+      "name": "laravel/database",
+      "status": "analyzed",
+      "files": 28,
+      "source_sha256": "ae6a1d9a4c86f27a141b4909f4e03ef5eff02b48d6d1a356895152f9907463d0",
+      "before": 430,
+      "after": 428,
+      "removed": 2,
+      "added": 0
+    },
+    {
+      "name": "laravel/doctor",
+      "status": "analyzed",
+      "files": 54,
+      "source_sha256": "08e8b0d3ad241b4a2f798ebc6720182484577e33d5d2502c5f8ed5f583d43446",
+      "before": 276,
+      "after": 275,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/dusk",
+      "status": "analyzed",
+      "files": 31,
+      "source_sha256": "d8fa6efd06627047f2fad13918c77ea529c4982113bbdd0d74fd819dcaa25681",
+      "before": 650,
+      "after": 650,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/envoy",
+      "status": "analyzed",
+      "files": 18,
+      "source_sha256": "6383c6b3c5f5250371b0c1cc3e7913a26ea0d5d802d0e51e3d3dcfe81dd3f071",
+      "before": 254,
+      "after": 254,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/folio",
+      "status": "analyzed",
+      "files": 37,
+      "source_sha256": "2167a8e1f35e798e9905e4935320bef4f24cb15c6f0a95bbc99fdd00f9231009",
+      "before": 208,
+      "after": 208,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/forge-cli",
+      "status": "analyzed",
+      "files": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "before": 0,
+      "after": 0,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/forge-sdk",
+      "status": "analyzed",
+      "files": 36,
+      "source_sha256": "907531575309e73eb7ecf4c288956c9f1502811b73c5dd3940322ffede75573e",
+      "before": 558,
+      "after": 557,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/fortify",
+      "status": "analyzed",
+      "files": 110,
+      "source_sha256": "6ad129c4a242716572a9968925900cb47026a87913598e25fc37d2425a346722",
+      "before": 277,
+      "after": 277,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/framework",
+      "status": "analyzed",
+      "files": 1639,
+      "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
+      "before": 26858,
+      "after": 26691,
+      "removed": 167,
+      "added": 0
+    },
+    {
+      "name": "laravel/head",
+      "status": "analyzed",
+      "files": 58,
+      "source_sha256": "23af94a5ee5fa37a0053a22e18d2460a2977a77d30b9d70cc78fd96653e63ecf",
+      "before": 635,
+      "after": 634,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/helpers",
+      "status": "analyzed",
+      "files": 1,
+      "source_sha256": "0fca6cafe9977ee804f46396d4ea8e05165c8a8a8f99c317351b576ee68ecd7f",
+      "before": 89,
+      "after": 86,
+      "removed": 3,
+      "added": 0
+    },
+    {
+      "name": "laravel/homestead",
+      "status": "analyzed",
+      "files": 9,
+      "source_sha256": "dbde1a6793690fb9009300afaf74b3cae1101fc4c2fb4f0032c0d6dac896cba5",
+      "before": 87,
+      "after": 87,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/horizon",
+      "status": "analyzed",
+      "files": 141,
+      "source_sha256": "7d06366cdca1e1a43a5e7076eef38eb13fe71419e0ceec84103108a0132478a7",
+      "before": 804,
+      "after": 802,
+      "removed": 2,
+      "added": 0
+    },
+    {
+      "name": "laravel/installer",
+      "status": "analyzed",
+      "files": 7,
+      "source_sha256": "fe97ae084cd75514c5ebe037cf2bea740f88648d052a8fdd99204ba1224898fb",
+      "before": 343,
+      "after": 343,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/jetstream",
+      "status": "analyzed",
+      "files": 68,
+      "source_sha256": "caf70c6b3bd3a5f2f3c0c4bfe776d5ffdd8213d066c762b2663459b58ff6ddfe",
+      "before": 390,
+      "after": 390,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/laravel",
+      "status": "analyzed",
+      "files": 5,
+      "source_sha256": "2f0e37f64e56470c63bcaa0d798a59a0322b19f86eb6baa3c07a3375887b09a5",
+      "before": 3,
+      "after": 3,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/legacy-encrypter",
+      "status": "analyzed",
+      "files": 2,
+      "source_sha256": "b0067c924ddf58b9d5cfd12cea87a457c49c01372ab8d59a844af2813650180d",
+      "before": 30,
+      "after": 30,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/legacy-factories",
+      "status": "analyzed",
+      "files": 4,
+      "source_sha256": "a9e7bd8e727abfa49e6db567e276d33871f507d099abf9e65b335be702e1f30b",
+      "before": 60,
+      "after": 59,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/liferaft",
+      "status": "unavailable",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "laravel/livewire-starter-kit",
+      "status": "analyzed",
+      "files": 8,
+      "source_sha256": "0c2cab10c9f1f832c441d3e1a9407ec3b7c150147d95943cafaded14ac24a7da",
+      "before": 3,
+      "after": 3,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/lsp",
+      "status": "analyzed",
+      "files": 238,
+      "source_sha256": "88599da1251c297cad8134df1ac6b36379bfd93642fa757f5912c8f8c68a58bc",
+      "before": 1379,
+      "after": 1376,
+      "removed": 3,
+      "added": 0
+    },
+    {
+      "name": "laravel/lumen",
+      "status": "analyzed",
+      "files": 17,
+      "source_sha256": "8a0a8a843dff8b4f87591cfeae3c952ff25d53226c22c07b58db749f4666fd2f",
+      "before": 11,
+      "after": 11,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/lumen-framework",
+      "status": "analyzed",
+      "files": 26,
+      "source_sha256": "1591e10d72a1902460a3380775157730a8e0f16f2b0aeec4b9ceced1c9c2b89b",
+      "before": 590,
+      "after": 590,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/lumen-installer",
+      "status": "analyzed",
+      "files": 2,
+      "source_sha256": "8f3896cfd568a1d752e031968484454a8a3149c1899a158e45bbba89c3703a55",
+      "before": 15,
+      "after": 15,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/mcp",
+      "status": "analyzed",
+      "files": 174,
+      "source_sha256": "93d0a226d80e95ac3745f2139a630a0724691774671dc83107e2cf3afec933e4",
+      "before": 1636,
+      "after": 1634,
+      "removed": 2,
+      "added": 0
+    },
+    {
+      "name": "laravel/nexmo-notification-channel",
+      "status": "analyzed",
+      "files": 5,
+      "source_sha256": "0e988742015006f20b3b0483c3bba310956f9d70c7772b47379525a890c73d3a",
+      "before": 43,
+      "after": 43,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/nightwatch",
+      "status": "analyzed",
+      "files": 97,
+      "source_sha256": "b03f413c74872d386eefd86bd9c22f13297ab92f8e54da505aaaea5ea6b81270",
+      "before": 1319,
+      "after": 1319,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/nova-devtool",
+      "status": "analyzed",
+      "files": 21,
+      "source_sha256": "6c30b8902bcc717571949700669181656e9fff87f9248b156797c08d62f7ce0b",
+      "before": 145,
+      "after": 145,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/nova-log-viewer",
+      "status": "analyzed",
+      "files": 5,
+      "source_sha256": "7644683cf987226eb13e72b744d28370cbc5a4517f72b06700aa8ccdd9a4815c",
+      "before": 13,
+      "after": 13,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/nova-pennant",
+      "status": "analyzed",
+      "files": 6,
+      "source_sha256": "fe0f61e16eb79482b9a88e31910929ea5196556d5c521489a7d03cf7710821f6",
+      "before": 13,
+      "after": 13,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/octane",
+      "status": "analyzed",
+      "files": 146,
+      "source_sha256": "e53acd888dba13919946690b78bf567f541a2a44b99b07e168baa27459b08ab0",
+      "before": 790,
+      "after": 783,
+      "removed": 7,
+      "added": 0
+    },
+    {
+      "name": "laravel/pail",
+      "status": "analyzed",
+      "files": 15,
+      "source_sha256": "75ad2ad5b98aba2394b5fff204215f20ed4fccb780b4b64d75d5a6d1598ccc0f",
+      "before": 86,
+      "after": 86,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/pao",
+      "status": "analyzed",
+      "files": 20,
+      "source_sha256": "f11a2acd572a3e02309c66e430a392c85494370842c957353c5099f157136f66",
+      "before": 246,
+      "after": 246,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/passkeys",
+      "status": "analyzed",
+      "files": 29,
+      "source_sha256": "268b9567f27b6081197faf69d8ba7deb68b558a16471d06cefd265c7b36bb136",
+      "before": 41,
+      "after": 41,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/passport",
+      "status": "analyzed",
+      "files": 84,
+      "source_sha256": "20c3552bc4810ee7e1f310c94a950d5fe6894168b5a30d70e94bb4bc7fd497ed",
+      "before": 289,
+      "after": 288,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/pennant",
+      "status": "analyzed",
+      "files": 34,
+      "source_sha256": "582e1ad2fef379dffd8ff1a2e699e983f41f541a2ab3580ae0d0d488ccde04c6",
+      "before": 373,
+      "after": 370,
+      "removed": 3,
+      "added": 0
+    },
+    {
+      "name": "laravel/pint",
+      "status": "analyzed",
+      "files": 49,
+      "source_sha256": "b8d7daebc9cfe80c01800093fb8727e46790921ff8ff46844e50269c32163f4a",
+      "before": 394,
+      "after": 394,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/prompts",
+      "status": "analyzed",
+      "files": 86,
+      "source_sha256": "59b57dc9b61fc018ee1d2f52d68418e550b6d8c654f2befeaafaddb3a1f9f67e",
+      "before": 794,
+      "after": 794,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/pulse",
+      "status": "analyzed",
+      "files": 56,
+      "source_sha256": "9e6943bb35060ab9243009e6a70abdbe93d2d15fb287f188a906058256845157",
+      "before": 488,
+      "after": 488,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/ranger",
+      "status": "analyzed",
+      "files": 37,
+      "source_sha256": "f86ceee3002925cf611cc0aa44e237142582e9d29930195e5635caf756c75366",
+      "before": 365,
+      "after": 365,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/react-starter-kit",
+      "status": "analyzed",
+      "files": 18,
+      "source_sha256": "5d7c4eef275e58046423c48039a2bb24c836446e2e789a635e0a47c577fe9306",
+      "before": 8,
+      "after": 8,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/reverb",
+      "status": "analyzed",
+      "files": 98,
+      "source_sha256": "7cec7c53412cbda307176a1ca30bb3fc215cd3544493b5a80b1b85afc2677e33",
+      "before": 431,
+      "after": 431,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/roster",
+      "status": "analyzed",
+      "files": 48,
+      "source_sha256": "b2e1f2ac85f0d8ab6275556bd9c6e75800e32aadd1eba2fce3c75db62ed37512",
+      "before": 332,
+      "after": 332,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/sail",
+      "status": "analyzed",
+      "files": 5,
+      "source_sha256": "eea51acb9bded90ee39dc448ae02ae3cecb84ab1773734a0ec0148b6434a746f",
+      "before": 79,
+      "after": 79,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/sanctum",
+      "status": "analyzed",
+      "files": 20,
+      "source_sha256": "2d86981f8a6b96992738d1dad6b28713dff04bdaf99320d26ab1e1b262889f72",
+      "before": 107,
+      "after": 107,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/scout",
+      "status": "analyzed",
+      "files": 46,
+      "source_sha256": "be4cba66b1f2987b01836efb9b4845d6da41e37b9177f6e29c292af41ada00d0",
+      "before": 799,
+      "after": 799,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/sentinel",
+      "status": "analyzed",
+      "files": 6,
+      "source_sha256": "8c5d064644180563c00fddf8bb6aa4737f385d05d768cac59e702637923105c8",
+      "before": 9,
+      "after": 9,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/serializable-closure",
+      "status": "analyzed",
+      "files": 13,
+      "source_sha256": "0159b73f5dde12e767e6526f493735edea3bb4642128dd0747730f0d13fa3d0e",
+      "before": 273,
+      "after": 273,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/slack-notification-channel",
+      "status": "analyzed",
+      "files": 30,
+      "source_sha256": "22691345f5859d69bb3adbb1b120c594445bedc4c9e69f20ad3f356019ec61d0",
+      "before": 133,
+      "after": 133,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/socialite",
+      "status": "analyzed",
+      "files": 33,
+      "source_sha256": "d9616f5e1421971da8d403a52cad42bfd7da313f46f18998b8d2dd8789ac46c7",
+      "before": 153,
+      "after": 153,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/spark-installer",
+      "status": "analyzed",
+      "files": 15,
+      "source_sha256": "4571a458f23ed4ab5732e2b43f1297002ef1ce806bc62046517beb388653f0b3",
+      "before": 71,
+      "after": 71,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/surveyor",
+      "status": "analyzed",
+      "files": 315,
+      "source_sha256": "ffc34ed2d0d9f14b1e5a753089f98de175e0d2188e6696d37254eafd10dfc7bf",
+      "before": 2015,
+      "after": 2014,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/svelte-starter-kit",
+      "status": "analyzed",
+      "files": 19,
+      "source_sha256": "98bc2a53e3554c51e957e08ac464b852e2deca265d3fb1013b7ae09b1dd9330c",
+      "before": 27,
+      "after": 27,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/symfony-on-cloud",
+      "status": "analyzed",
+      "files": 17,
+      "source_sha256": "e254c2e71ff9fb78d8a1adb827e22ebb4b1b34f567c059ff3cd6aca8b8a24ca8",
+      "before": 207,
+      "after": 207,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/telescope",
+      "status": "analyzed",
+      "files": 84,
+      "source_sha256": "215dd78a060722a78c7319dcee72c585118319e147417829d4da9bb8c6594c5c",
+      "before": 561,
+      "after": 561,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/tinker",
+      "status": "analyzed",
+      "files": 4,
+      "source_sha256": "11ac5ac7db08f71e82044f787133e7c03e885920ebfe3405866eaa2e1c59d3e8",
+      "before": 41,
+      "after": 41,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/ui",
+      "status": "analyzed",
+      "files": 17,
+      "source_sha256": "7dc949f2dc75e53be315cfacededc1ef248e9d19cf1dbfa4a1c7f644871ba6a5",
+      "before": 87,
+      "after": 87,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/valet",
+      "status": "analyzed",
+      "files": 45,
+      "source_sha256": "617da94ca338d9a0b3aff3e3c21da6ce1738dd647d8379f14dc13cadede27871",
+      "before": 776,
+      "after": 773,
+      "removed": 3,
+      "added": 0
+    },
+    {
+      "name": "laravel/vapor-cli",
+      "status": "analyzed",
+      "files": 156,
+      "source_sha256": "83d02929ec3cc77c144e6ad777fb77b1f855404b4d96757a8dc0952678aaa8c1",
+      "before": 1090,
+      "after": 1089,
+      "removed": 1,
+      "added": 0
+    },
+    {
+      "name": "laravel/vapor-core",
+      "status": "analyzed",
+      "files": 71,
+      "source_sha256": "23f1c47204db3fe7fd6ad27b7e85fac10ec6812679ddcb81d970111c4939792c",
+      "before": 493,
+      "after": 493,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/vapor-ui",
+      "status": "analyzed",
+      "files": 23,
+      "source_sha256": "7d37546534c5d4ec2d408b8e5b3c6056b7213ddfc6cbeba78f16e23d14949a76",
+      "before": 127,
+      "after": 127,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/vet",
+      "status": "analyzed",
+      "files": 96,
+      "source_sha256": "b1544b4290d3ab0658e7c6c5ac7134b7ca28ce9dfa52cb1f35fe96018eb14a3c",
+      "before": 1284,
+      "after": 1284,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/vonage-notification-channel",
+      "status": "analyzed",
+      "files": 5,
+      "source_sha256": "0e988742015006f20b3b0483c3bba310956f9d70c7772b47379525a890c73d3a",
+      "before": 43,
+      "after": 43,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/vue-starter-kit",
+      "status": "analyzed",
+      "files": 18,
+      "source_sha256": "f24262d3d9cf6ca33abd65e04a0bb43e4c5d0f9483b7305d18c63ebaddaa0f98",
+      "before": 8,
+      "after": 8,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/wayfinder",
+      "status": "analyzed",
+      "files": 7,
+      "source_sha256": "49e6ee04b116b5273a691c5432582c1af87f01123201047cefcad7076366878b",
+      "before": 249,
+      "after": 249,
+      "removed": 0,
+      "added": 0
+    },
+    {
+      "name": "laravel/workos",
+      "status": "analyzed",
+      "files": 7,
+      "source_sha256": "845c305f744b93ad5c621b8096814931b03f99b6ece2747dd5b8b18caa4db10f",
+      "before": 24,
+      "after": 24,
+      "removed": 0,
+      "added": 0
+    }
+  ]
+}

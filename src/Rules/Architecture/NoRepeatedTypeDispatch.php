@@ -40,9 +40,9 @@ final class NoRepeatedTypeDispatch extends Check
 
             $groups = [];
             foreach ($class->getMethods() as $method) {
-                foreach ((new TypeDispatchAnalysis)->decisions($method) as $types) {
-                    $key = serialize($types);
-                    $group = $groups[$key] ?? ['types' => $types, 'methods' => []];
+                foreach ((new TypeDispatchAnalysis)->decisions($method) as $decision) {
+                    $key = serialize($decision);
+                    $group = $groups[$key] ?? ['types' => $decision['types'], 'methods' => []];
                     $methods = $group['methods'];
                     $methods[$method->name->toLowerString()] = ['name' => $method->name->toString(), 'line' => $method->getStartLine()];
                     $group['methods'] = $methods;
@@ -74,7 +74,8 @@ final class NoRepeatedTypeDispatch extends Check
      */
     public function checkProject(ProjectFacts $project): iterable
     {
-        foreach ((new BehaviorComposition)->project($project) as $type) {
+        $resolved = (new BehaviorComposition)->project($project);
+        foreach ($resolved as $type) {
             $isComposed = $type['parent'] !== null || $type['uses'] !== [];
             if ($type['kind'] !== 'class' || ! $isComposed) {
                 continue;
@@ -83,8 +84,8 @@ final class NoRepeatedTypeDispatch extends Check
             $groups = [];
             foreach ($type['methods'] as $method) {
                 foreach ($method['dispatches'] as $family) {
-                    $key = serialize($family);
-                    $group = $groups[$key] ?? ['family' => $family, 'methods' => []];
+                    $key = serialize([$family, $this->selectorBinding($family['selector'], $method, $resolved)]);
+                    $group = $groups[$key] ?? ['family' => $family['types'], 'methods' => []];
                     $methods = $group['methods'];
                     $methods[$method['origin']] = $method['name'];
                     $group['methods'] = $methods;
@@ -104,6 +105,23 @@ final class NoRepeatedTypeDispatch extends Check
                 );
             }
         }
+    }
+
+    /**
+     * A parent's private selector and a child's same-named property occupy different slots.
+     */
+    private function selectorBinding(?string $selector, array $method, array $resolved): ?string
+    {
+        if (! str_starts_with($selector ?? '', '$this->')) {
+            return $selector;
+        }
+
+        $scope = $method['scope'];
+        $lexical = $resolved[$scope] ?? [];
+        $property = explode('->', $selector)[1];
+        $visibility = ($lexical['properties'] ?? [])[$property] ?? null;
+
+        return $visibility === 'private' ? $scope.'::'.$selector : $selector;
     }
 
     /**

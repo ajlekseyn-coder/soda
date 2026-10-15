@@ -41,7 +41,7 @@ final class NoUnusedParameters extends Check
             return;
         }
 
-        $types = InheritedParameterContracts::collect($file->nodes);
+        $types = $this->fileContracts($file->path, InheritedParameterContracts::collect($file->nodes));
         $inherited = new InheritedParameterContracts($types);
         $surfaces = (new BehaviorComposition)->resolve(ClassBehaviorFacts::collect($file->nodes));
         yield from $this->findings($file->path, ParameterInputFacts::collect($file->nodes), $inherited, LaravelMiddlewareContracts::collect($file->nodes), $this->composedArities($surfaces, $inherited));
@@ -54,8 +54,8 @@ final class NoUnusedParameters extends Check
     {
         $types = [];
         $middleware = [];
-        foreach ($project->files as $facts) {
-            $types += $facts['parameterContracts'] ?? [];
+        foreach ($project->files as $path => $facts) {
+            $types += $this->fileContracts($path, $facts['parameterContracts'] ?? []);
             $middleware += $facts['registeredMiddleware'] ?? [];
         }
 
@@ -68,6 +68,27 @@ final class NoUnusedParameters extends Check
     }
 
     /**
+     * Anonymous source offsets are unique only within their own file.
+     */
+    private function fileContracts(string $path, array $types): array
+    {
+        $qualified = [];
+        foreach ($types as $name => $type) {
+            $qualified[$this->contractKey($path, $name)] = $type;
+        }
+
+        return $qualified;
+    }
+
+    /**
+     * A path digest keeps case-sensitive filenames distinct in a case-insensitive type index.
+     */
+    private function contractKey(string $path, string $name): string
+    {
+        return str_starts_with($name, '{anonymous}') ? hash('sha256', $path).'#'.$name : $name;
+    }
+
+    /**
      * Preserve required positions without exempting extra inputs on the same method.
      */
     private function findings(string $path, array $candidates, InheritedParameterContracts $inherited, array $middleware, array $arities = []): iterable
@@ -75,12 +96,13 @@ final class NoUnusedParameters extends Check
         $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
         foreach ($candidates as $candidate) {
             $identity = $candidate['identity'];
-            $arity = max($arities[strtolower($identity)] ?? 0, $inherited->arity($candidate['class'], $candidate['method']));
+            $owner = $this->contractKey($path, $candidate['contractClass'] ?? $candidate['class'] ?? '');
+            $arity = max($arities[strtolower($identity)] ?? 0, $inherited->arity($owner, $candidate['method']));
             $registered = isset($middleware[strtolower($candidate['class'] ?? '')]);
             $terminate = $registered && strtolower($candidate['method'] ?? '') === 'terminate' && ($candidate['publicInstance'] ?? false);
             $arity = max($arity, $terminate ? 2 : 0);
             $isExternal = isset($contracts[strtolower($identity)]);
-            $isPolymorphic = $inherited->isUsedByOverride($candidate['class'], $candidate['method'], $candidate['position']);
+            $isPolymorphic = $inherited->isUsedByOverride($owner, $candidate['method'], $candidate['position']);
             if ($isExternal || $candidate['position'] < $arity || $isPolymorphic) {
                 continue;
             }

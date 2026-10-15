@@ -13,8 +13,10 @@ A variable is *not* reported when:
 - it is mutated or reassigned after the copy (`$a++`, `$a += 1`, `$a = 10`);
 - it is passed by reference (`foo(&$a)`);
 - it is captured by a closure or arrow function;
+- its local name may be observed by included code, `eval`, variable variables or symbol-table operations such as `compact()`;
 - it holds an object that is later mutated (`$a->x = 1`);
 - the source variable is changed or `unset` before the copy is used;
+- a `foreach` key/value binding, catch variable or destructuring assignment replaces the copy or its source;
 - the assigned value is a transformation (`$a = trim($b)`), not a direct copy.
 
 ## Examples
