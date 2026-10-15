@@ -10,23 +10,23 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,868 after
-nineteen review rounds: 804 resolved and 43 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 847 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,734 after
+twenty review rounds: 938 resolved and 43 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 981 removals and
 43 additions: the Cloud CLI dispatch group now names three methods instead of four,
 and 42 proven-empty interfaces have a more precise message. All other retained
 diagnostics match field-for-field with their original multiplicity.
 
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
-| `no_unused_parameters` | 950 | 479 | 471 |
+| `no_unused_parameters` | 950 | 346 | 604 |
 | `no_mode_parameters` | 53 | 50 | 3 |
 | `no_reassigned_parameters` | 2,357 | 2,353 | 4 |
 | `no_empty_local_interfaces` | 82 | 42 | 40 |
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
-| `no_catch_all_exceptions` | 221 | 218 | 3 |
+| `no_catch_all_exceptions` | 221 | 217 | 4 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
@@ -37,12 +37,12 @@ diagnostics match field-for-field with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,476 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,522 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
 
-`verified-policies.json` records 51,821 findings checked against the pinned source:
+`verified-policies.json` records 52,971 findings checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
@@ -73,6 +73,10 @@ and Pint also pass.
 | `max_class_length` | 49 | Named class/trait span exceeds 500 code-bearing lines. |
 | `max_method_length` | 40 | Named concrete method or function span exceeds 100 code-bearing lines. |
 | `max_classes_per_file` | 2 | File declares more than one named class/trait. |
+| `max_cyclomatic_complexity` | 573 | Named callable decision inventory exceeds eight, with nested callable/type bodies excluded. |
+| `max_cognitive_complexity` | 229 | Independent Soda PHP cognitive v1 measurement exceeds 15, preserving scope and evidence order. |
+| `max_statements_per_callable` | 251 | Callable has more than 20 executable statements, excluding branch wrappers and nested declarations. |
+| `max_control_nesting` | 97 | Named callable exceeds three control levels, with the deepest source line retained. |
 
 The verifier reads all 5,875 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
@@ -97,11 +101,14 @@ and bounds; forged values, lines, messages and duplicate findings were rejected.
 measurements use independent PHP token line positions and declaration spans;
 anonymous classes and interfaces follow the catalog's documented measurement scope.
 The verifier compares owner, method, location, message, measurement and threshold.
-Forged lengths, declaring owners and duplicated metric findings were rejected.
+Forged lengths, declaring owners and duplicated metric findings were rejected. The four
+complexity checks independently inventory owned AST nodes, body ancestry and boolean
+operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
+thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 190 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 477 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 42 revised empty-interface findings in `round18-reviewed.jsonl`, this leaves
-9,815 retained findings unclassified. These policy checks do not prove
+8,244 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -236,14 +243,23 @@ Literal normalization retains the existing consecutive entry-prefix restriction;
 later writes, other inputs and computed array options remain checked. Throwing a
 new exception does not add a productive dispatch operation; calls in constructor
 arguments and before the throw remain operations.
+`round20-resolved.jsonl` records 133 positional hook contracts and one nested-catch
+fallback. Native interpolated method names preserve only selected trait/inherited
+bodies and the actual positional prefix. Named/unpacked calls, callable references,
+closed local selectors, overwritten/escaped bindings, failed guard branches and
+replaced trait bodies remain checked. The 117 validation hooks receive four slots;
+the 16 schema modifiers receive two slots through inherited `addModifiers`.
+`round20-reviewed.jsonl` records 216 combined guards, 59 trailing loop guards and
+12 movable local initializers; the other 27 early-exit candidates remain unclassified.
 `round19-reviewed.jsonl` records 14 retained temporary-return-variable findings,
 including five closure factories whose own `get_defined_vars()` calls cannot observe
 the uncaptured outer temporary. Returning the closure directly preserves its body,
 PHPDoc and reference captures.
 `revised.jsonl` retains both versions of the Cloud CLI finding and the 42 interface messages;
-`reviewed-unchanged.jsonl` records 190 retained findings: 29 string-policy findings,
+`reviewed-unchanged.jsonl` records 477 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
-singleton accesses and 14 temporary-return-variable findings. Changes
+singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
+recommendations. Changes
 are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
@@ -292,7 +308,10 @@ the original Runner cannot finish packages containing affected switches.
   assignments and increments in a target prevent collapsing its evaluations.
 
 - `no_catch_all_exceptions` accepts native process termination. A later
-  unreachable bare return does not replace an unconditional catch outcome.
+  unreachable bare return does not replace an unconditional catch outcome. Nested
+  fallback blocks without `finally` also qualify when their normal path and every
+  catch return values or terminate. Jumps that can bypass these outcomes keep the
+  finding; nested callable bodies do not supply or override an outcome.
 
 - `no_consecutive_block_comments` preserves ordinary blocks containing only a
   tool directive. Joining section markers changes how source tools recognize

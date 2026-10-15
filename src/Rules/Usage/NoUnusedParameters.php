@@ -163,18 +163,35 @@ final class NoUnusedParameters extends Check
                 continue;
             }
             foreach ($surfaces as $class => $surface) {
-                $methods = $surface['methods'];
-                $method = $methods[$call['method']] ?? [];
-                if (($method['visibility'] ?? '') !== 'public' || ! $this->isReceiverFamily($class, $call['type'], $types, [])) {
-                    continue;
+                foreach ($this->dispatchTargets($call, $class, $surface, $types) as $method) {
+                    $origin = $method['origin'];
+                    $signatures[$origin] = max($signatures[$origin] ?? 0, $call['arity']);
                 }
-
-                $origin = $method['origin'];
-                $signatures[$origin] = max($signatures[$origin] ?? 0, $call['arity']);
             }
         }
 
         return $signatures;
+    }
+
+    /**
+     * Trait protocols apply only where their caller and target bodies were selected.
+     */
+    private function dispatchTargets(array $call, string $class, array $surface, array $types): array
+    {
+        $methods = $surface['methods'];
+        if (isset($call['caller'])) {
+            if (! in_array($call['caller'], array_column($methods, 'origin'), true)) {
+                return [];
+            }
+
+            return array_filter($methods, static fn (array $method, string $name): bool => $method['visibility'] !== 'private' && preg_match($call['method'], $name) === 1, ARRAY_FILTER_USE_BOTH);
+        }
+        $method = $methods[$call['method']] ?? [];
+        if (($method['visibility'] ?? '') !== 'public' || ! $this->isReceiverFamily($class, $call['type'], $types, [])) {
+            return [];
+        }
+
+        return [$method];
     }
 
     /**

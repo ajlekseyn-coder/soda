@@ -10,7 +10,10 @@ A broad catch that neither returns a value, throws, nor terminates the process s
 
 Native `exit` and `die` are explicit process boundaries and are accepted. Creating
 a closure that might exit later does not terminate the catch. Unreachable
-statements after an unconditional outcome do not replace that outcome.
+statements after an unconditional outcome do not replace that outcome. A nested
+`try` with no `finally` also qualifies when its normal path and every catch
+return a value, throw, or terminate the process. Nested blocks containing jumps
+are still checked conservatively because a jump can bypass the apparent outcome.
 
 ## Examples
 

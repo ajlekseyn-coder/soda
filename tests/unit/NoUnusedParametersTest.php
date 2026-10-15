@@ -563,6 +563,87 @@ PHP);
         }
     }
 
+    public function testInterpolatedOwnDispatchPreservesOnlySelectedTraitPositions(): void
+    {
+        $root = sys_get_temp_dir().'/soda-own-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $dispatch = $root.'/Dispatch.php';
+        $steps = $root.'/Steps.php';
+        file_put_contents($dispatch, '<?php namespace App; trait Dispatch { public function run($kind, $input) { $method = "render{$kind}"; return $this->$method($input); } } class Printer { use Dispatch, Steps; } class Standalone { protected function renderSkip($unrelated) {} }');
+        file_put_contents($steps, '<?php namespace App; trait Steps { protected function renderSkip($unused, $extra = null) {} protected function other($unrelated) {} }');
+
+        try {
+            foreach ([[$dispatch, $steps], [$steps, $dispatch]] as $paths) {
+                $result = (new Runner)->check($paths, RuleCatalog::standard());
+                self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+                $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+                self::assertCount(3, $findings);
+                $messages = $findings->map(static fn ($violation): string => $violation->message)->all();
+                self::assertCount(1, array_filter($messages, static fn (string $message): bool => str_contains($message, '$extra')));
+                self::assertCount(2, array_filter($messages, static fn (string $message): bool => str_contains($message, '$unrelated')));
+            }
+        } finally {
+            unlink($dispatch);
+            unlink($steps);
+            rmdir($root);
+        }
+    }
+
+    #[DataProvider('ownSelectorCases')]
+    public function testOwnSelectorBoundaries(string $body, int $expected, string $consumers = 'class Printer { use Dispatch, Steps; }'): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-selector-inputs-');
+        file_put_contents($path, '<?php namespace App; trait Dispatch { public function run($kind, $input, $other) { '.$body.' } } trait Steps { protected function renderSkip($unused, $extra = null) {} } '.$consumers);
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters' && $violation->class === 'App\\Steps')->values();
+            self::assertCount($expected, $findings);
+            if ($expected !== 0) {
+                self::assertStringContainsString('$extra', $findings[$expected - 1]->message);
+            }
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public static function ownSelectorCases(): iterable
+    {
+        $binding = '$method = "render{$kind}";';
+        $call = 'return $this->$method($input);';
+        yield 'bounded interpolation' => [$binding.$call, 1];
+        yield 'native guard assignment' => ['if (method_exists($this, $method = "render{$kind}")) { '.$call.' }', 1];
+        yield 'native elseif guard assignment' => ['if (condition()) { return null; } elseif (method_exists($this, $method = "render{$kind}")) { '.$call.' }', 1];
+        yield 'failed native guard body' => ['if (method_exists($this, $method = "render{$kind}")) { return null; } else { '.$call.' }', 2];
+        yield 'wrong prefix' => ['$method = "other{$kind}";'.$call, 2];
+        yield 'closed literal suffix' => ['$kind = "Other";'.$binding.$call, 2];
+        yield 'closed aliased suffix' => ['$suffix = "Other"; $kind = $suffix;'.$binding.$call, 2];
+        yield 'unbounded selector' => ['$method = $kind;'.$call, 2];
+        yield 'selector overwrite' => [$binding.' $method = $kind;'.$call, 2];
+        yield 'unknown selector escape' => [$binding.' change($method);'.$call, 2];
+        yield 'selector reference capture' => [$binding.' $later = function () use (&$method) { $method = "other"; };'.$call, 2];
+        yield 'selector symbol-table write' => [$binding.' extract($input);'.$call, 2];
+        yield 'selector include scope' => [$binding.' include "selector.php";'.$call, 2];
+        yield 'nested assignment is not an outer binding' => ['$later = function () use ($kind) { '.$binding.' };'.$call, 2];
+        yield 'nested invocation is not an outer protocol' => [$binding.'return function () use ($method, $input) { '.$call.' };', 2];
+        yield 'conditional binding does not dominate' => ['if (condition()) { '.$binding.' }'.$call, 2];
+        yield 'assignment after call' => [$call.$binding, 2];
+        yield 'another receiver' => [$binding.'return $other->$method($input);', 2];
+        yield 'named invocation' => [$binding.'return $this->$method(unused: $input);', 2];
+        yield 'unpacked invocation' => [$binding.'return $this->$method(...[$input]);', 2];
+        yield 'first-class reference' => [$binding.'return $this->$method(...);', 2];
+        yield 'guard without invocation' => ['return method_exists($this, $method = "render{$kind}");', 2];
+        yield 'two observed slots' => [$binding.'return $this->$method($input, $kind);', 0];
+        yield 'excluded caller body' => [$binding.$call, 2, 'class Printer { use Dispatch, Steps; public function run($kind, $input, $other) { return $input; } }'];
+        yield 'excluded caller trait' => [$binding.$call, 2, 'trait OtherDispatch { public function run($kind, $input, $other) { return $input; } } class Printer { use Dispatch, OtherDispatch, Steps { OtherDispatch::run insteadof Dispatch; } }'];
+        yield 'replaced target body' => [$binding.$call, 2, 'class Printer { use Dispatch, Steps; protected function renderSkip($input) { return $input; } }'];
+        yield 'private selected target' => [$binding.$call, 2, 'class Printer { use Dispatch, Steps { renderSkip as private; } }'];
+        yield 'selected alias name' => ['$method = "present{$kind}";'.$call, 1, 'class Printer { use Dispatch, Steps { renderSkip as presentSkip; } }'];
+        yield 'unrelated trait consumers' => [$binding.$call, 2, 'class Printer { use Steps; } class OtherPrinter { use Dispatch; }'];
+        yield 'shadowed native guard' => ['if (method_exists($this, $method = "render{$kind}")) { '.$call.' }', 2, 'function method_exists($object, &$name) { $name = "other"; return true; } class Printer { use Dispatch, Steps; }'];
+    }
+
     private function findings(string $source, array $contracts = []): array
     {
         $nodes = (new ParserFactory)->createForNewestSupportedVersion()->parse($source);

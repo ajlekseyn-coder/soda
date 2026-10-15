@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Architecture;
 
 use Cosmira\Soda\Analysis\CallableIdentity;
+use Cosmira\Soda\Analysis\Complexity\StatementLists;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
@@ -82,12 +83,16 @@ final class NoCatchAllExceptions extends Check
             if ($this->hasBareReturn($statement)) {
                 return false;
             }
-            $isTermination = $statement instanceof Stmt\Expression && ($statement->expr instanceof Expr\Throw_ || $statement->expr instanceof Expr\Exit_);
+            $isTermination = $statement instanceof Stmt\Expression && StatementLists::isExit($statement);
             if ($statement instanceof Stmt\Return_ || $isTermination) {
                 return true;
             }
 
             if ($statement instanceof Stmt\If_ && $this->hasOutcomeInEveryBranch($statement)) {
+                return true;
+            }
+
+            if ($statement instanceof Stmt\TryCatch && $this->hasOutcomeInEveryCatch($statement)) {
                 return true;
             }
         }
@@ -136,6 +141,47 @@ final class NoCatchAllExceptions extends Check
         }
 
         return $this->hasExplicitOutcome($statement->else->stmts);
+    }
+
+    /**
+     * Every normal and recovery path must finish before a following statement.
+     */
+    private function hasOutcomeInEveryCatch(Stmt\TryCatch $statement): bool
+    {
+        if ($statement->finally !== null || $this->hasJump($statement) || ! $this->hasExplicitOutcome($statement->stmts)) {
+            return false;
+        }
+
+        foreach ($statement->catches as $catch) {
+            if (! $this->hasExplicitOutcome($catch->stmts)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * A jump can bypass a later return or leave the nested recovery block.
+     */
+    private function hasJump(Node $node): bool
+    {
+        if ($node instanceof Node\FunctionLike) {
+            return false;
+        }
+        if (in_array($node->getType(), ['Stmt_Break', 'Stmt_Continue', 'Stmt_Goto'], true)) {
+            return true;
+        }
+
+        foreach (get_object_vars($node) as $value) {
+            foreach (is_array($value) ? $value : [$value] as $child) {
+                if ($child instanceof Node && $this->hasJump($child)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

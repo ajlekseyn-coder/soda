@@ -46,6 +46,15 @@ final class NoCatchAllExceptionsTest extends TestCase
         yield 'unreachable bare return after exit' => ['exit(1); return;', 0];
         yield 'unreachable bare return after fallback' => ['return null; return;', 0];
         yield 'unreachable bare return after rethrow' => ['throw $error; return;', 0];
+        yield 'nested fallback returns on success and failure' => ['try { return recover($error); } catch (RuntimeException $nested) { return []; }', 0];
+        yield 'nested fallback translates failure' => ['try { return recover($error); } catch (RuntimeException $nested) { throw $nested; }', 0];
+        yield 'every nested catch has an outcome' => ['try { return recover($error); } catch (LogicException $nested) { return false; } catch (RuntimeException $nested) { return []; }', 0];
+        yield 'nested try can still fall through' => ['try { recover($error); } catch (RuntimeException $nested) { return []; }', 1];
+        yield 'one nested catch can still fall through' => ['try { return recover($error); } catch (LogicException $nested) { report($nested); } catch (RuntimeException $nested) { return []; }', 1];
+        yield 'nested bare return hides failure' => ['try { return recover($error); } catch (RuntimeException $nested) { return; }', 1];
+        yield 'finally can override nested outcomes' => ['try { return recover($error); } catch (RuntimeException $nested) { return []; } finally { return; }', 1];
+        yield 'closure outcomes do not terminate a nested try' => ['try { $fallback = fn () => null; } catch (RuntimeException $nested) { return []; }', 1];
+        yield 'closure jumps do not escape a nested try' => ['try { $callback = function () { foreach ([1] as $item) { break; } }; return recover($error); } catch (RuntimeException $nested) { return []; }', 0];
         yield 'empty catch' => ['', 1];
         yield 'logging then continuing' => ['report($error);', 1];
         yield 'void guard before fallback' => ['if (recoverable($error)) { return; } return null;', 1];
@@ -63,6 +72,24 @@ final class NoCatchAllExceptionsTest extends TestCase
         yield 'guard then rethrow' => ['if (recoverable($error)) { return null; } throw $error;', 0];
         yield 'closure return is not catch outcome' => ['$fallback = fn () => null;', 1];
         yield 'nested closure return' => ['$fallback = function () { return null; };', 1];
+    }
+
+    #[DataProvider('nestedJumps')]
+    public function testNestedFallbackCannotHideAnEscapingJump(string $body): void
+    {
+        $source = 'function run() { foreach ([1] as $item) { try { work(); } catch (\\Throwable $error) { '.$body.' } } done: report(); }';
+        $file = new FileFacts('/handler.php', '', $this->parseSnippet($source), []);
+
+        self::assertCount(1, iterator_to_array((new NoCatchAllExceptions)->checkFile($file)));
+    }
+
+    public static function nestedJumps(): \Iterator
+    {
+        yield 'break before unreachable return' => ['try { break; return recover(); } catch (RuntimeException $nested) { return []; }'];
+        yield 'continue before unreachable return' => ['try { continue; return recover(); } catch (RuntimeException $nested) { return []; }'];
+        yield 'conditional break before return' => ['try { if (stop()) { break; } return recover(); } catch (RuntimeException $nested) { return []; }'];
+        yield 'goto before unreachable return' => ['try { goto done; return recover(); } catch (RuntimeException $nested) { return []; }'];
+        yield 'jump in recovery path' => ['try { return recover(); } catch (RuntimeException $nested) { continue; return []; }'];
     }
 
     #[DataProvider('contractScopes')]
@@ -120,6 +147,22 @@ final class NoCatchAllExceptionsTest extends TestCase
         ), []);
 
         $this->assertSame([], iterator_to_array((new NoCatchAllExceptions)->checkFile($file)));
+    }
+
+    public function testStandardRunnerAcceptsACompleteNestedFallback(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-catch-fallback-');
+        self::assertIsString($path);
+        file_put_contents($path, '<?php function fallback() { try { return load(); } catch (Throwable $error) { try { return recover(); } catch (Throwable $nested) { return []; } } } function swallowed() { try { work(); } catch (Throwable $error) { report($error); } }');
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_catch_all_exceptions')->values();
+            self::assertCount(1, $findings);
+            self::assertSame($path, $findings[0]->file);
+        } finally {
+            unlink($path);
+        }
     }
 
     public function testStandardRunnerAcceptsAnExplicitExitStatus(): void

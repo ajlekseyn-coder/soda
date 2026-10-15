@@ -8,16 +8,16 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Twenty-seven standard policies have 51,821 source-grounded findings; 190 unchanged and 42 revised retained findings were reviewed individually. The remaining 9,815 findings are not yet classified.",
-  "final_source_sha256": "94f6990bc3c2d4572ef86f2348c9889cdb549d53034919cbf410319639567a2c",
-  "after": 61868,
-  "removed": 847,
+  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 477 unchanged and 42 revised retained findings were reviewed individually. The remaining 8,244 findings are not yet classified.",
+  "final_source_sha256": "32ca4ccdffe3d414464cc2c161035c0ed535bc0a93e5159fdc262c9d0f11ef01",
+  "after": 61734,
+  "removed": 981,
   "added": 43,
-  "resolved": 804,
+  "resolved": 938,
   "revised": 43,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 847,
+    "removed": 981,
     "added": 43
   },
   "changed_rules": {
@@ -28,8 +28,8 @@
     },
     "no_catch_all_exceptions": {
       "before": 221,
-      "after": 218,
-      "net_removed": 3
+      "after": 217,
+      "net_removed": 4
     },
     "no_consecutive_block_comments": {
       "before": 8,
@@ -73,8 +73,8 @@
     },
     "no_unused_parameters": {
       "before": 950,
-      "after": 479,
-      "net_removed": 471
+      "after": 346,
+      "net_removed": 604
     },
     "no_unused_private_state": {
       "before": 2,
@@ -224,6 +224,13 @@
       "before": 61984,
       "after": 61868,
       "resolved": 116,
+      "revised": 0
+    },
+    {
+      "round": 20,
+      "before": 61868,
+      "after": 61734,
+      "resolved": 134,
       "revised": 0
     }
   ],
@@ -474,8 +481,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26556,
-      "removed": 324,
+      "after": 26422,
+      "removed": 458,
       "added": 22
     },
     {
@@ -1045,9 +1052,9 @@
     }
   ],
   "review_coverage": {
-    "source_grounded_policy_findings": 51821,
-    "individually_reviewed_retained": 190,
-    "remaining_unclassified": 9815,
+    "source_grounded_policy_findings": 52971,
+    "individually_reviewed_retained": 477,
+    "remaining_unclassified": 8244,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 42
   }

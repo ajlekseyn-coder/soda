@@ -107,6 +107,25 @@ trait FactoryReceiverBinding
     }
 
     /**
+     * Native method_exists evaluates the assignment without changing its selected name.
+     */
+    private static function assignmentGuard(Expr\Assign $assignment): ?array
+    {
+        $argument = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
+        $call = $argument instanceof Node\Arg ? $argument->getAttribute(self::PARENT_ATTRIBUTE) : null;
+        if (! $call instanceof Expr\FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== 'method_exists') {
+            return null;
+        }
+        $condition = $call->getAttribute(self::PARENT_ATTRIBUTE);
+        $fields = $condition instanceof Node ? get_object_vars($condition) : [];
+        if (($fields['cond'] ?? null) !== $call) {
+            return null;
+        }
+
+        return ['condition' => $condition, 'shadow' => $call->name->getAttribute('namespacedName')?->toLowerString() ?? ''];
+    }
+
+    /**
      * Only the original assignment may write this binding anywhere in the owning method.
      */
     private static function isBindingWrite(Expr\Variable $variable, ?Expr\Assign $assignment): bool
@@ -189,5 +208,22 @@ trait FactoryReceiverBinding
     private static function doesEscapeInput(Expr\Variable $variable): bool
     {
         return self::isBindingWrite($variable, null) || $variable->getAttribute(self::PARENT_ATTRIBUTE) instanceof Node\Arg;
+    }
+
+    /**
+     * Only the body of the condition containing the assignment inherits its selected name.
+     */
+    private static function isInsideCondition(Node $node, Node $condition): bool
+    {
+        $fields = get_object_vars($condition);
+        $child = $node;
+        for ($owner = $node->getAttribute(self::PARENT_ATTRIBUTE); $owner instanceof Node; $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE)) {
+            if ($owner === $condition) {
+                return in_array($child, $fields['stmts'] ?? [], true);
+            }
+            $child = $owner;
+        }
+
+        return false;
     }
 }

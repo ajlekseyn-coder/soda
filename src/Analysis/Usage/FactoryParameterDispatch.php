@@ -25,7 +25,7 @@ trait FactoryParameterDispatch
     {
         $dispatches = [];
         foreach ($class->getMethods() as $method) {
-            array_push($dispatches, ...self::methodDispatch($class, $method, $nodes));
+            array_push($dispatches, ...self::methodDispatch($class, $method, $nodes), ...self::ownMethodDispatch($class, $method));
         }
 
         return $dispatches;
@@ -57,6 +57,88 @@ trait FactoryParameterDispatch
         }
 
         return $dispatches;
+    }
+
+    /**
+     * Computed calls on this instance can require protected trait implementation slots.
+     */
+    private static function ownMethodDispatch(Stmt\ClassLike $class, Stmt\ClassMethod $method): array
+    {
+        if ($class->name === null || self::hasOpaqueBindings($method)) {
+            return [];
+        }
+
+        $dispatches = [];
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\MethodCall::class) as $call) {
+            $assignment = self::ownSelector($call, $method);
+            $pattern = $assignment === null ? null : self::interpolatedSelector($assignment->expr, $method);
+            $guards = $pattern === null ? null : self::selectorGuards($assignment, $call, $method);
+            if ($guards !== null) {
+                $owner = $class->namespacedName?->toLowerString() ?? $class->name->toLowerString();
+                $dispatches[] = ['caller' => $owner.'::'.$method->name->toLowerString(), 'method' => $pattern, 'arity' => count($call->args), 'guards' => $guards];
+            }
+        }
+
+        return $dispatches;
+    }
+
+    /**
+     * One preceding lexical assignment must select a positional call on this receiver.
+     */
+    private static function ownSelector(Expr\MethodCall $call, Stmt\ClassMethod $method): ?Expr\Assign
+    {
+        $isThis = $call->var instanceof Expr\Variable && $call->var->name === 'this';
+        if (! $isThis || ! $call->name instanceof Expr\Variable || $call->isFirstClassCallable() || ! self::isOwnedBy($call, $method)) {
+            return null;
+        }
+        if (! self::hasPositionalArguments($call)) {
+            return null;
+        }
+
+        $assignments = (new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\Assign::class);
+        $matches = array_filter($assignments, static fn (Expr\Assign $node): bool => $node->var instanceof Expr\Variable
+            && $node->var->name === $call->name->name && $node->getEndFilePos() < $call->getStartFilePos() && self::isOwnedBy($node, $method));
+
+        return count($matches) === 1 ? array_pop($matches) : null;
+    }
+
+    /**
+     * Native interpolation establishes a literal name bound without interpreting formatter APIs.
+     */
+    private static function interpolatedSelector(Expr $expression, Stmt\ClassMethod $method): ?string
+    {
+        if (! $expression instanceof Node\Scalar\InterpolatedString) {
+            return null;
+        }
+        foreach ($expression->parts as $part) {
+            if ($part instanceof Expr\Variable && self::hasLiteralSelectorInput($part, $method, [])) {
+                return null;
+            }
+        }
+        $pattern = implode('', array_map(static fn ($part): string => $part instanceof Expr ? '.*' : preg_quote($part->value, '/'), $expression->parts));
+
+        return str_replace('.*', '', $pattern) === '' ? null : '/^'.$pattern.'$/iD';
+    }
+
+    /**
+     * An unconditional assignment or an evaluated native guard must dominate the invocation.
+     */
+    private static function selectorGuards(Expr\Assign $assignment, Expr\MethodCall $call, Stmt\ClassMethod $method): ?array
+    {
+        $guards = self::bindingGuards($assignment, $method);
+        if ($guards === null) {
+            return null;
+        }
+        $statement = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
+        if ($statement instanceof Stmt\Expression && in_array($statement, $method->stmts ?? [], true)) {
+            return $guards;
+        }
+        $guard = self::assignmentGuard($assignment);
+        if ($guard === null || ! self::isInsideCondition($call, $guard['condition'])) {
+            return null;
+        }
+
+        return [...$guards, $guard['shadow']];
     }
 
     /**
@@ -144,10 +226,15 @@ trait FactoryParameterDispatch
         }
 
         $same = $call->var instanceof Expr\Variable && $assignment->var instanceof Expr\Variable && $call->var->name === $assignment->var->name;
-        $arguments = $call->getArgs();
-        $named = array_filter(array_column($arguments, 'name'));
-        $unpacked = in_array(true, array_column($arguments, 'unpack'), true);
 
-        return self::isOwnedBy($call, $method) && $same && $named === [] && ! $unpacked;
+        return self::isOwnedBy($call, $method) && $same && self::hasPositionalArguments($call);
+    }
+
+    /**
+     * Named and unpacked arguments cannot establish a contiguous positional prefix.
+     */
+    private static function hasPositionalArguments(Expr\MethodCall $call): bool
+    {
+        return array_filter(array_column($call->getArgs(), 'name')) === [] && ! in_array(true, array_column($call->getArgs(), 'unpack'), true);
     }
 }

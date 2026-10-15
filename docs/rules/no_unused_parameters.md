@@ -45,6 +45,13 @@ guards are accepted only when their namespace fallback is not shadowed by an
 analyzed function declaration. Factory declarations are currently read on the
 same class; arbitrary collaborator factories are not inferred.
 
+A computed call on `$this` can establish the same positional protocol for selected
+public or protected methods. Native interpolated names must contain literal text;
+the selector must come from an unconditional preceding assignment or the successful
+body of an unshadowed native `method_exists` guard. Selected caller and callee trait
+origins are respected. Closed literal or aliased selector inputs, overwritten names,
+foreign receivers, and nested callable bindings do not donate these positions.
+
 ## Examples
 
 ```php

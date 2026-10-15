@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Analysis;
 
 use Cosmira\Soda\Analysis\Composition\FactoryDispatchPatterns;
+use Cosmira\Soda\Analysis\Control\LiteralDispatch;
 use Cosmira\Soda\Analysis\Usage\FactoryParameterDispatch;
 use Cosmira\Soda\Analysis\Usage\ParameterUseAnalysis;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
@@ -62,6 +64,40 @@ final readonly class InheritedParameterContracts
             'factoryDispatch'   => FactoryDispatchPatterns::collect($class),
             'parameterDispatch' => self::parameterDispatch($class, $nodes),
         ];
+    }
+
+    /**
+     * A literal local selection must not donate its signature to every matching sibling name.
+     */
+    private static function hasLiteralSelectorInput(Expr\Variable $variable, Stmt\ClassMethod $method, array $seen): bool
+    {
+        if (! is_string($variable->name) || isset($seen[$variable->name])) {
+            return false;
+        }
+        $seen[$variable->name] = true;
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\Assign::class) as $assignment) {
+            if (! self::isPriorSelectorAssignment($assignment, $variable, $method)) {
+                continue;
+            }
+            if ((new LiteralDispatch)->literal($assignment->expr) !== null) {
+                return true;
+            }
+            if ($assignment->expr instanceof Expr\Variable && self::hasLiteralSelectorInput($assignment->expr, $method, $seen)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Only preceding writes in this callable can close the interpolated input.
+     */
+    private static function isPriorSelectorAssignment(Expr\Assign $assignment, Expr\Variable $variable, Stmt\ClassMethod $method): bool
+    {
+        $target = $assignment->var;
+
+        return $target instanceof Expr\Variable && $target->name === $variable->name && $assignment->getEndFilePos() < $variable->getStartFilePos() && self::isOwnedBy($assignment, $method);
     }
 
     /**

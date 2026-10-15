@@ -19,7 +19,8 @@ $finder = new NodeFinder;
 $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
 $nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
 $docKinds = ['multiline_method_phpdoc' => 'method', 'multiline_property_phpdoc' => 'property', 'multiline_constant_phpdoc' => 'constant'];
-$metricBounds = ['max_namespace_depth' => 4, 'max_file_loc' => 700, 'max_class_length' => 500, 'max_method_length' => 100, 'max_classes_per_file' => 1];
+$complexityBounds = ['max_cyclomatic_complexity' => 8, 'max_cognitive_complexity' => 15, 'max_statements_per_callable' => 20, 'max_control_nesting' => 3];
+$metricBounds = ['max_namespace_depth' => 4, 'max_file_loc' => 700, 'max_class_length' => 500, 'max_method_length' => 100, 'max_classes_per_file' => 1, ...$complexityBounds];
 $syntaxMessages = [
     'only_list_arrays'           => 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.',
     'no_assignment_in_condition' => 'Assignment inside condition is forbidden. Assign first, then test the value.',
@@ -208,6 +209,10 @@ foreach ($manifest['packages'] as $spec) {
             }
             $name = $owner->namespacedName->toString();
             $metric('max_method_length', $measure($callable), $name, $name.'::'.$callable->name->toString());
+        }
+
+        foreach (auditComplexityDiagnostics($nodes, $complexityBounds) as $rule => $diagnostics) {
+            array_push($expected[$rule], ...$diagnostics);
         }
 
         foreach (explode("\n", $source) as $index => $line) {
@@ -492,3 +497,204 @@ foreach ($verified as $rule => $rows) {
 }
 
 echo json_encode($summary, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n";
+
+// Independent AST measurements: owned-node inventories, ancestor body edges and
+// source-order boolean runs implement the documented PHP metric boundaries.
+// Nested callable/class bodies never contribute to the enclosing inventory.
+function auditCallableName(Node\FunctionLike $callable, string $mode): string
+{
+    if ($callable instanceof Node\Stmt\Function_) {
+        return $callable->namespacedName?->toString() ?? $callable->name->toString();
+    }
+    if ($callable instanceof Node\Stmt\ClassMethod) {
+        $type = $callable->getAttribute('parent');
+        $owner = $type->namespacedName?->toString() ?? ($mode === 'statements' ? '{anonymous-class}' : '{anonymous}@'.$type->getStartLine().':'.$type->getStartFilePos());
+
+        return $owner.'::'.$callable->name->toString();
+    }
+
+    return $mode === 'statements' ? '{closure@'.$callable->getStartLine().'}' : '{callable}@'.$callable->getStartLine().':'.$callable->getStartFilePos();
+}
+function auditOwnedNodes(Node\FunctionLike $callable): array
+{
+    $result = [];
+    $visit = function (Node $node) use (&$visit, &$result): void {
+        if ($node instanceof Node\FunctionLike || $node instanceof Node\Stmt\ClassLike) {
+            return;
+        }
+        $result[] = $node;
+        foreach ($node->getSubNodeNames() as $field) {
+            foreach (is_array($node->$field) ? $node->$field : [$node->$field] as $child) {
+                if ($child instanceof Node) {
+                    $visit($child);
+                }
+            }
+        }
+    };
+    foreach ($callable->getStmts() ?? [] as $statement) {
+        $visit($statement);
+    }
+
+    return $result;
+}
+function auditBooleanKind(Node $node): ?string
+{
+    return match ($node->getType()) {
+        'Expr_BinaryOp_BooleanAnd', 'Expr_BinaryOp_LogicalAnd' => 'and',
+        'Expr_BinaryOp_BooleanOr', 'Expr_BinaryOp_LogicalOr'   => 'or',
+        'Expr_BinaryOp_LogicalXor'                             => 'xor', default => null,
+    };
+}
+function auditBooleanOrder(Node $node): array
+{
+    return auditBooleanKind($node) === null ? [] : [...auditBooleanOrder($node->left), $node, ...auditBooleanOrder($node->right)];
+}
+function auditBodyDepth(Node $node, Node\FunctionLike $scope): int
+{
+    $depth = 0;
+    $child = $node;
+    $branchChild = null;
+    for ($parent = $child->getAttribute('parent'); $parent instanceof Node && $parent !== $scope; $parent = $parent->getAttribute('parent')) {
+        $kind = $parent->getType();
+        if ($parent instanceof Node\Stmt\If_) {
+            if (in_array($child, $parent->stmts, true)) {
+                $depth++;
+            } elseif (($child instanceof Node\Stmt\ElseIf_ || $child instanceof Node\Stmt\Else_) && in_array($branchChild, $child->stmts, true)) {
+                $depth++;
+            }
+        } elseif (in_array($kind, ['Stmt_For', 'Stmt_Foreach', 'Stmt_While', 'Stmt_Do', 'Stmt_Catch', 'Stmt_Switch'], true)) {
+            if (in_array($child, $parent->stmts ?? $parent->cases ?? [], true)) {
+                $depth++;
+            }
+        } elseif ($parent instanceof Node\Expr\Match_) {
+            if (in_array($child, $parent->arms, true)) {
+                $depth++;
+            }
+        } elseif ($parent instanceof Node\Expr\Ternary && $parent->if !== null && ($parent->if === $child || $parent->else === $child)) {
+            $depth++;
+        }
+        $branchChild = $child;
+        $child = $parent;
+    }
+
+    return $depth;
+}
+function auditCognitive(Node\FunctionLike $scope, array $owned): array
+{
+    $name = auditCallableName($scope, 'cognitive');
+    $points = [];
+    $recursive = false;
+    foreach ($owned as $node) {
+        $kind = $node->getType();
+        $depth = auditBodyDepth($node, $scope);
+        if ($node instanceof Node\Stmt\If_) {
+            $points[] = [$node->getStartLine(), 1 + $depth, 'if'];
+        } elseif ($node instanceof Node\Stmt\ElseIf_ || $node instanceof Node\Stmt\Else_) {
+            $points[] = [$node->getStartLine(), 1, 'else/elseif'];
+        } elseif (in_array($kind, ['Stmt_For', 'Stmt_Foreach', 'Stmt_While', 'Stmt_Do', 'Stmt_Catch', 'Stmt_Switch', 'Expr_Match'], true) || ($node instanceof Node\Expr\Ternary && $node->if !== null)) {
+            $points[] = [$node->getStartLine(), 1 + $depth, $kind];
+        }
+        $boolean = auditBooleanKind($node);
+        if ($boolean !== null && auditBooleanKind($node->getAttribute('parent')) === null) {
+            $last = null;
+            foreach (auditBooleanOrder($node) as $operator) {
+                $current = auditBooleanKind($operator);
+                if ($last !== $current) {
+                    $points[] = [$operator->getStartLine(), 1, 'boolean '.$current.' sequence'];
+                }
+                $last = $current;
+            }
+        }
+        if ($node instanceof Node\Stmt\Goto_ || (($node instanceof Node\Stmt\Break_ || $node instanceof Node\Stmt\Continue_) && $node->num instanceof Node\Scalar\Int_ && $node->num->value > 1)) {
+            $points[] = [$node->getStartLine(), 1, 'multilevel jump'];
+        }
+        if ($recursive) {
+            continue;
+        }
+        $isRecursive = false;
+        if ($node instanceof Node\Expr\FuncCall && $node->name instanceof Node\Name) {
+            $isRecursive = strtolower(($node->name->getAttribute('namespacedName') ?? $node->name)->toString()) === strtolower($name);
+        }
+        if (($node instanceof Node\Expr\MethodCall && $node->var instanceof Node\Expr\Variable && $node->var->name === 'this') || ($node instanceof Node\Expr\StaticCall && $node->class instanceof Node\Name && strtolower($node->class->toString()) === 'self')) {
+            $isRecursive = $node->name instanceof Node\Identifier && str_contains($name, '::') && strtolower(substr($name, strrpos($name, '::') + 2)) === $node->name->toLowerString();
+        }
+        if ($isRecursive) {
+            $recursive = true;
+            $points[] = [$node->getStartLine(), 1, 'syntactic direct recursion'];
+        }
+    }
+
+    return ['value' => array_sum(array_column($points, 1)), 'points' => $points];
+}
+function auditCallableMetrics(Node\FunctionLike $scope): array
+{
+    $owned = auditOwnedNodes($scope);
+    $decisions = ['Expr_BinaryOp_BooleanAnd', 'Expr_BinaryOp_BooleanOr', 'Stmt_Case', 'Stmt_Catch', 'Stmt_ElseIf', 'Stmt_For', 'Stmt_Foreach', 'Stmt_If', 'Expr_BinaryOp_LogicalAnd', 'Expr_BinaryOp_LogicalOr', 'MatchArm', 'Expr_Ternary', 'Stmt_While'];
+    $controls = ['Stmt_If', 'Stmt_For', 'Stmt_Foreach', 'Stmt_While', 'Stmt_Do', 'Stmt_Switch', 'Stmt_TryCatch'];
+    $wrappers = ['Stmt_Nop', 'Stmt_Else', 'Stmt_ElseIf', 'Stmt_Catch', 'Stmt_Finally', 'Stmt_Case'];
+    $cyclomatic = 1;
+    $statements = 0;
+    $maximum = 0;
+    $line = $scope->getStartLine();
+    foreach ($owned as $node) {
+        $kind = $node->getType();
+        if (in_array($kind, $decisions, true)) {
+            $cyclomatic++;
+        }
+        if ($node instanceof Node\Stmt && ! in_array($kind, $wrappers, true)) {
+            $statements++;
+        }
+        if (! in_array($kind, $controls, true)) {
+            continue;
+        }
+        $depth = 1;
+        for ($parent = $node->getAttribute('parent'); $parent instanceof Node && $parent !== $scope; $parent = $parent->getAttribute('parent')) {
+            if (in_array($parent->getType(), $controls, true)) {
+                $depth++;
+            }
+        }
+        if ($depth > $maximum) {
+            $maximum = $depth;
+            $line = $node->getStartLine();
+        }
+    }
+
+    return ['cyclomatic' => $cyclomatic, 'statements' => $scope instanceof Node\Expr\ArrowFunction ? 1 : $statements, 'nesting' => $maximum, 'nesting_line' => $line, 'cognitive' => auditCognitive($scope, $owned)];
+}
+
+function auditComplexityDiagnostics(array $nodes, array $bounds): array
+{
+    $result = array_fill_keys(array_keys($bounds), []);
+    foreach ((new NodeFinder)->findInstanceOf($nodes, Node\FunctionLike::class) as $scope) {
+        if ($scope->getStmts() === null) {
+            continue;
+        }
+        $metrics = auditCallableMetrics($scope);
+        $name = auditCallableName($scope, 'cognitive');
+        $statementName = auditCallableName($scope, 'statements');
+        $owner = $scope->getAttribute('parent');
+        $legacy = $scope instanceof Node\Stmt\Function_ || ($scope instanceof Node\Stmt\ClassMethod
+            && $owner instanceof Node\Stmt\ClassLike && $owner->name !== null
+            && ! $owner instanceof Node\Stmt\Interface_ && ! $scope->isAbstract());
+        $class = str_contains($name, '::') ? strstr($name, '::', true) : null;
+        $points = array_map(static fn (array $point): string => 'line '.$point[0].' +'.$point[1].' '.$point[2], $metrics['cognitive']['points']);
+        $rows = [
+            'max_cognitive_complexity' => [null, $name, $scope->getStartLine(),
+                'Soda PHP cognitive v1: '.implode('; ', $points).'. Review the control flow before extracting objects.', $metrics['cognitive']['value']],
+            'max_statements_per_callable' => [str_contains($statementName, '::') ? strstr($statementName, '::', true) : null,
+                $statementName, $scope->getStartLine(),
+                'Callable contains too many executable statements. Name a cohesive step when it clarifies the operation; formatting does not reduce this count.', $metrics['statements']],
+        ];
+        if ($legacy) {
+            $rows['max_cyclomatic_complexity'] = [$class, $name, null, null, $metrics['cyclomatic']];
+            $rows['max_control_nesting'] = [$class, $name, $metrics['nesting_line'], null, $metrics['nesting']];
+        }
+        foreach ($rows as $rule => $row) {
+            if ($row[4] > $bounds[$rule]) {
+                $result[$rule][] = json_encode([...$row, $bounds[$rule]], JSON_THROW_ON_ERROR);
+            }
+        }
+    }
+
+    return $result;
+}
