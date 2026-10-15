@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1.1 — 2026-10-15
+
+- Accept fluent predicates, nested argument calls and natural while conditions.
+  Require parentheses only for mixed logical families without explicit grouping.
+- Report redundant else/elseif only after proven unconditional exits. Preserve
+  meaningful mutually exclusive operations and earlier non-exiting branches.
+- Limit `prefer_continue` to nested executable control flow; accept flat positive
+  branches and keep callback scopes, complete exits and finalizers separate.
+- Preserve return variables carrying a relevant local type assertion, and avoid
+  changing observable bindings inside try/finally.
+- Keep `max_return_statements` available as an explicit rule with its literal
+  return count; remove it from the standard gate (now 108 checks).
+- Correct documentation rewrites to preserve truthiness, preceding work and loop
+  reevaluation. Add parsed regression cases and executable documentation examples.
+
+Existing explicit configurations retain their selected rules. Rules and IDs stay
+compatible; this release narrows findings without new options or dependencies.
+
 ## 1.1.0 — 2026-10-15
 
 - Detect mandatory constructor dependency cycles within a module, with concrete

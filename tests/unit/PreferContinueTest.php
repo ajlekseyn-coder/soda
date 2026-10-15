@@ -23,11 +23,11 @@ final class PreferContinueTest extends TestCase
 
     public static function loops(): iterable
     {
-        yield 'foreach wrapping the remainder' => ['function save(array $items): void { foreach ($items as $item) { mark($item); if ($item->active) { store($item); index($item); } } }', 1];
-        yield 'for wrapping the remainder' => ['function save(array $items): void { for ($i = 0; $i < count($items); $i++) { mark($items[$i]); if ($items[$i]->active) { store($items[$i]); } } }', 1];
-        yield 'while wrapping the remainder' => ['function drain(): void { while ($item = nextItem()) { mark($item); if ($item->active) { store($item); } } }', 1];
-        yield 'do-while wrapping the remainder' => ['function drain(): void { do { mark($item); if ($item->active) { store($item); } } while ($item = nextItem()); }', 1];
-        yield 'nested loop reported independently' => ['function save(array $groups): void { foreach ($groups as $group) { foreach ($group as $item) { mark($item); if ($item->active) { store($item); } } } }', 1];
+        yield 'foreach wrapping the remainder' => ['function save(array $items): void { foreach ($items as $item) { mark($item); if ($item->active) { store($item); index($item); } } }', 0];
+        yield 'for wrapping the remainder' => ['function save(array $items): void { for ($i = 0; $i < count($items); $i++) { mark($items[$i]); if ($items[$i]->active) { store($items[$i]); } } }', 0];
+        yield 'while wrapping the remainder' => ['function drain(): void { while ($item = nextItem()) { mark($item); if ($item->active) { store($item); } } }', 0];
+        yield 'do-while wrapping the remainder' => ['function drain(): void { do { mark($item); if ($item->active) { store($item); } } while ($item = nextItem()); }', 0];
+        yield 'nested loop reported independently' => ['function save(array $groups): void { foreach ($groups as $group) { foreach ($group as $item) { mark($item); if ($item->active) { store($item); } } } }', 0];
         yield 'guarded branch already exits the iteration' => ['function save(array $items): void { foreach ($items as $item) { if ($item->active) { store($item); continue; } mark($item); } }', 0];
         yield 'guarded branch returns' => ['function save(array $items): bool { foreach ($items as $item) { if ($item->broken) { return false; } mark($item); } return true; }', 0];
         yield 'guarded branch breaks' => ['function save(array $items): void { foreach ($items as $item) { if ($item->last) { break; } mark($item); } }', 0];
@@ -46,7 +46,9 @@ function save(array $items): void
     foreach ($items as $item) {
         mark($item);
         if ($item->active) {
-            store($item);
+            if ($item->fresh) {
+                store($item);
+            }
         }
     }
 }
@@ -64,7 +66,7 @@ PHP);
     {
         $path = tempnam(sys_get_temp_dir(), 'soda-continue-');
         self::assertIsString($path);
-        file_put_contents($path, '<?php function save(array $items): void { foreach ($items as $item) { mark($item); if ($item->active) { store($item); } } }');
+        file_put_contents($path, '<?php function save(array $items): void { foreach ($items as $item) { mark($item); if ($item->active) { if ($item->fresh) { store($item); } } } }');
 
         try {
             $result = (new Runner)->check([$path], Soda::configure()->with(RuleCatalog::standard())->checks());

@@ -8,9 +8,10 @@ use Cosmira\Soda\Analysis\FactVisitor;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\ElseIf_;
+use PhpParser\Node\Stmt\If_;
 
 /**
- * Collects explicit else and elseif branches during the shared AST traversal.
+ * Collects alternatives that follow a proven unconditional exit.
  *
  * @phpstan-type ElseBranch array{line: int, kind: 'else'|'elseif'}
  *
@@ -31,15 +32,26 @@ final class ElseBranchVisitor extends FactVisitor
     #[\Override]
     protected function doEnterNode(Node $node): void
     {
-        if ($node instanceof ElseIf_) {
-            $this->occurrences[] = ['line' => $node->getStartLine(), 'kind' => 'elseif'];
-
+        if (! $node instanceof Else_ && ! $node instanceof ElseIf_) {
             return;
         }
 
-        if ($node instanceof Else_) {
-            $this->occurrences[] = ['line' => $node->getStartLine(), 'kind' => 'else'];
+        $parent = $node->getAttribute('parent');
+        if (! $parent instanceof If_) {
+            return;
         }
+
+        foreach ([$parent, ...$parent->elseifs] as $branch) {
+            if ($branch === $node) {
+                break;
+            }
+
+            if (! StatementLists::doesEndWithExit($branch->stmts)) {
+                return;
+            }
+        }
+
+        $this->occurrences[] = ['line' => $node->getStartLine(), 'kind' => $node instanceof ElseIf_ ? 'elseif' : 'else'];
     }
 
     /**

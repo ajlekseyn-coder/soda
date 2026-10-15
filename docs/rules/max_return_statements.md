@@ -2,7 +2,7 @@
 
 📝 Limits the number of `return` statements a single method may contain.
 
-💼 This rule is enabled in the ✅ `standard` config.
+💼 This rule is optional and is not enabled in the `standard` config.
 
 ## Why
 

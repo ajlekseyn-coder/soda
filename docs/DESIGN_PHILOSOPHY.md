@@ -34,8 +34,8 @@ Object cloning is opt-in through `NoObjectCloning`; the standard selection allow
 copying. An enabled clone check reports every `clone`, including named copy
 methods. It does not prove whether a copy preserves invariants or shared state.
 
-`NoElseBranches` accepts guards, while `MaxReturnStatements` still counts their
-returns. Choose thresholds for the calling scenario; a count alone does not
+`NoElseBranches` removes alternatives only after proven exits. Optional
+`MaxReturnStatements` still counts every return, including guards. Choose thresholds for the calling scenario; a count alone does not
 justify extracting forwarding classes.
 
 Layer dominance classifies directory and class-name conventions. Renaming a

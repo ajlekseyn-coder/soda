@@ -72,7 +72,21 @@ final class StatementLists
     public static function isExit(Node $node): bool
     {
         if ($node instanceof Stmt\Expression) {
-            return $node->expr instanceof Expr\Throw_;
+            return $node->expr instanceof Expr\Throw_ || $node->expr instanceof Expr\Exit_;
+        }
+
+        if ($node instanceof Stmt\If_) {
+            if (! $node->else instanceof Stmt\Else_ || ! self::doesEndWithExit($node->else->stmts)) {
+                return false;
+            }
+
+            foreach ([$node, ...$node->elseifs] as $branch) {
+                if (! self::doesEndWithExit($branch->stmts)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         return $node instanceof Stmt\Return_

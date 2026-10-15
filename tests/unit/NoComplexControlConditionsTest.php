@@ -25,7 +25,7 @@ final class NoComplexControlConditionsTest extends TestCase
             if ($reason !== null) {
                 self::assertSame($reason, $file->metrics['complexControlConditions'][0]['reason']);
                 self::assertSame(1, $violations[0]->line);
-                self::assertStringContainsString($reason === 'mixed_logic' ? 'Mixed logical' : 'Nested computation', $violations[0]->message);
+                self::assertStringContainsString($reason === 'mixed_logic' ? 'Group mixed logical' : 'Nested computation', $violations[0]->message);
             }
         }
     }
@@ -48,7 +48,7 @@ final class NoComplexControlConditionsTest extends TestCase
         ] as $expression) {
             yield $expression => [$expression, null];
         }
-        foreach (['$a && ($b || $c)', '$a xor $b', '!($a || ($b && $c))'] as $expression) {
+        foreach (['$a && $b || $c', '$a xor $b || $c', '!($a || $b && $c)'] as $expression) {
             yield $expression => [$expression, 'mixed_logic'];
         }
         foreach ([
@@ -59,7 +59,7 @@ final class NoComplexControlConditionsTest extends TestCase
             'resolve(input()) instanceof User', 'Env::get(key()) ?? false',
             '(primary() ?? fallback())->ready()', 'check(Env::get("TESTS") ?? false)',
         ] as $expression) {
-            yield $expression => [$expression, 'nested_computation'];
+            yield $expression => [$expression, null];
         }
     }
 
@@ -67,12 +67,12 @@ final class NoComplexControlConditionsTest extends TestCase
     {
         $file = $this->facts(<<<'PHP'
 <?php
-if ($a) {} elseif ($a && ($b || $c)) {}
-while (query()->exists()) {}
-do {} while ($a && ($b || $c));
-for (; $ready, $a && ($b || $c); ) {}
-$result = ($a && ($b || $c)) ? 'yes' : 'no';
-if (check(function () { if (nested(work())) {} })) {}
+if ($a) {} elseif ($a && $b || $c) {}
+while ($a && $b || $c) {}
+do {} while ($a && $b || $c);
+for (; $ready, $a && $b || $c; ) {}
+$result = ($a && $b || $c) ? 'yes' : 'no';
+if (check(function () { if ($a && $b || $c) {} })) {}
 PHP);
         self::assertSame([2, 3, 4, 5, 6, 7], array_column($file->metrics['complexControlConditions'], 'line'));
         self::assertCount(6, [...(new NoComplexControlConditions)->checkFile($file)]);
@@ -88,8 +88,8 @@ PHP);
     private function facts(string $source): FileFacts
     {
         $nodes = (new ParserFactory)->createForNewestSupportedVersion()->parse($source);
-        $metrics = AstFacts::collect($nodes, LogicalLineMap::fromSource($source), ['conditions']);
-        $all = AstFacts::collect((new ParserFactory)->createForNewestSupportedVersion()->parse($source), LogicalLineMap::fromSource($source), null);
+        $metrics = AstFacts::collect($nodes, LogicalLineMap::fromSource($source), ['conditions'], $source);
+        $all = AstFacts::collect((new ParserFactory)->createForNewestSupportedVersion()->parse($source), LogicalLineMap::fromSource($source), null, $source);
         self::assertSame($all['complexControlConditions'], $metrics['complexControlConditions']);
 
         return new FileFacts('conditions.php', $source, $nodes, $metrics);

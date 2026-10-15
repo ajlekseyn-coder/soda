@@ -1,43 +1,65 @@
 # prefer_continue
 
-📝 Reports trailing loop conditions that wrap the remainder of the iteration body.
+📝 Reports trailing conditions that add a level around nested control flow.
 
 💼 This rule is enabled in the ✅ `standard` config.
 
 ## Why
 
-When the last statement of a loop body is an `if` without `else`, the interesting iterations sit one indentation level deeper without gaining an alternative branch. Negating the condition and ending the guarded branch with `continue` keeps uninteresting iterations cheap to skip and the main path unindented. The rule reports the trailing `if` when its body does not already end with `return`, `throw`, `break`, or `continue` — those exits already end the iteration, so an early `continue` would flatten nothing.
+An early `continue` can flatten nested work inside a loop. The rule reports a
+trailing `if` without alternatives only when its body contains another executable
+control structure in the same scope. Flat work is accepted, whether it contains
+one call or several. Multiline calls and callback bodies do not add nesting here.
+Branches that already exit on all proven paths need no extra guard. Ambiguous
+`goto` and `finally` cases are left alone.
 
-`else` and `elseif` branches keep both paths meaningful and stay outside the report, as does an `if` that is not the last statement of the loop body.
+Keep preceding statements before the new guard. Preserve evaluation order and
+`break`/`continue` levels. An `if` does not introduce a loop or switch level.
 
 ## Examples
 
 ```php
-// ❌ the main path lives behind two levels
-public function save(iterable $items): void
-{
-    foreach ($items as $item) {
-        $this->mark($item);
+// ❌ nested work behind a trailing condition
+foreach ($items as $item) {
+    $mark($item);
 
-        if ($item->isActive) {
-            $this->store($item);
-            $this->index($item);
+    if ($item['active']) {
+        foreach ($item['parts'] as $part) {
+            $store($part);
         }
     }
 }
+```
 
-// ✅ the skip is explicit, the main path is flat
-public function save(iterable $items): void
-{
-    foreach ($items as $item) {
-        if (! $item->isActive) {
-            continue;
-        }
+```php
+// ✅ mark still runs for every item
+foreach ($items as $item) {
+    $mark($item);
 
-        $this->mark($item);
-        $this->store($item);
-        $this->index($item);
+    if (! $item['active']) {
+        continue;
     }
+
+    foreach ($item['parts'] as $part) {
+        $store($part);
+    }
+}
+```
+
+```php
+// ✅ both flat styles are accepted
+foreach ($items as $item) {
+    if ($item->active) {
+        store($item);
+    }
+}
+
+foreach ($items as $item) {
+    if (! $item->active) {
+        continue;
+    }
+
+    store($item);
 }
 ```
 
@@ -49,13 +71,10 @@ use Cosmira\Soda\Rules\Complexity\PreferContinue;
 
 return Soda::configure()
     ->withPaths(['src/'])
-    ->with([
-        new PreferContinue(),
-    ]);
+    ->with([new PreferContinue]);
 ```
 
 ## Related rules
 
-- [max_control_nesting](max_control_nesting.md) — caps the nesting this rule removes.
-- [prefer_combined_guards](prefer_combined_guards.md) — merges consecutive guards instead of wrapping the remainder.
-- [no_else_branches](no_else_branches.md) — forbids the alternative branches this rule avoids by construction.
+- [max_control_nesting](max_control_nesting.md) measures nesting depth.
+- [no_else_branches](no_else_branches.md) reports redundant alternatives after exits.

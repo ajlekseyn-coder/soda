@@ -47,14 +47,12 @@ use Cosmira\Soda\Config\Soda;
 use Cosmira\Soda\Rules\Complexity\MaxBooleanConditions;
 use Cosmira\Soda\Rules\Complexity\MaxControlNesting;
 use Cosmira\Soda\Rules\Complexity\MaxCyclomaticComplexity;
-use Cosmira\Soda\Rules\Complexity\MaxReturnStatements;
 
 return Soda::configure()
     ->withPaths(['src/'])
     ->with([
         new MaxCyclomaticComplexity(10),
         new MaxControlNesting(3),
-        new MaxReturnStatements(4),
         new MaxBooleanConditions(4),
     ]);
 ```
@@ -179,6 +177,9 @@ function run(): void
 ---
 
 ### max_return_statements
+
+Optional; not enabled in the standard configuration. Counts all returns, including
+guards. Prefer nesting and complexity checks for a guard-first policy.
 
 Limits the number of `return` statements in a method or function. Multiple
 returns can be fine, but too many exits often mean the method is mixing
@@ -528,28 +529,12 @@ one statement, `elseif` chains and non-adjacent guards are excluded.
 
 ### prefer_continue
 
-Standard `new PreferContinue()` reports the trailing `if` of a `for`, `foreach`,
-`while` or `do-while` body when it has no `else` or `elseif` and its body does not
-already end with `return`, `throw`, `break` or `continue`. Negating the condition
-and ending the guarded branch with `continue` keeps the main iteration path flat.
+Reports a trailing `if` without alternatives only when it wraps nested executable
+control flow in the same scope and does not already exit on all proven paths.
+Flat positive branches and early continues are both accepted. Preceding statements
+must stay before the guard; jump levels must stay unchanged. See
+[examples and boundaries](rules/prefer_continue.md).
 
-```php
-// Reported: the interesting iterations sit one level deeper.
-foreach ($items as $item) {
-    $this->mark($item);
-    if ($item->isActive) {
-        $this->store($item);
-    }
-}
-
-// Accepted: the skip is explicit.
-foreach ($items as $item) {
-    if (! $item->isActive) {
-        continue;
-    }
-    $this->store($item);
-}
-```
 
 ### prefer_null_coalesce_assignment
 

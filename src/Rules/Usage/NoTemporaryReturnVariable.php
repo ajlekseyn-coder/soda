@@ -12,8 +12,11 @@ use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt\Expression;
+use PhpParser\Node\Stmt\Finally_;
 use PhpParser\Node\Stmt\Return_;
+use PhpParser\Node\Stmt\TryCatch;
 use PhpParser\NodeFinder;
+use PhpToken;
 
 /** Forbids a local variable created only to return its value immediately. */
 final class NoTemporaryReturnVariable extends Check
@@ -67,7 +70,7 @@ final class NoTemporaryReturnVariable extends Check
         foreach ($this->statementLists($scope) as $statements) {
             foreach ($statements as $index => $statement) {
                 $variable = $this->returnedVariable($statement, $statements[$index + 1] ?? null);
-                if ($variable === null) {
+                if ($variable === null || $this->hasTypeAnnotation($statement, $variable)) {
                     continue;
                 }
 
@@ -98,12 +101,59 @@ final class NoTemporaryReturnVariable extends Check
     }
 
     /**
+     * A local type assertion may be necessary even when the value is returned once.
+     */
+    private function hasTypeAnnotation(Node $statement, string $variable): bool
+    {
+        $comment = $statement->getDocComment()?->getText() ?? '';
+        $comment = preg_replace('/^\h*\*\h?/m', '', $comment) ?? $comment;
+        preg_match_all('/@var\s+(.+?)(?=\n[ \t]*@[a-zA-Z]|\*\/|$)/s', $comment, $annotations);
+        foreach ($annotations[1] as $annotation) {
+            $hasType = preg_match('/^(?:\??[a-zA-Z_\x80-\xff\\\\]|-?[0-9]|[\'"(]|\$this\b)/', $annotation) === 1;
+            if ($hasType && $this->doesAnnotationTarget($annotation, $variable)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Ignore quoted keys and callable parameter names when finding the annotation target.
+     */
+    private function doesAnnotationTarget(string $annotation, string $variable): bool
+    {
+        $typeSource = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/s', "'literal'", $annotation) ?? $annotation;
+        $depth = 0;
+        foreach (PhpToken::tokenize('<?php '.$typeSource) as $token) {
+            if ($token->id === T_VARIABLE && $depth === 0 && $token->text !== '$this') {
+                return $token->text === '$'.$variable;
+            }
+
+            $depth += match ($token->text) {
+                '<', '(', '[', '{'       => 1,
+                '>', '>>', ')', ']', '}' => -strlen($token->text),
+                default                  => 0,
+            };
+            if ($depth < 0) {
+                return false;
+            }
+        }
+
+        return $depth === 0;
+    }
+
+    /**
      * Collect statement lists within the current callable.
      *
      * @return iterable<array<Node>>
      */
     private function statementLists(Node $node): iterable
     {
+        if ($node instanceof TryCatch && $node->finally instanceof Finally_) {
+            return;
+        }
+
         foreach (get_object_vars($node) as $name => $value) {
             if (is_array($value)) {
                 if ($name === 'stmts') {

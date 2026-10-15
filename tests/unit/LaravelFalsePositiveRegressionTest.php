@@ -48,12 +48,12 @@ final class LaravelFalsePositiveRegressionTest extends TestCase
         ];
         yield 'Pail: a single query with null fallback is a simple condition' => [
             'function testing() { if (Env::get("TESTS") ?? false) { runTests(); } }',
-            'function testing() { if (Env::get(configKey()) ?? false) { runTests(); } }',
+            'function testing() { if ($ready && $testing || $forced) { runTests(); } }',
             ['no_complex_control_conditions'],
         ];
         yield 'Prompts and Pail: a single query may be tested with instanceof' => [
             'function render() { if (output() instanceof BufferedOutput) { flushOutput(); } }',
-            'function render() { if (output(resolveTarget()) instanceof BufferedOutput) { flushOutput(); } }',
+            'function render() { if ($ready || $buffered && $forced) { flushOutput(); } }',
             ['no_complex_control_conditions'],
         ];
         yield 'Prompts: callback body is outside the surrounding condition' => [

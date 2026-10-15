@@ -45,9 +45,9 @@ final class AstFacts
      *
      * @return FileMetrics
      */
-    public static function collect(array $nodes, LogicalLineMap $lineMap, ?array $required): array
+    public static function collect(array $nodes, LogicalLineMap $lineMap, ?array $required, string $source = ''): array
     {
-        $scans = self::traverseScans($nodes, $lineMap, $required);
+        $scans = self::traverseScans($nodes, $lineMap, $required, $source);
 
         $metrics = self::scannedMetrics($scans);
 
@@ -62,14 +62,14 @@ final class AstFacts
      *
      * @return ScanFacts
      */
-    private static function traverseScans(array $nodes, LogicalLineMap $lineMap, ?array $required): array
+    private static function traverseScans(array $nodes, LogicalLineMap $lineMap, ?array $required, string $source = ''): array
     {
         $scans = [
             'complexity'     => self::isRequired($required, 'complexity') ? new ComplexityVisitor() : null,
             'structure'      => new StructureVisitor($lineMap->count(), $lineMap),
             'callables'      => self::isRequired($required, 'nesting', 'returns', 'conditions', 'tryCatch', 'emptyCatches')
                 ? new CallableMetricsVisitor() : null,
-            'conditions'     => self::isRequired($required, 'conditions') ? new ComplexControlConditionVisitor() : null,
+            'conditions'     => self::isRequired($required, 'conditions') ? new ComplexControlConditionVisitor($source) : null,
             'elseBranches'   => self::isRequired($required, 'elseBranches') ? new ElseBranchVisitor() : null,
             'tellDontAsk'    => self::isRequired($required, 'askThenTell') ? new TellDontAskVisitor() : null,
             'coupling'       => self::isRequired($required, 'coupling') ? new EfferentCouplingVisitor() : null,

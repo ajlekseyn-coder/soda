@@ -417,7 +417,7 @@ return [
         'severity'   => 'warning',
         'default'    => 0,
         'label'      => 'Else/elseif branches:',
-        'advice'     => 'Use guard clauses and early exits so the remaining happy path stays flat and explicit.',
+        'advice'     => 'Remove alternatives only after a proven unconditional exit; preserve meaningful mutually exclusive branches.',
         'comparison' => null,
     ],
     'no_complex_control_conditions' => [
@@ -427,7 +427,7 @@ return [
         'severity'   => 'warning',
         'default'    => 0,
         'label'      => 'Complex control conditions:',
-        'advice'     => 'Keep simple predicates, comparisons and homogeneous boolean chains inline. Name mixed decisions or prepare nested computations locally.',
+        'advice'     => 'Group mixed logical families with parentheses that preserve evaluation order; keep fluent predicates inline.',
         'comparison' => null,
     ],
     'no_service_locator_calls' => [
@@ -828,6 +828,7 @@ return [
     'max_return_statements' => [
         'class'      => 'Cosmira\\Soda\\Rules\\Complexity\\MaxReturnStatements',
         'arguments'  => [4],
+        'standard'   => false,
         'section'    => 'complexity',
         'severity'   => 'warning',
         'default'    => 4,
@@ -1227,7 +1228,7 @@ return [
         'severity'   => 'warning',
         'default'    => 0,
         'label'      => 'Loops ending in a wrapped remainder:',
-        'advice'     => 'Negate the trailing condition and continue so the interesting iterations keep the main path unindented.',
+        'advice'     => 'Flatten nested control flow behind a trailing condition; preserve preceding work and accept flat positive branches.',
         'comparison' => null,
     ],
     'prefer_includes' => [

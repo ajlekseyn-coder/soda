@@ -12,28 +12,33 @@ An assignment inside a condition hides a state change inside a question. Readers
 
 ```php
 // ❌ hidden state change in the condition
-if ($value = nextValue()) {
-    echo $value;
+if ($value = $next()) {
+    $consume($value);
 }
 
 // ✅ assign first, then test
-$value = nextValue();
-if ($value !== null) {
-    echo $value;
+$value = $next();
+if ($value) {
+    $consume($value);
 }
 ```
 
 ```php
 // ❌ compound assignment inside a loop condition
-while ($offset += step()) {
-    echo $offset;
+while ($offset += $step()) {
+    $consume($offset);
 }
 
 // ✅ the for loop expressions are the accepted place for it
-for ($offset = 0; $offset < $limit; $offset += step()) {
-    echo $offset;
+for ($offset += $step(); $offset; $offset += $step()) {
+    $consume($offset);
 }
 ```
+
+The first rewrite preserves PHP truthiness, including `false`, `0`, `'0'`, `''`
+and `[]`; a null comparison would change behavior. The loop preserves the initial
+offset and performs the same update before each condition, including after a
+`continue`. Do not hoist a loop read into a one-time assignment.
 
 ## Configuration
 

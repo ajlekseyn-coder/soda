@@ -10,7 +10,6 @@ use Cosmira\Soda\Rules\Complexity\MaxCognitiveComplexity;
 use Cosmira\Soda\Rules\Complexity\MaxConsecutiveLocalAssignments;
 use Cosmira\Soda\Rules\Complexity\MaxControlNesting;
 use Cosmira\Soda\Rules\Complexity\MaxCyclomaticComplexity;
-use Cosmira\Soda\Rules\Complexity\MaxReturnStatements;
 use Cosmira\Soda\Rules\Complexity\MaxStatementsPerCallable;
 use Cosmira\Soda\Rules\Complexity\MaxTryCatchBlocks;
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInCondition;
@@ -165,7 +164,6 @@ return Soda::configure()
         new NoUselessReturn(),
         new MaxCyclomaticComplexity(10),
         new MaxControlNesting(3),
-        new MaxReturnStatements(4),
         new MaxBooleanConditions(4),
         new MaxTryCatchBlocks(2),
 

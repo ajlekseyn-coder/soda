@@ -1,38 +1,54 @@
 # no_complex_control_conditions
 
-📝 Requires control-flow conditions to express one directly readable question.
+📝 Requires explicit grouping when a condition mixes logical families.
 
 💼 This rule is enabled in the ✅ `standard` config.
 
 ## Why
 
-A condition that mixes different logical operators (`$a && ($b || $c)`, `$a xor $b`) or computes values inline (`Order::query()->pending()->count() > $limit`, `getUser()->isReady()`) forces readers to evaluate sub-expressions before they understand the question being asked. The rule reports two kinds of conditions: mixed logic, and nested computation buried in the test. Keep simple predicates, comparisons and homogeneous boolean chains inline; name mixed decisions or prepare nested computations locally.
+Mixing AND (`&&`, `and`), OR (`||`, `or`) and XOR (`xor`) without grouping makes
+readers reconstruct PHP precedence. Parenthesize each child expression that uses
+a different logical family. Parentheses around the whole condition are not enough.
+Keep the original evaluation order: changing the grouping can change behavior.
+
+Fluent receivers, calls in arguments, comparisons, ternaries and `match` are
+accepted. The rule does not require a temporary boolean or a named query.
+Callback bodies are visited independently. A lone XOR and homogeneous chains are
+accepted. When source positions are unavailable, absence of grouping cannot be
+proven and the rule stays silent.
 
 ## Examples
 
 ```php
-// ❌ mixed operators inside one condition
-if ($active && ($verified || $admin)) {
-    grantAccess();
-}
-
-// ✅ the distinct decision gets a name
-$mayGrant = $active && ($verified || $admin);
-if ($mayGrant) {
-    grantAccess();
+// ❌ implicit precedence
+if ($active && $verified || $admin) {
+    $grant();
 }
 ```
 
 ```php
-// ❌ a whole query is computed inside the test
-while (query()->exists()) {
-    consume();
+// ✅ the same expression with its existing precedence made explicit
+if (($active && $verified) || $admin) {
+    $grant();
+}
+```
+
+`$active && ($verified || $admin)` is also clearly grouped, but means something
+different. It is not an equivalent replacement for the first example.
+
+```php
+// ✅ natural predicates do not need intermediary variables
+if ($data->parentGroups()->isNotEmpty()) {
+    attachParents();
 }
 
-// ✅ the value is prepared before the loop
-$pending = query()->pending();
-while ($pending->exists()) {
-    consume();
+if ($user->hasRole(config('auth.admin_role'))) {
+    grantAccess();
+}
+
+// ✅ rebuild the query and reevaluate the changing name on every iteration
+while (Person::query()->where('samaccountname', $name)->exists()) {
+    $name = nextName();
 }
 ```
 
@@ -44,13 +60,11 @@ use Cosmira\Soda\Rules\Complexity\NoComplexControlConditions;
 
 return Soda::configure()
     ->withPaths(['src/'])
-    ->with([
-        new NoComplexControlConditions,
-    ]);
+    ->with([new NoComplexControlConditions]);
 ```
 
 ## Related rules
 
-- [max_boolean_conditions](max_boolean_conditions.md) — bounds the number of boolean operands when a condition is long but homogeneous.
-- [no_assignment_in_condition](no_assignment_in_condition.md) — removes hidden writes from the same conditions.
-- [no_repeated_compound_conditions](no_repeated_compound_conditions.md) — detects the same compound condition repeated across methods.
+- [max_boolean_conditions](max_boolean_conditions.md) bounds the number of operands.
+- [no_assignment_in_condition](no_assignment_in_condition.md) reports hidden writes.
+- [no_nested_ternary](no_nested_ternary.md) handles nested ternary expressions separately.

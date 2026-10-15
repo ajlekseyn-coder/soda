@@ -13,10 +13,9 @@ final class NoTemporaryReturnVariableTest extends TestCase
 {
     use ParsesPhpSnippets;
 
-    public function testReportsImmediateReturnIncludingPhpDocAndNestedBodies(): void
+    public function testReportsUntypedImmediateReturnsAndNestedBodies(): void
     {
         foreach ([
-            'class Api { function version(): int { /** @var int $result */ $result = $this->invoke("GetVersion"); return $result; } }',
             'function run() { $result = 42; return $result; }',
             'function run($ready) { if ($ready) { $result = load(); return $result; } return null; }',
             '$fn = function () { $result = load(); return $result; };',
@@ -33,6 +32,7 @@ final class NoTemporaryReturnVariableTest extends TestCase
     {
         foreach ([
             'function run() { return load(); }',
+            'class Api { function version(): int { /** @var int $result */ $result = $this->invoke("GetVersion"); return $result; } }',
             'function run() { $result = load(); logValue($result); return $result; }',
             'function run() { $result = load(); return $result + 1; }',
             'function run($result) { $result = load(); return $result; }',

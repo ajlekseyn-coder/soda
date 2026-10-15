@@ -8,6 +8,24 @@
 
 A variable assigned on one line and returned on the next — `$result = load(); return $result;` — duplicates the expression without adding a name that carries meaning. It lengthens the method and forces the reader to track a binding that exists for a single statement. The rule reports the assignment and advises returning the expression directly. Variables with any other use (logged, transformed, captured by a closure, or part of a larger expression) are not reported, nor are reference returns, `global`/`static` bindings, or assignments where the right-hand side already uses the same variable.
 
+A relevant `@var` on the assignment is a type assertion, not a disposable alias.
+Both a named annotation for the returned variable and an unambiguous nameless type
+are accepted. An unrelated comment or annotation for another variable does not
+suppress a finding. Try/finally bodies are excluded conservatively: the finalizer
+can observe the local symbol table through `compact()` or other dynamic reads.
+
+```php
+// ✅ preserve the asserted type and the exception boundary
+try {
+    /** @var array<string, mixed> $config */
+    $config = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+    return $config;
+} catch (JsonException $exception) {
+    throw new ConfigurationException('Invalid configuration', previous: $exception);
+}
+```
+
 ## Examples
 
 ```php

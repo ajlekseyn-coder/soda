@@ -1,42 +1,53 @@
 # no_else_branches
 
-📝 Forbids `else` and `elseif` in favor of guard clauses and early exits.
+📝 Reports redundant alternatives after a proven unconditional exit.
 
 💼 This rule is enabled in the ✅ `standard` config.
 
 ## Why
 
-An `else` extends the life of a branch: the reader must hold the preceding condition in mind while walking through the alternative. Guard clauses end each exceptional path immediately, so the remaining happy path stays flat and explicit. The rule reports every `else` and `elseif` at its exact line and advises ending the preceding case early — then using a separate `if` in place of an `elseif`.
+After `return`, `throw`, `exit`, `break` or `continue`, the alternative can become
+the following path without adding another exit. Exhaustive `if` branches whose
+paths all exit are recognized too. The rule does not prohibit meaningful
+non-exiting alternatives or require artificial returns, helper methods or `match`.
+
+An `elseif` is reported only when every preceding branch in that chain exits.
+A return in a later branch does not justify moving the final `else` across an
+earlier non-exiting branch. Loops and try/catch statements do not prove an exit.
 
 ## Examples
 
 ```php
-// ❌ nested alternatives
-function hasAccess(User $user): bool
-{
-    if (! $user->isBanned()) {
-        if ($user->isAdmin()) {
-            return true;
-        } else {
-            return $user->isGranted(Grant::Edit);
-        }
-    } else {
-        return false;
-    }
+// ❌ the first path already exits
+if ($user->isBanned()) {
+    return false;
+} else {
+    return $user->hasAccess();
 }
 
-// ✅ guards keep the happy path flat
-function hasAccess(User $user): bool
-{
-    if ($user->isBanned()) {
-        return false;
-    }
+// ✅ the same paths without a redundant alternative
+if ($user->isBanned()) {
+    return false;
+}
 
-    if ($user->isAdmin()) {
-        return true;
-    }
+return $user->hasAccess();
+```
 
-    return $user->isGranted(Grant::Edit);
+```php
+// ✅ meaningful mutually exclusive operations
+if ($driver === 'pgsql') {
+    createPostgresIndex();
+} elseif ($driver === 'mysql') {
+    createMysqlIndex();
+}
+
+// ✅ the last alternative still belongs to this chain
+if ($first) {
+    work();
+} elseif ($second) {
+    return;
+} else {
+    rest();
 }
 ```
 
@@ -48,13 +59,10 @@ use Cosmira\Soda\Rules\Complexity\NoElseBranches;
 
 return Soda::configure()
     ->withPaths(['src/'])
-    ->with([
-        new NoElseBranches,
-    ]);
+    ->with([new NoElseBranches]);
 ```
 
 ## Related rules
 
-- [max_control_nesting](max_control_nesting.md) — guard clauses are the primary way to reduce nesting depth.
-- [max_cyclomatic_complexity](max_cyclomatic_complexity.md) — counts the extra branch each `elseif` contributes.
-- [no_identical_branches](no_identical_branches.md) — flags when a split with `else` produces branches that do the same thing.
+- [max_control_nesting](max_control_nesting.md) measures nesting.
+- [max_return_statements](max_return_statements.md) is an optional count of all returns.

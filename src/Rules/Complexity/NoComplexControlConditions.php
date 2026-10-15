@@ -8,7 +8,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 
-/** Requires control-flow conditions to express one directly readable question. */
+/** Requires explicit grouping when a condition mixes logical families. */
 final class NoComplexControlConditions extends Check
 {
     /**
@@ -47,9 +47,7 @@ final class NoComplexControlConditions extends Check
                 value: 1,
                 threshold: 0,
                 line: $occurrence['line'],
-                message: $occurrence['reason'] === 'mixed_logic'
-                    ? 'Mixed logical operators obscure this condition. Name the distinct decision before combining it.'
-                    : 'Nested computation obscures this condition. Prepare the value locally or name the query before testing it.');
+                message: 'Group mixed logical operators with parentheses that preserve the current evaluation order.');
         }
     }
 }

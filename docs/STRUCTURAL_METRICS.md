@@ -440,33 +440,48 @@ final class SomeClass
 
 ### no_assignment_in_condition
 
-Assignments in nested callable or class bodies do not belong to the surrounding
-condition. Conditions inside those bodies are checked independently. Arguments
-evaluated at the outer call site remain part of the outer condition.
+📝 Forbids assignments inside control-flow conditions.
 
-Forbids assignments inside control-flow conditions. Assigning and deciding in
-the same expression makes accidental `=` vs `===` mistakes harder to spot and
-hides preparation work inside a predicate.
+💼 This rule is enabled in the ✅ `standard` config.
 
-```php
-new NoAssignmentInCondition()
-```
+Why:
+
+An assignment inside a condition hides a state change inside a question. Readers can easily mistake `=` for `==`, and the condition stops being a pure test because evaluating it mutates the program. The rule reports assignments (including compound and reference assignments) in `if`, `elseif`, `while`, `do-while`, `for` conditions and ternary conditions, and advises assigning first, then making the condition a pure question with no hidden state change. Assignments in the initialization and loop expressions of a `for` statement are the accepted idiom and are not reported; assignments inside nested callable bodies also stay outside this rule.
+
+Examples:
 
 ```php
-// Good
-$value = $reader->next();
+// ❌ hidden state change in the condition
+if ($value = $next()) {
+    $consume($value);
+}
 
-if ($value !== null) {
-    $this->handle($value);
+// ✅ assign first, then test
+$value = $next();
+if ($value) {
+    $consume($value);
 }
 ```
 
 ```php
-// Bad
-if ($value = $reader->next()) {
-    $this->handle($value);
+// ❌ compound assignment inside a loop condition
+while ($offset += $step()) {
+    $consume($offset);
+}
+
+// ✅ the for loop expressions are the accepted place for it
+for ($offset += $step(); $offset; $offset += $step()) {
+    $consume($offset);
 }
 ```
+
+The first rewrite preserves PHP truthiness, including `false`, `0`, `'0'`, `''`
+and `[]`; a null comparison would change behavior. The loop preserves the initial
+offset and performs the same update before each condition, including after a
+`continue`. Do not hoist a loop read into a one-time assignment.
+
+
+Configure with `new NoAssignmentInCondition()`.
 
 ### only_list_arrays
 
@@ -1168,75 +1183,116 @@ Maximum classes/traits in the project. Indicator of project size.
 
 ### no_else_branches
 
-Forbids explicit `else` and `elseif` branches. Prefer guard clauses and early exits so each case is direct and the happy path remains flat.
+📝 Reports redundant alternatives after a proven unconditional exit.
+
+💼 This rule is enabled in the ✅ `standard` config.
+
+Why:
+
+After `return`, `throw`, `exit`, `break` or `continue`, the alternative can become
+the following path without adding another exit. Exhaustive `if` branches whose
+paths all exit are recognized too. The rule does not prohibit meaningful
+non-exiting alternatives or require artificial returns, helper methods or `match`.
+
+An `elseif` is reported only when every preceding branch in that chain exits.
+A return in a later branch does not justify moving the final `else` across an
+earlier non-exiting branch. Loops and try/catch statements do not prove an exit.
+
+Examples:
 
 ```php
-// soda.php
-new NoElseBranches()
-```
-
-```php
-// ❌ Bad
-if (! $user->isBanned()) {
-    if ($user->isAdmin()) {
-        return true;
-    } else {
-        return $user->isGranted(GRANT::EDIT);
-    }
-} else {
+// ❌ the first path already exits
+if ($user->isBanned()) {
     return false;
+} else {
+    return $user->hasAccess();
 }
-```
 
-```php
-// ✅ Good
+// ✅ the same paths without a redundant alternative
 if ($user->isBanned()) {
     return false;
 }
 
-if ($user->isAdmin()) {
-    return true;
-}
-
-return $user->isGranted(GRANT::EDIT);
+return $user->hasAccess();
 ```
 
-The rule targets only PHP `else` and `elseif` statements. Ternary expressions, `match`, `catch`, and `finally` are not reported.
+```php
+// ✅ meaningful mutually exclusive operations
+if ($driver === 'pgsql') {
+    createPostgresIndex();
+} elseif ($driver === 'mysql') {
+    createMysqlIndex();
+}
+
+// ✅ the last alternative still belongs to this chain
+if ($first) {
+    work();
+} elseif ($second) {
+    return;
+} else {
+    rest();
+}
+```
+
+
+Configure with `new NoElseBranches()`.
 
 ### no_complex_control_conditions
 
-Keeps `if`, `elseif`, `while`, `do while`, every `for` condition, and ternary conditions readable. Configure it with `new NoComplexControlConditions()` as before.
+📝 Requires explicit grouping when a condition mixes logical families.
 
-Simple values, predicates, negations, `isset`, `empty`, `instanceof`, and comparisons can stay inline. A comparison operand may be a single call. Homogeneous `&&`/`and` or `||`/`or` chains are accepted; parentheses and negation add no complexity.
-A single query can also be the operand of `instanceof` or a null fallback:
-`Auth::user() instanceof User` and `Env::get('TESTS') ?? false` remain simple.
+💼 This rule is enabled in the ✅ `standard` config.
+
+Why:
+
+Mixing AND (`&&`, `and`), OR (`||`, `or`) and XOR (`xor`) without grouping makes
+readers reconstruct PHP precedence. Parenthesize each child expression that uses
+a different logical family. Parentheses around the whole condition are not enough.
+Keep the original evaluation order: changing the grouping can change behavior.
+
+Fluent receivers, calls in arguments, comparisons, ternaries and `match` are
+accepted. The rule does not require a temporary boolean or a named query.
+Callback bodies are visited independently. A lone XOR and homogeneous chains are
+accepted. When source positions are unavailable, absence of grouping cannot be
+proven and the rule stays silent.
+
+Examples:
 
 ```php
-if (! $user->isActive()) {}
-if ($user->age() >= 18 && $user->isVerified()) {}
-if (count($items) > 0) {}
+// ❌ implicit precedence
+if ($active && $verified || $admin) {
+    $grant();
+}
 ```
-
-Two reasons require simplification:
-
-- `mixed_logic`: a condition combines AND and OR, or uses XOR.
-- `nested_computation`: a call has a computed receiver or argument, comparisons are nested, arithmetic computes an operand, or a ternary or `match` computes part of the condition.
 
 ```php
-// Mixed decisions: name the distinct decision.
-if ($active && ($admin || $owner)) {}
-
-// Nested query: prepare its result before testing it.
-if (Order::query()->pending()->count() > $limit) {}
+// ✅ the same expression with its existing precedence made explicit
+if (($active && $verified) || $admin) {
+    $grant();
+}
 ```
 
-Simple call arguments include literals, variables, constants, property/index access, and arrays of these values. Simple casts and null coalescing are supported. Negating or casting a predicate does not turn it into nested work. Callable bodies do not contribute to the surrounding condition; their own control conditions are checked separately.
+`$active && ($verified || $admin)` is also clearly grouped, but means something
+different. It is not an equivalent replacement for the first example.
 
-`MaxBooleanConditions` still limits chain length with its existing formula. Assignments remain the responsibility of `NoAssignmentInCondition`; assigning an otherwise simple predicate does not itself add a complexity finding. Other computations in that predicate still do.
+```php
+// ✅ natural predicates do not need intermediary variables
+if ($data->parentGroups()->isNotEmpty()) {
+    attachParents();
+}
 
-## Architectural escape hatches
+if ($user->hasRole(config('auth.admin_role'))) {
+    grantAccess();
+}
 
-These zero-tolerance rules close common ways of making code look locally tidy while hiding dependencies, state, dispatch, failures, or time coordination. Each rule is independently selectable.
+// ✅ rebuild the query and reevaluate the changing name on every iteration
+while (Person::query()->where('samaccountname', $name)->exists()) {
+    $name = nextName();
+}
+```
+
+
+Configure with `new NoComplexControlConditions()`.
 
 ### no_service_locator_calls
 
@@ -1668,32 +1724,73 @@ inputs and unrelated registrations remain checked.
 
 ### no_temporary_return_variable
 
-Configure with `new NoTemporaryReturnVariable()` from `Cosmira\Soda\Rules\Usage`.
-Enabled in the standard bundle. Reports a local assignment immediately followed
-by returning the same variable, including assignments annotated with `@var`.
-Functions, methods, closures and nested statement blocks are checked. Variables
-with other uses, parameters, references and functions returning by reference are
-excluded conservatively.
+📝 Forbids a local variable created only to return its value immediately.
 
-Bad:
+💼 This rule is enabled in the ✅ `standard` config.
+
+Why:
+
+A variable assigned on one line and returned on the next — `$result = load(); return $result;` — duplicates the expression without adding a name that carries meaning. It lengthens the method and forces the reader to track a binding that exists for a single statement. The rule reports the assignment and advises returning the expression directly. Variables with any other use (logged, transformed, captured by a closure, or part of a larger expression) are not reported, nor are reference returns, `global`/`static` bindings, or assignments where the right-hand side already uses the same variable.
+
+A relevant `@var` on the assignment is a type assertion, not a disposable alias.
+Both a named annotation for the returned variable and an unambiguous nameless type
+are accepted. An unrelated comment or annotation for another variable does not
+suppress a finding. Try/finally bodies are excluded conservatively: the finalizer
+can observe the local symbol table through `compact()` or other dynamic reads.
 
 ```php
-public function version(): int
-{
-    /** @var int $result */
-    $result = $this->invoke('GetVersion');
-    return $result;
+// ✅ preserve the asserted type and the exception boundary
+try {
+    /** @var array<string, mixed> $config */
+    $config = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+    return $config;
+} catch (JsonException $exception) {
+    throw new ConfigurationException('Invalid configuration', previous: $exception);
 }
 ```
 
-Good:
+Examples:
 
 ```php
-public function version(): int
+// ❌
+function version(): int
+{
+    $result = $this->invoke('GetVersion');
+
+    return $result;
+}
+
+// ✅
+function version(): int
 {
     return $this->invoke('GetVersion');
 }
 ```
+
+```php
+// ✅ Accepted: the variable is also used elsewhere
+function status(): int
+{
+    $result = load();
+    logValue($result);
+
+    return $result;
+}
+```
+
+```php
+// ✅ Accepted: the returned expression is not the variable itself
+function total(): int
+{
+    $result = load();
+
+    return $result + 1;
+}
+```
+
+
+Configure with `new NoTemporaryReturnVariable()`.
 
 ### no_consecutive_block_comments
 

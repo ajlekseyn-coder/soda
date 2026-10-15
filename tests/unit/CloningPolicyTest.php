@@ -31,7 +31,7 @@ final class CloningPolicyTest extends TestCase
     public static function copies(): iterable
     {
         yield 'query builder forks' => ['function run(\Illuminate\Database\Query\Builder $query) { while ((clone $query)->exists()) { $ready = (clone $query)->whereNull("parent_id"); consume($ready); } }'];
-        yield 'nested factory is still computation' => ['function run() { if ((clone createQuery())->exists()) { consume(); } }', 1];
+        yield 'nested factory is a predicate receiver' => ['function run() { if ((clone createQuery())->exists()) { consume(); } }'];
         yield 'value copy' => ['class Options { public int $limit; function limitedTo(int $limit): self { $copy = clone $this; $copy->limit = $limit; return $copy; } }'];
         yield 'unknown type is not proof of danger' => ['function copyValue($value) { return clone $value; }'];
     }

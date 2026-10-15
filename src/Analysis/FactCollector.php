@@ -41,7 +41,7 @@ final readonly class FactCollector
         $nodes = $this->parse($source, $file);
         $lineMap = LogicalLineMap::fromSource($source);
 
-        $metrics = AstFacts::collect($nodes, $lineMap, $required);
+        $metrics = AstFacts::collect($nodes, $lineMap, $required, $source);
         $needsComments = $required === null || in_array('comments', $required, true);
         $commentIssues = $needsComments
             ? SourceCommentIssueScanner::scan($source)

@@ -8,42 +8,72 @@ use Cosmira\Soda\Analysis\ConditionExtractor;
 use Cosmira\Soda\Analysis\FactVisitor;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpToken;
 
 /**
- * Collects mixed logical decisions and computations nested inside control predicates.
+ * Collects mixed logical families whose precedence is not made explicit in source.
  *
- * @phpstan-type ComplexCondition array{line: int, reason: 'mixed_logic'|'nested_computation'}
+ * @phpstan-type ComplexCondition array{line: int, reason: 'mixed_logic'}
  */
 final class ComplexControlConditionVisitor extends FactVisitor
 {
     /**
-     * Source locations of complex control-flow conditions found during traversal.
+     * Source locations of conditions with ungrouped logical families.
      *
      * @var list<ComplexCondition>
      */
     private array $occurrences = [];
 
     /**
-     * Collect each condition independently; the outer traversal also visits callable bodies.
+     * Significant token immediately before each expression start.
+     *
+     * @var array<int, string>
+     */
+    private array $before = [];
+
+    /**
+     * Significant token immediately after each expression end.
+     *
+     * @var array<int, string>
+     */
+    private array $after = [];
+
+    /**
+     * Parentheses are source syntax; the parser's AST omits them.
+     */
+    public function __construct(string $source = '')
+    {
+        $previous = null;
+        foreach (PhpToken::tokenize($source) as $token) {
+            if ($token->isIgnorable()) {
+                continue;
+            }
+
+            if ($previous !== null) {
+                $this->before[$token->pos] = $previous->text;
+                $this->after[$previous->pos + strlen($previous->text) - 1] = $token->text;
+            }
+
+            $previous = $token;
+        }
+    }
+
+    /**
+     * Visit callable bodies independently of their enclosing predicate.
      */
     #[\Override]
     protected function doEnterNode(Node $node): void
     {
         $conditions = $node instanceof Node\Stmt\For_ ? $node->cond : [ConditionExtractor::extract($node)];
         foreach ($conditions as $condition) {
-            if (! $condition instanceof Expr) {
-                continue;
-            }
-
-            $reason = $this->reason($condition);
-            if ($reason !== null) {
-                $this->occurrences[] = ['line' => $condition->getStartLine(), 'reason' => $reason];
+            if ($condition instanceof Expr && $this->hasUngroupedLogic($condition)) {
+                $this->occurrences[] = ['line' => $condition->getStartLine(), 'reason' => 'mixed_logic'];
             }
         }
     }
 
     /**
-     * Return recorded complex control-flow conditions with their source locations.
+     * Return recorded conditions with their source locations.
      *
      * @return list<ComplexCondition>
      */
@@ -53,23 +83,54 @@ final class ComplexControlConditionVisitor extends FactVisitor
     }
 
     /**
-     * Explain structure rather than counting every AST operation as a separate decision.
-     *
-     * @return 'mixed_logic'|'nested_computation'|null
+     * Calls and other value expressions are atoms, regardless of their call depth.
      */
-    private function reason(Expr $condition): ?string
+    private function hasUngroupedLogic(Expr $node): bool
     {
-        $operators = array_unique($this->logicalOperators($condition));
-        $isMixed = count($operators) > 1 || in_array('xor', $operators, true);
-        if ($isMixed) {
-            return 'mixed_logic';
+        $subject = ConditionValueGrammar::unwrap($node);
+        $operator = $this->logicalOperator($subject);
+        if ($operator === null || ! $subject instanceof Expr\BinaryOp) {
+            return false;
         }
 
-        return $this->isReadable($condition) ? null : 'nested_computation';
+        foreach ([$subject->left, $subject->right] as $child) {
+            $value = ConditionValueGrammar::unwrap($child);
+            $childOperator = $this->logicalOperator($value);
+            if ($childOperator !== null && $childOperator !== $operator && $this->isUngrouped($child)) {
+                return true;
+            }
+
+            if ($this->hasUngroupedLogic($child)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
-     * Word and symbolic operators have the same family after PHP has parsed precedence.
+     * Missing source positions cannot prove the absence of explicit grouping.
+     */
+    private function isUngrouped(Expr $node): bool
+    {
+        $before = $this->before[$node->getStartFilePos()] ?? null;
+        $after = $this->after[$node->getEndFilePos()] ?? null;
+
+        if ($before === null || $after === null || ($before === '(' && $after === ')')) {
+            return false;
+        }
+
+        if (ConditionValueGrammar::unwrap($node) === $node) {
+            return true;
+        }
+
+        $child = get_object_vars($node)['expr'] ?? null;
+
+        return $child instanceof Expr && $this->isUngrouped($child);
+    }
+
+    /**
+     * Word and symbolic forms share a logical family after PHP parses precedence.
      */
     private function logicalOperator(Expr $node): ?string
     {
@@ -79,45 +140,5 @@ final class ComplexControlConditionVisitor extends FactVisitor
             'Expr_BinaryOp_LogicalXor'                             => 'xor',
             default                                                => null,
         };
-    }
-
-    /**
-     * Boolean structure ends at a predicate; callback bodies and arguments are separate work.
-     *
-     * @return list<string>
-     */
-    private function logicalOperators(Expr $node): array
-    {
-        $subject = ConditionValueGrammar::unwrap($node);
-
-        $operator = $this->logicalOperator($subject);
-        if ($operator === null || ! $subject instanceof Expr\BinaryOp) {
-            return [];
-        }
-
-        return [$operator, ...$this->logicalOperators($subject->left), ...$this->logicalOperators($subject->right)];
-    }
-
-    /**
-     * Negation and homogeneous composition do not require intermediary predicates.
-     */
-    private function isReadable(Expr $node): bool
-    {
-        $subject = ConditionValueGrammar::unwrap($node);
-
-        $isLogical = $this->logicalOperator($subject) !== null && $subject instanceof Expr\BinaryOp;
-        if ($isLogical) {
-            return $this->isReadable($subject->left) && $this->isReadable($subject->right);
-        }
-
-        $isComparison = in_array($subject->getType(), [
-            'Expr_BinaryOp_Equal', 'Expr_BinaryOp_NotEqual', 'Expr_BinaryOp_Identical', 'Expr_BinaryOp_NotIdentical',
-            'Expr_BinaryOp_Greater', 'Expr_BinaryOp_GreaterOrEqual', 'Expr_BinaryOp_Smaller', 'Expr_BinaryOp_SmallerOrEqual',
-        ], true) && $subject instanceof Expr\BinaryOp;
-        if ($isComparison) {
-            return ConditionValueGrammar::isPredicateValue($subject->left) && ConditionValueGrammar::isPredicateValue($subject->right);
-        }
-
-        return ConditionValueGrammar::isPredicateValue($subject);
     }
 }

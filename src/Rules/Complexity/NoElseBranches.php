@@ -9,7 +9,7 @@ use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 
 /**
- * Forbids else and elseif in favor of guard clauses and early exits.
+ * Reports redundant alternatives after a proven unconditional exit.
  *
  * @example soda.php: `new NoElseBranches()`
  */
@@ -47,8 +47,8 @@ final class NoElseBranches extends Check
 
         foreach ($metrics['elseBranches'] ?? [] as $occurrence) {
             $message = $occurrence['kind'] === 'elseif'
-                ? 'Avoid elseif. End the preceding case early, then use a separate if.'
-                : 'Avoid else. Exit the preceding branch early and keep the remaining path unindented.';
+                ? 'Avoid elseif after an unconditional exit. Use a separate if.'
+                : 'Avoid else after an unconditional exit. Keep the remaining path unindented.';
 
             yield new Violation(rule: $this->id(), file: $facts->path, value: 1, threshold: 0, line: $occurrence['line'], message: $message);
         }
