@@ -14,6 +14,11 @@ A trait's methods can also be replaced by its consuming class, including calls
 through `self`. Inlining construction would bypass that dispatch. These hooks
 are recognized from declarations and call sites, without relying on factory names.
 
+An actual call through an unchanged native class parameter can also establish a
+creation hook across analyzed files. The initial call must resolve to an open
+public instance method; its arguments must preserve the receiver binding. Callable
+references, untyped receivers and a factory name alone do not establish this contract.
+
 Final classes and final methods in ordinary classes close this extension point.
 Ordinary private instance methods and fixed `self::` calls in classes do not
 establish virtual dispatch. Late-static lookup can select a descendant's

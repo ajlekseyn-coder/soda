@@ -56,7 +56,7 @@ final class ExplicitBehaviorCandidatesTest extends TestCase
             'class'   => 'Example\\Factory', 'line' => 1, 'value' => 1, 'threshold' => 0,
             'message' => 'Example\\Factory::create() only constructs Example\\Receipt and forwards all parameters unchanged. Consider constructing Example\\Receipt at the call site.',
         ], $findings[0]->toArray());
-        self::assertSame([], (new NoTrivialFactories)->requiredAnalyses());
+        self::assertSame(['factoryConstruction'], (new NoTrivialFactories)->requiredAnalyses());
         self::assertCount(1, $this->findings(new NoTrivialFactories, $this->factory('public function create() { return new Receipt(); }')));
     }
 

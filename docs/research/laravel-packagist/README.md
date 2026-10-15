@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,546 after
-twenty-three review rounds: 1,126 resolved and 50 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,176 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,545 after
+twenty-four review rounds: 1,127 resolved and 50 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,177 removals and
 50 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, and seven commented-code
 ordinals exclude preceding prose. All other retained diagnostics match field-for-field
@@ -35,14 +35,22 @@ with their original multiplicity.
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
 | `multiline_property_phpdoc` | 4,637 | 4,636 | 1 |
-| `no_trivial_factories` | 127 | 78 | 49 |
+| `no_trivial_factories` | 127 | 77 | 50 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,697 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,730 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
+
+Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
+accepts an original native `SupervisorFactory` input and invokes its open `make()`
+method. Direct construction would bypass a replacement implementation. The new
+project facts retain scalar declarations and call sites; closed, ambiguous or
+unobserved factories remain checked. `round24-resolved.jsonl` records the exact
+finding and pinned source evidence. A single-consumer PHPDoc scanner was moved
+into private methods of its collector without changing its parsing behavior.
 
 ## Source-grounded policy review
 
@@ -112,7 +120,7 @@ thresholds, values, lines, messages and duplicate occurrences were rejected.
 
 Together with the 2,847 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 49 revised retained findings in `round18-reviewed.jsonl` and
-`round22-reviewed-revised.jsonl`, this leaves 5,679 retained findings unclassified.
+`round22-reviewed-revised.jsonl`, this leaves 5,678 retained findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -156,7 +164,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,126 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,127 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -393,7 +401,9 @@ the original Runner cannot finish packages containing affected switches.
   continue to trigger the rule.
 
 - `no_trivial_factories` preserves factories reached by observed virtual calls
-  on the current receiver. Late-static lookup and trait composition preserve
+  on the current receiver or through an unchanged native class parameter. The
+  incoming call must select an open public instance method; ambiguous declarations
+  and unsafe argument effects do not establish that contract. Late-static lookup and trait composition preserve
   replaceable implementations; final class/method controls remain detectable.
   Trait declarations also contribute resolved factory-hook contracts. The closest
   package manifest supplies local ancestors before consulting installed dependency

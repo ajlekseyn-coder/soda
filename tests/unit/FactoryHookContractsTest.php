@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
-use Cosmira\Soda\Analysis\FactCollector;
-use Cosmira\Soda\Rules\Structure\NoTrivialFactories;
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
 use PHPUnit\Framework\TestCase;
 
 final class FactoryHookContractsTest extends TestCase
@@ -55,8 +55,9 @@ final class FactoryHookContractsTest extends TestCase
             ]]], JSON_THROW_ON_ERROR));
             file_put_contents($parent, '<?php namespace Vendor\Api; throw new \RuntimeException("must not execute"); class Manager { function driver($driver) { $method = "create".ucfirst($driver)."Driver"; return $this->$method(); } }');
             file_put_contents($child, '<?php class Engines extends \Vendor\Api\Manager { protected function createNullDriver() { return new Product(); } }');
-            $rule = new NoTrivialFactories;
-            self::assertSame([], iterator_to_array($rule->checkFile((new FactCollector)->collect($child, $rule->requiredAnalyses()))));
+            $result = (new Runner)->check([$child], RuleCatalog::standard());
+            self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+            self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'no_trivial_factories')->all());
         } finally {
             foreach ([$metadata, $parent, $child] as $path) {
                 unlink($path);
@@ -73,9 +74,10 @@ final class FactoryHookContractsTest extends TestCase
         file_put_contents($path, '<?php '.$source);
 
         try {
-            $rule = new NoTrivialFactories;
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
 
-            return iterator_to_array($rule->checkFile((new FactCollector)->collect($path, $rule->requiredAnalyses())));
+            return $result->violations->filter(static fn ($row): bool => $row->rule === 'no_trivial_factories')->values()->all();
         } finally {
             unlink($path);
         }

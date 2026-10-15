@@ -12,6 +12,7 @@ use Cosmira\Soda\Analysis\Frameworks\LaravelMiddlewareContracts;
 use Cosmira\Soda\Analysis\Representation\RepresentationFacts;
 use Cosmira\Soda\Analysis\Usage\ParameterInputFacts;
 use Cosmira\Soda\Analysis\Usage\UnusedMethodDeclarations;
+use Cosmira\Soda\Rules\Structure\ForwardedConstruction;
 use PhpParser\Node;
 
 /**
@@ -21,6 +22,8 @@ use PhpParser\Node;
  */
 trait CollectsDesignFacts
 {
+    use ForwardedConstruction;
+
     /**
      * Collect optional design measurements without changing legacy structural counts.
      *
@@ -56,7 +59,26 @@ trait CollectsDesignFacts
 
         $measured['cohesion'] = self::isRequired($required, 'cohesion') ? (new Cohesion)->collect($nodes) : [];
 
-        return self::representationMetrics($measured, $nodes, $required);
+        return self::representationMetrics(self::factoryMetrics($measured, $nodes, $required), $nodes, $required);
+    }
+
+    /**
+     * Construction diagnostics wait for incoming calls from the complete project.
+     *
+     * @param FileMetrics       $metrics
+     * @param list<Node>        $nodes
+     * @param list<string>|null $required
+     *
+     * @return FileMetrics
+     */
+    private static function factoryMetrics(array $metrics, array $nodes, ?array $required): array
+    {
+        if (self::isRequired($required, 'factoryConstruction')) {
+            $metrics['factoryConstruction'] = self::factoryConstruction($nodes);
+            $metrics['parameterContracts'] ??= InheritedParameterContracts::collect($nodes);
+        }
+
+        return $metrics;
     }
 
     /**

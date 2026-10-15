@@ -68,6 +68,90 @@ PHP;
         self::assertSame(0, $findings[0]->threshold);
     }
 
+    #[DataProvider('incomingFactoryCalls')]
+    public function testNativeIncomingFactoryProtocolAcrossFiles(string $caller, int $expected, string $declaration = 'class Factory', string $visibility = 'public'): void
+    {
+        $root = sys_get_temp_dir().'/soda-incoming-factory-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $factory = $root.'/Factory.php';
+        $consumer = $root.'/Consumer.php';
+        file_put_contents($factory, '<?php namespace App; class Product { public function __construct(public mixed $input) {} } '.$declaration.' { '.$visibility.' function create($input) { return new Product($input); } public function unused($input) { return new Product($input); } } class Unrelated { public function create($input) { return new Product($input); } }');
+        file_put_contents($consumer, '<?php namespace App; '.$caller);
+
+        try {
+            foreach ([[new NoTrivialFactories], RuleCatalog::standard()] as $checks) {
+                foreach ([[$factory, $consumer], [$consumer, $factory]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_trivial_factories')->values();
+                    self::assertCount($expected, $findings);
+                    self::assertCount(1, $findings->filter(static fn ($row): bool => $row->class === 'App\\Factory' && $row->method === 'unused'));
+                    self::assertCount(1, $findings->filter(static fn ($row): bool => $row->class === 'App\\Unrelated' && $row->method === 'create'));
+                    self::assertCount($expected - 2, $findings->filter(static fn ($row): bool => $row->class === 'App\\Factory' && $row->method === 'create'));
+                }
+            }
+        } finally {
+            unlink($factory);
+            unlink($consumer);
+            rmdir($root);
+        }
+    }
+
+    public function testConditionalDeclarationsCannotChooseAVirtualFactoryOrigin(): void
+    {
+        foreach ([['final class', 'class'], ['class', 'final class']] as [$first, $second]) {
+            $source = '<?php namespace App; class Product { public function __construct(public mixed $input) {} }
+                if (condition()) { '.$first.' Factory { public function create($input) { return new Product($input); } } }
+                else { '.$second.' Factory { public function create($input) { return new Product($input); } } }
+                class Consumer { public function run(Factory $factory, $input) { return $factory->create($input); } }
+                class Unrelated { public function create($input) { return new Product($input); } }';
+            $findings = $this->findings($source, RuleCatalog::standard());
+            self::assertCount(3, $findings);
+            $factories = array_values(array_filter($findings, static fn ($row): bool => $row->class === 'App\\Factory'));
+            self::assertCount(2, $factories);
+            self::assertCount(2, array_unique(array_column($factories, 'line')));
+            self::assertCount(1, array_filter($findings, static fn ($row): bool => $row->class === 'App\\Unrelated' && $row->method === 'create'));
+        }
+    }
+
+    public static function incomingFactoryCalls(): iterable
+    {
+        $consumer = static fn (string $body, string $parameter = 'Factory $factory'): string => 'class Consumer { public function run('.$parameter.', $input) { '.$body.' } }';
+        $call = '$factory->create($input)';
+        yield 'direct first return' => [$consumer('return '.$call.';'), 2];
+        yield 'first result assignment' => [$consumer('$product = '.$call.'; return $product;'), 2];
+        yield 'first expression invocation' => [$consumer($call.';'), 2];
+        yield 'native imported alias' => ['use App\\Factory as Creator; '.$consumer('return '.$call.';', 'Creator $factory'), 2];
+        yield 'case insensitive method' => [$consumer('return $factory->CREATE($input);'), 2];
+        yield 'caller receiver computes actual input' => [$consumer('return $factory->create($this->input());'), 2];
+        yield 'inherited selected factory origin' => ['class ChildFactory extends Factory {} '.$consumer('return '.$call.';', 'ChildFactory $factory'), 2];
+        yield 'overridden body does not donate parent factory' => ['class ChildFactory extends Factory { public function create($input) { return new DifferentProduct($input); } } '.$consumer('return '.$call.';', 'ChildFactory $factory'), 3];
+        yield 'overwritten incoming receiver' => [$consumer('$factory = new Factory; return '.$call.';'), 3];
+        yield 'escaped incoming receiver' => [$consumer('touch($factory); return '.$call.';'), 3];
+        yield 'reference capture before invocation' => [$consumer('$callback = function () use (&$factory) {}; return '.$call.';'), 3];
+        yield 'by reference incoming receiver' => [$consumer('return '.$call.';', 'Factory &$factory'), 3];
+        yield 'variadic incoming receiver' => ['class Consumer { public function run(Factory ...$factory) { return $factory->create(null); } }', 3];
+        yield 'closed receiver class' => [$consumer('return '.$call.';'), 3, 'final class Factory'];
+        yield 'closed selected method' => [$consumer('return '.$call.';'), 3, 'class Factory', 'final public'];
+        yield 'private selected method' => [$consumer('return '.$call.';'), 3, 'class Factory', 'private'];
+        yield 'protected selected method' => [$consumer('return '.$call.';'), 3, 'class Factory', 'protected'];
+        yield 'static selected method' => [$consumer('return '.$call.';'), 3, 'class Factory', 'public static'];
+        yield 'concrete local receiver' => [$consumer('$factory = new Factory; return '.$call.';', '$other'), 3];
+        yield 'untyped incoming receiver' => [$consumer('return '.$call.';', '$factory'), 3];
+        yield 'union incoming receiver' => [$consumer('return '.$call.';', 'Factory|Unrelated $factory'), 3];
+        yield 'missing required actual argument' => [$consumer('return $factory->create();'), 3];
+        yield 'extra actual argument' => [$consumer('return $factory->create($input, $input);'), 3];
+        yield 'named actual argument remains unsupported' => [$consumer('return $factory->create(input: $input);'), 3];
+        yield 'unpacked actual argument remains unsupported' => [$consumer('return $factory->create(...[$input]);'), 3];
+        yield 'first class method reference' => [$consumer('return $factory->create(...);'), 3];
+        yield 'nested uncalled callback' => [$consumer('return function () use ($factory, $input) { return '.$call.'; };'), 3];
+        yield 'receiver variable alias' => [$consumer('$other = $factory; return $other->create($input);'), 3];
+        yield 'opaque prior symbol table effect' => [$consumer('extract(values()); return '.$call.';'), 3];
+        yield 'opaque argument effect' => [$consumer('return $factory->create(eval("return null;"));'), 3];
+        yield 'argument receiver escape' => [$consumer('return $factory->create(touch($factory));'), 3];
+        yield 'argument reference capture' => [$consumer('return $factory->create(function () use (&$factory) {});'), 3];
+    }
+
     #[DataProvider('localPackageContracts')]
     public function testLocalComposerContractWithoutInstalledMetadata(array|string $manifest, string $parent, string $child, int $count): void
     {

@@ -8,16 +8,16 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,679 findings are not yet classified.",
-  "final_source_sha256": "fb9ea2374ab8662d8bb3fbbf11e3129f77301777d6cfa09aeb6b0ab1371e08ea",
-  "after": 61546,
-  "removed": 1176,
+  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,678 findings are not yet classified.",
+  "final_source_sha256": "af7a3d13eaf184346df51ee13832d4c10e152604e614fac150c1e307018d3beb",
+  "after": 61545,
+  "removed": 1177,
   "added": 50,
-  "resolved": 1126,
+  "resolved": 1127,
   "revised": 50,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1176,
+    "removed": 1177,
     "added": 50
   },
   "changed_rules": {
@@ -83,8 +83,8 @@
     },
     "no_trivial_factories": {
       "before": 127,
-      "after": 78,
-      "net_removed": 49
+      "after": 77,
+      "net_removed": 50
     },
     "no_unused_parameters": {
       "before": 950,
@@ -267,6 +267,13 @@
       "before": 61567,
       "after": 61546,
       "resolved": 21,
+      "revised": 0
+    },
+    {
+      "round": 24,
+      "before": 61546,
+      "after": 61545,
+      "resolved": 1,
       "revised": 0
     }
   ],
@@ -557,8 +564,8 @@
       "files": 141,
       "source_sha256": "7d06366cdca1e1a43a5e7076eef38eb13fe71419e0ceec84103108a0132478a7",
       "before": 804,
-      "after": 796,
-      "removed": 10,
+      "after": 795,
+      "removed": 11,
       "added": 2
     },
     {
@@ -1090,7 +1097,7 @@
   "review_coverage": {
     "source_grounded_policy_findings": 52971,
     "individually_reviewed_retained": 2847,
-    "remaining_unclassified": 5679,
+    "remaining_unclassified": 5678,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 49
   }

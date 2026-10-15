@@ -7,11 +7,9 @@ namespace Cosmira\Soda\Rules\Structure;
 use Cosmira\Soda\Analysis\Dependencies\ExternalParameterContracts;
 use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\InheritedParameterContracts;
+use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
-use PhpParser\Node\Expr\New_;
-use PhpParser\Node\Stmt;
-use PhpParser\NodeFinder;
 
 /**
  * Reports methods that only forward construction arguments, regardless of decorative metadata.
@@ -25,39 +23,105 @@ final class NoTrivialFactories extends Check
      */
     public function __construct(private readonly array $contracts = []) {}
 
+    use ForwardedConstruction;
+
     /**
-     * Report creation wrappers without changing their callers automatically.
+     * Direct file consumers retain local behavior; the Runner defers to project facts.
      */
     public function checkFile(FileFacts $file): iterable
     {
-        $hooks = null;
-        $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
-        foreach ((new NodeFinder)->findInstanceOf($file->nodes, Stmt\ClassLike::class) as $class) {
-            if ($class->name === null) {
+        if (array_key_exists('factoryConstruction', $file->metrics)) {
+            return;
+        }
+
+        yield from $this->violations($file->path, self::factoryConstruction($file->nodes), self::hookTypes($file), []);
+    }
+
+    /**
+     * Match observed native inputs against the selected open declaration in this project.
+     */
+    public function checkProject(ProjectFacts $project): iterable
+    {
+        $types = [];
+        $calls = [];
+        foreach ($project->files as $facts) {
+            $construction = $facts['factoryConstruction'] ?? [];
+            foreach ($construction['types'] ?? [] as $name => $type) {
+                $types[$name] = isset($types[$name]) ? ['open' => false, 'methods' => [], 'parent' => null, 'traits' => true] : $type;
+            }
+
+            array_push($calls, ...($construction['calls'] ?? []));
+        }
+
+        $observed = [];
+        foreach ($calls as $call) {
+            $origin = self::incomingFactoryOrigin($types, $call['receiver'], $call['method'], $call['arity']);
+            if ($origin !== null) {
+                $observed[$origin] = true;
+            }
+        }
+
+        foreach ($project->files as $file => $facts) {
+            $construction = $facts['factoryConstruction'] ?? [];
+            if (($construction['candidates'] ?? []) === []) {
                 continue;
             }
 
-            foreach ($class->getMethods() as $method) {
-                $creation = ForwardedConstruction::fromMethod($method);
-                if (! $creation instanceof New_) {
-                    continue;
-                }
+            $hooks = ExternalParameterContracts::resolve($facts['parameterContracts'] ?? [], [$file]);
+            yield from $this->violations($file, $construction, $hooks, $observed);
+        }
+    }
 
-                $name = isset($class->namespacedName) ? $class->namespacedName->toString() : $class->name->toString();
-                $identity = strtolower($name.'::'.$method->name->toString());
-                $hooks ??= self::hookTypes($file);
-                $isHook = self::isRequired($hooks, $name, $method->name->toString());
-                if (isset($contracts[$identity]) || $isHook) {
-                    continue;
-                }
+    /**
+     * Trait adaptations and unresolved ancestry do not establish an incoming dispatch target.
+     */
+    private static function incomingFactoryOrigin(array $types, string $receiver, string $method, int $arity): ?string
+    {
+        $bound = $types[$receiver] ?? [];
+        if (! ($bound['open'] ?? false)) {
+            return null;
+        }
 
-                yield new Violation(
-                    rule: $this->id(), file: $file->path, value: 1, threshold: 0,
-                    method: $method->name->toString(), class: $name, line: $method->getStartLine(),
-                    message: sprintf('%s::%s() only constructs %s and forwards all parameters unchanged. Consider constructing %s at the call site.',
-                        $name, $method->name->toString(), $creation->class->toString(), $creation->class->toString()),
-                );
+        $seen = [];
+        $current = $receiver;
+        while (isset($types[$current]) && ! isset($seen[$current])) {
+            $seen[$current] = true;
+            $type = $types[$current];
+            if ($type['traits']) {
+                return null;
             }
+
+            $methods = $type['methods'];
+            if (isset($methods[$method])) {
+                $selected = $methods[$method];
+
+                return $selected['open'] && $selected['arity'] === $arity ? $selected['origin'] : null;
+            }
+
+            $current = strtolower($type['parent'] ?? '');
+        }
+
+        return null;
+    }
+
+    /**
+     * Preserve diagnostic provenance and existing declared hook contracts for every candidate.
+     */
+    private function violations(string $file, array $construction, array $hooks, array $observed): iterable
+    {
+        $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
+        foreach ($construction['candidates'] ?? [] as $candidate) {
+            if (isset($contracts[$candidate['identity']]) || isset($observed[$candidate['identity']])
+                || self::isRequired($hooks, $candidate['class'], $candidate['method'])) {
+                continue;
+            }
+
+            yield new Violation(
+                rule: $this->id(), file: $file, value: 1, threshold: 0,
+                method: $candidate['method'], class: $candidate['class'], line: $candidate['line'],
+                message: sprintf('%s::%s() only constructs %s and forwards all parameters unchanged. Consider constructing %s at the call site.',
+                    $candidate['class'], $candidate['method'], $candidate['creation'], $candidate['creation']),
+            );
         }
     }
 
@@ -70,13 +134,13 @@ final class NoTrivialFactories extends Check
     }
 
     /**
-     * Reuse the parsed AST without collecting metrics.
+     * Retain scalar creation candidates and source contract declarations until project resolution.
      *
      * @return list<string>
      */
     public function requiredAnalyses(): array
     {
-        return [];
+        return ['factoryConstruction'];
     }
 
     /**

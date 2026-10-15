@@ -10,16 +10,80 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\NodeFinder;
 
 /**
- * Recognizes a construction result forwarding unchanged inputs through local aliases.
+ * Recognizes transparent construction and direct calls through native incoming receivers.
+ *
+ * @internal
  */
-final readonly class ForwardedConstruction
+trait ForwardedConstruction
 {
+    use NativeFactoryInputs;
+
+    /**
+     * Retain declarations and direct incoming calls without keeping their ASTs.
+     */
+    private static function factoryConstruction(array $nodes): array
+    {
+        $types = [];
+        $calls = [];
+        $candidates = [];
+        foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\ClassLike::class) as $class) {
+            if ($class->name === null) {
+                continue;
+            }
+
+            $name = isset($class->namespacedName) ? $class->namespacedName->toString() : $class->name->toString();
+            $declaration = self::factoryDeclaration($class, $name);
+            $key = strtolower($name);
+            $types[$key] = isset($types[$key])
+                ? ['open' => false, 'methods' => [], 'parent' => null, 'traits' => true]
+                : $declaration['type'];
+            array_push($calls, ...$declaration['calls']);
+            array_push($candidates, ...$declaration['candidates']);
+        }
+
+        return ['types' => $types, 'calls' => $calls, 'candidates' => $candidates];
+    }
+
+    /**
+     * Keep original candidate provenance separate from effective native receiver selection.
+     */
+    private static function factoryDeclaration(Stmt\ClassLike $class, string $name): array
+    {
+        $methods = [];
+        $calls = [];
+        $candidates = [];
+        foreach ($class->getMethods() as $method) {
+            $identity = strtolower($name.'::'.$method->name->toString());
+            $methods[strtolower($method->name->toString())] = [
+                'origin' => $identity, 'arity' => count($method->params),
+                'open'   => $method->isPublic() && ! $method->isFinal() && ! $method->isStatic(),
+            ];
+            $creation = self::fromMethod($method);
+            if ($creation instanceof New_) {
+                $candidates[] = ['class' => $name, 'method' => $method->name->toString(),
+                    'line'               => $method->getStartLine(), 'creation' => $creation->class->toString(), 'identity' => $identity];
+            }
+
+            if ($class instanceof Stmt\Class_) {
+                array_push($calls, ...self::incomingFactoryCalls($method));
+            }
+        }
+
+        $parent = $class instanceof Stmt\Class_ ? $class->extends?->toString() : null;
+        $type = ['parent' => $parent, 'methods' => $methods,
+            'open'        => $class instanceof Stmt\Class_ && ! $class->isFinal(),
+            'traits'      => $class->getTraitUses() !== []];
+
+        return ['type' => $type, 'calls' => $calls, 'candidates' => $candidates];
+    }
+
     /**
      * Return construction evidence only when the entire method is a transparent factory.
      */
-    public static function fromMethod(ClassMethod $method): ?New_
+    private static function fromMethod(ClassMethod $method): ?New_
     {
         $creation = self::construction($method);
         if ($method->byRef || ! $creation instanceof New_ || ! self::doesForwardParameters($method, $creation)) {
