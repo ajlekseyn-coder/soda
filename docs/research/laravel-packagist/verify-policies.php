@@ -18,7 +18,8 @@ $parser = (new ParserFactory)->createForNewestSupportedVersion();
 $finder = new NodeFinder;
 $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
 $nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
-$rules = [...$rules, ...array_keys($nameBounds)];
+$docKinds = ['multiline_method_phpdoc' => 'method', 'multiline_property_phpdoc' => 'property', 'multiline_constant_phpdoc' => 'constant'];
+$rules = [...$rules, ...array_keys($nameBounds), ...array_keys($docKinds)];
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -57,6 +58,43 @@ $insideCondition = static function (Node $assignment): bool {
     }
 
     return false;
+};
+
+$commentBody = static function (Node $node): ?string {
+    $text = trim($node->getDocComment()?->getText() ?? '');
+    if (preg_match('/\A\/\*\*[ \t]*\R(.*?)\R[ \t]*\*\/\z/sD', $text, $match) !== 1) {
+        return null;
+    }
+
+    return preg_replace('/^[ \t]*\*+[ \t]*/m', '', $match[1]);
+};
+$documented = static function (Node $node) use ($commentBody): bool {
+    $body = $commentBody($node);
+    $description = $body === null ? '' : preg_split('/^[ \t]*@/m', $body, 2)[0];
+
+    return preg_match('/\p{L}/u', $description) === 1;
+};
+$parameterNames = static function (string $body): array {
+    preg_match_all('/^[ \t]*@param[ \t]+(.*?)(?=^[ \t]*@[a-zA-Z]|\z)/ms', $body, $tags);
+    $names = [];
+    foreach ($tags[1] as $tag) {
+        $type = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/s', "'literal'", $tag);
+        $depth = 0;
+        foreach (PhpToken::tokenize('<?php '.$type) as $token) {
+            if ($token->id === T_VARIABLE && $depth === 0 && $token->text !== '$this') {
+                $names[substr($token->text, 1)] = true;
+                break;
+            }
+
+            $depth += match ($token->text) {
+                '<', '(', '[', '{'       => 1,
+                '>', '>>', ')', ']', '}' => -strlen($token->text),
+                default                  => 0,
+            };
+        }
+    }
+
+    return $names;
 };
 
 foreach ($manifest['packages'] as $spec) {
@@ -166,9 +204,51 @@ foreach ($manifest['packages'] as $spec) {
             }
         }
 
+        foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Stmt\ClassMethod
+            || $node instanceof Node\Stmt\Property || $node instanceof Node\Stmt\ClassConst
+            || $node instanceof Node\Param) as $member) {
+            $owner = $member->getAttribute('parent');
+            if ($member instanceof Node\Param) {
+                if (! $member->isPromoted() || ! $owner instanceof Node\Stmt\ClassMethod || $owner->name->toLowerString() !== '__construct') {
+                    continue;
+                }
+
+                if ($documented($owner) && isset($parameterNames($commentBody($owner))[$member->var->name])) {
+                    continue;
+                }
+
+                $owner = $owner->getAttribute('parent');
+            }
+            if (! $owner instanceof Node\Stmt\ClassLike || $documented($member)) {
+                continue;
+            }
+
+            $class = $owner->name?->toString() ?? 'anonymous@'.$owner->getStartLine();
+            $visibility = $member->isProtected() ? 'Protected' : ($member->isPrivate() ? 'Private' : 'Public');
+            if ($member instanceof Node\Stmt\ClassMethod) {
+                $rule = 'multiline_method_phpdoc';
+                $names = [$member->name->toString()];
+            } elseif ($member instanceof Node\Stmt\Property && ! $owner instanceof Node\Stmt\Interface_) {
+                $rule = 'multiline_property_phpdoc';
+                $names = array_map(static fn ($item): string => $item->name->toString(), $member->props);
+            } elseif ($member instanceof Node\Param) {
+                $rule = 'multiline_property_phpdoc';
+                $names = [$member->var->name];
+            } elseif ($member instanceof Node\Stmt\ClassConst) {
+                $rule = 'multiline_constant_phpdoc';
+                $names = array_map(static fn ($item): string => $item->name->toString(), $member->consts);
+            } else {
+                continue;
+            }
+            foreach ($names as $name) {
+                $method = $member instanceof Node\Stmt\ClassMethod ? $name : null;
+                $expected[$rule][] = json_encode([$member->getStartLine(), $class, $method, $visibility, $name], JSON_THROW_ON_ERROR);
+            }
+        }
+
         $actual = array_fill_keys($rules, []);
         foreach ($byFile[$relative] ?? [] as $row) {
-            if ($row['class'] !== null || $row['method'] !== null) {
+            if (! isset($docKinds[$row['rule']]) && ($row['class'] !== null || $row['method'] !== null)) {
                 throw new RuntimeException('Unexpected scope: '.$path);
             }
 
@@ -179,6 +259,15 @@ foreach ($manifest['packages'] as $spec) {
                 }
 
                 $key .= ':'.$row['value'];
+            } elseif (isset($docKinds[$row['rule']])) {
+                if ($row['value'] !== 0 || $row['threshold'] !== 1
+                    || preg_match('/^(Public|Protected|Private) (method|property|constant)::(.+) must have a multiline PHPDoc comment with a description before any tags$/D', $row['message'], $doc) !== 1
+                    || $doc[2] !== $docKinds[$row['rule']] || $row['class'] === null
+                    || $row['method'] !== ($doc[2] === 'method' ? $doc[3] : null)) {
+                    throw new RuntimeException('Unexpected documentation diagnostic: '.$path);
+                }
+
+                $key = json_encode([$row['line'], $row['class'], $row['method'], $doc[1], $doc[3]], JSON_THROW_ON_ERROR);
             } elseif (isset($nameBounds[$row['rule']])) {
                 [$minimum, $maximum] = $nameBounds[$row['rule']];
                 if (preg_match('/^Name "(.+)" has length (\d+)\.$/D', $row['message'], $name) !== 1) {
@@ -252,7 +341,7 @@ $summary = [
     'manifest_sha256'   => hash_file('sha256', __DIR__.'/packages.json'),
     'verifier_sha256'   => hash_file('sha256', __FILE__),
     'source_set_sha256' => hash('sha256', implode("\n", $sourceHashes)."\n"),
-    'scope'             => 'Exact source measurements and AST declarations for ten standard policies; no claim about other rules.',
+    'scope'             => 'Exact source measurements and AST declarations for thirteen standard policies; no claim about other rules.',
     'rules'             => [], 'reflection_ancestors' => $ancestry,
 ];
 foreach ($verified as $rule => $rows) {

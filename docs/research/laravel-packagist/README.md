@@ -39,7 +39,7 @@ and Pint also pass.
 
 ## Source-grounded policy review
 
-`verified-policies.json` records 39,584 findings checked against the pinned source:
+`verified-policies.json` records 50,606 findings checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
@@ -53,6 +53,9 @@ and Pint also pass.
 | `method_name_length` | 252 | Method identifier outside the inclusive 1–32 byte bounds. |
 | `class_name_length` | 126 | Named class-like identifier outside the inclusive 3–32 byte bounds. |
 | `namespace_name_length` | 526 | Namespace segment outside the inclusive 3–32 byte bounds. |
+| `multiline_method_phpdoc` | 6,110 | Declared method lacks a multiline PHPDoc description before its tags. |
+| `multiline_property_phpdoc` | 4,636 | Declared or promoted property lacks its own description or an exact constructor parameter tag under a valid description. |
+| `multiline_constant_phpdoc` | 276 | Declared constant lacks a multiline PHPDoc description before its tags. |
 
 The verifier reads all 5,875 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
@@ -65,10 +68,16 @@ diagnostic. Condition membership is checked by walking AST ancestors up to the
 nearest callable or type boundary, independently of Soda's rule traversal. Name
 measurements preserve repeated occurrences, skip computed variable identifiers,
 and verify both the reported length and bound. A forged variable length and a
-duplicated namespace diagnostic were also rejected.
+duplicated namespace diagnostic were also rejected. Documentation checks derive
+owners and declared member names from AST boundaries, then verify comment layout
+and prose before tags. Promoted properties also use the constructor's exact outer
+parameter name, with nested type delimiters and quoted keys kept separate. A
+forged method owner, property name and duplicated constant finding were rejected.
+This review exposed the multiline promoted-property false positive fixed in round
+17; it was not accepted into the confirmed policy findings.
 
 Together with the 176 individually reviewed findings in `reviewed-unchanged.jsonl`,
-this leaves 22,398 retained findings unclassified. These policy checks do not prove
+this leaves 11,376 retained findings unclassified. These policy checks do not prove
 the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
