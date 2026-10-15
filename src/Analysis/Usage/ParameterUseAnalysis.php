@@ -40,7 +40,7 @@ final readonly class ParameterUseAnalysis
         }
 
         if ($node instanceof Stmt\Expression) {
-            return $node->expr instanceof Expr\Variable ? $state : $this->expression($node->expr, $state);
+            return $node->expr->getType() === 'Expr_Variable' ? $state : $this->expression($node->expr, $state);
         }
 
         if ($node instanceof Stmt\If_) {
@@ -101,6 +101,38 @@ final readonly class ParameterUseAnalysis
     }
 
     /**
+     * Conditions short-circuit within an arm; default is selected only after all conditions fail.
+     */
+    private function matchPaths(Expr\Match_ $node, array $state): array
+    {
+        $remaining = $this->scan([$node->cond], $state);
+        // An unmatched value can throw after reading the subject, without continuing.
+        $paths = [array_replace($remaining, ['continues' => false])];
+        $default = null;
+        foreach ($node->arms as $arm) {
+            if ($arm->conds === null) {
+                $default = $arm->body;
+
+                continue;
+            }
+
+            $entries = [];
+            foreach ($arm->conds as $condition) {
+                $remaining = $this->scan([$condition], $remaining);
+                $entries[] = $remaining;
+            }
+
+            $paths[] = $this->scan([$arm->body], $this->join($entries));
+        }
+
+        if ($default !== null) {
+            $paths[] = $this->scan([$default], $remaining);
+        }
+
+        return $this->join($paths);
+    }
+
+    /**
      * Model expression reads and writes separately from statement-level branch exits.
      */
     private function expression(Expr $node, array $state): array
@@ -108,6 +140,7 @@ final readonly class ParameterUseAnalysis
         return match (true) {
             $node instanceof Node\FunctionLike                                                                                         => $this->capture($node, $state),
             $node instanceof Expr\Ternary                                                                                              => $this->ternary($node, $state),
+            $node instanceof Expr\Match_                                                                                               => $this->matchPaths($node, $state),
             $node instanceof Expr\BinaryOp                                                                                             => $this->binary($node, $state),
             $node instanceof Expr\Assign, $node instanceof Expr\AssignRef                                                              => $this->assignment($node, $state),
             ParameterRead::isScopeSnapshot($node, $this->parameter), ParameterRead::isVariable($node, $this->parameter)                => array_replace($state, ['used' => $state['alive']]),

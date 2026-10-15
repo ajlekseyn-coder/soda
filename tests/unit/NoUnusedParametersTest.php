@@ -33,6 +33,16 @@ final class NoUnusedParametersTest extends TestCase
 
     public static function cases(): iterable
     {
+        yield 'throwing match default does not end a selected arm' => ['$mode = match (kind()) { 1 => "one", default => throw new Exception }; return $input;', 0];
+        yield 'throwing match arm does not hide the default read' => ['return match (kind()) { 1 => throw new Exception, default => $input };', 0];
+        yield 'match arms cannot overwrite each other' => ['return match (kind()) { 1 => ($input = 1), default => $input };', 0];
+        yield 'every surviving match arm overwrites input' => ['match (kind()) { 1 => ($input = 1), default => ($input = 2) }; return $input;', 1];
+        yield 'throwing arm does not preserve an overwritten input' => ['match (kind()) { 1 => ($input = 1), default => throw new Exception }; return $input;', 1];
+        yield 'unmatched match values throw without hiding a continuing arm' => ['match (kind()) { 1 => throw new Exception, 2 => false }; return $input;', 0];
+        yield 'default written first is still an alternative' => ['match (kind()) { default => ($input = 1), 1 => "one" }; return $input;', 0];
+        yield 'one match arm condition can skip another condition' => ['return match (kind()) { firstCase(), ($input = 1) => $input, default => null };', 0];
+        yield 'match condition writes happen before selecting default' => ['match (kind()) { default => "other", ($input = 1) => "one" }; return $input;', 1];
+        yield 'empty match still reads its subject' => ['return match ($input) {};', 0];
         yield 'forwarded argument list reads inputs' => ['return forward(func_get_args());', 0];
         yield 'forwarded argument after overwrite' => ['$input = 1; return func_get_args();', 1];
         yield 'argument list in nested closure' => ['return function () { return func_get_args(); };', 1];
@@ -139,6 +149,23 @@ PHP);
             $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
             self::assertCount(1, $findings);
             self::assertStringContainsString('unused', $findings[0]->message);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testStandardRunnerKeepsReadsAfterAThrowingMatchArm(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-match-inputs-');
+        self::assertIsString($path);
+        file_put_contents($path, '<?php function connect($host, $protocol) { $router = match ($protocol) { "pusher" => router(), default => throw new Exception }; return openSocket($host, $router); } function unused($host, $protocol) { return match ($protocol) { "pusher" => router(), default => throw new Exception }; }');
+
+        try {
+            $result = (new Runner)->check([$path], RuleCatalog::standard());
+            $findings = $result->violations->filter(static fn ($violation): bool => $violation->rule === 'no_unused_parameters')->values();
+            self::assertCount(1, $findings);
+            self::assertStringContainsString('unused', $findings[0]->message);
+            self::assertStringContainsString('$host', $findings[0]->message);
         } finally {
             unlink($path);
         }

@@ -11,8 +11,9 @@ An unused input is either dead weight — a leftover from a changed implementati
 PHP's fixed magic-method positions are also preserved; `__invoke` and ordinary
 constructors retain their own signatures. Reads through `func_get_args()`,
 `func_get_arg()`, `compact()` and included code count within their owning callable.
-An exit in a `try` block or switch case does not hide reads in alternative paths
-or `finally`.
+An exit in a `try` block, switch case or match arm does not hide reads in
+alternative paths or `finally`. Match conditions short-circuit within an arm;
+`default` is selected after the explicit conditions even when written first.
 
 Anonymous classes retain declared parent and interface contracts. Their identities
 are scoped to the source file, and additional parameters beyond the inherited
