@@ -17,6 +17,8 @@ use PhpParser\NodeFinder;
  */
 trait FactoryReceiverBinding
 {
+    use NativeBindingGuards;
+
     /**
      * Lexical owners and captures are linked through parser parent attributes.
      */
@@ -25,7 +27,7 @@ trait FactoryReceiverBinding
     /**
      * Escaping receivers may be rebound by reference; native guard fallbacks retain their names.
      */
-    private static function bindingGuards(Expr\Assign $assignment, Stmt\ClassMethod $method): ?array
+    private static function bindingGuards(Expr\Assign $assignment, Stmt\ClassMethod $method, ?Node $invocation = null): ?array
     {
         if ($method->isStatic() || ! $assignment->var instanceof Expr\Variable) {
             return null;
@@ -37,7 +39,7 @@ trait FactoryReceiverBinding
                 continue;
             }
 
-            $guard = self::variableGuard($variable, $assignment);
+            $guard = self::variableGuard($variable, $assignment, $invocation);
             if ($guard === null) {
                 return null;
             }
@@ -85,50 +87,9 @@ trait FactoryReceiverBinding
     }
 
     /**
-     * A native method_exists guard cannot rebind its object argument.
-     */
-    private static function variableGuard(Expr\Variable $variable, Expr\Assign $assignment): ?string
-    {
-        if (self::isBindingWrite($variable, $assignment)) {
-            return null;
-        }
-
-        $argument = $variable->getAttribute(self::PARENT_ATTRIBUTE);
-        if (! $argument instanceof Node\Arg) {
-            return '';
-        }
-
-        $call = $argument->getAttribute(self::PARENT_ATTRIBUTE);
-        if (! $call instanceof Expr\FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== 'method_exists') {
-            return null;
-        }
-
-        return $call->name->getAttribute('namespacedName')?->toLowerString() ?? '';
-    }
-
-    /**
-     * Native method_exists evaluates the assignment without changing its selected name.
-     */
-    private static function assignmentGuard(Expr\Assign $assignment): ?array
-    {
-        $argument = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
-        $call = $argument instanceof Node\Arg ? $argument->getAttribute(self::PARENT_ATTRIBUTE) : null;
-        if (! $call instanceof Expr\FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== 'method_exists') {
-            return null;
-        }
-        $condition = $call->getAttribute(self::PARENT_ATTRIBUTE);
-        $fields = $condition instanceof Node ? get_object_vars($condition) : [];
-        if (($fields['cond'] ?? null) !== $call) {
-            return null;
-        }
-
-        return ['condition' => $condition, 'shadow' => $call->name->getAttribute('namespacedName')?->toLowerString() ?? ''];
-    }
-
-    /**
      * Only the original assignment may write this binding anywhere in the owning method.
      */
-    private static function isBindingWrite(Expr\Variable $variable, ?Expr\Assign $assignment): bool
+    private static function isBindingWrite(Node $variable, ?Expr\Assign $assignment): bool
     {
         $parent = $variable->getAttribute(self::PARENT_ATTRIBUTE);
         if ($parent === $assignment) {
@@ -183,26 +144,6 @@ trait FactoryReceiverBinding
         }
 
         return true;
-    }
-
-    /**
-     * Unknown local symbol-table writes can replace a receiver without naming its binding.
-     */
-    private static function hasOpaqueBindings(Stmt\ClassMethod $method): bool
-    {
-        if (self::hasBindingJump($method)) {
-            return true;
-        }
-        $unsafe = (new NodeFinder)->find($method->stmts ?? [], static fn (Node $node): bool => $node instanceof Expr\Include_
-            || $node instanceof Expr\Eval_ || ($node instanceof Expr\Variable && ! is_string($node->name))
-            || ($node instanceof Expr\FuncCall && $node->name instanceof Name && $node->name->getLast() === 'extract'));
-        foreach ($unsafe as $node) {
-            if (self::isOwnedBy($node, $method)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

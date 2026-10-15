@@ -8,16 +8,16 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2844 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,703 findings are not yet classified.",
-  "final_source_sha256": "7b28528c92874d87a1596da4cf2ee5d5acedf4c44ed3600225f03c29c70afebf",
-  "after": 61567,
-  "removed": 1155,
+  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,679 findings are not yet classified.",
+  "final_source_sha256": "fb9ea2374ab8662d8bb3fbbf11e3129f77301777d6cfa09aeb6b0ab1371e08ea",
+  "after": 61546,
+  "removed": 1176,
   "added": 50,
-  "resolved": 1105,
+  "resolved": 1126,
   "revised": 50,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1155,
+    "removed": 1176,
     "added": 50
   },
   "changed_rules": {
@@ -88,8 +88,8 @@
     },
     "no_unused_parameters": {
       "before": 950,
-      "after": 278,
-      "net_removed": 672
+      "after": 257,
+      "net_removed": 693
     },
     "no_unused_private_state": {
       "before": 2,
@@ -261,6 +261,13 @@
       "after": 61567,
       "resolved": 93,
       "revised": 7
+    },
+    {
+      "round": 23,
+      "before": 61567,
+      "after": 61546,
+      "resolved": 21,
+      "revised": 0
     }
   ],
   "packages": [
@@ -510,8 +517,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26292,
-      "removed": 588,
+      "after": 26271,
+      "removed": 609,
       "added": 22
     },
     {
@@ -1082,8 +1089,8 @@
   ],
   "review_coverage": {
     "source_grounded_policy_findings": 52971,
-    "individually_reviewed_retained": 2844,
-    "remaining_unclassified": 5703,
+    "individually_reviewed_retained": 2847,
+    "remaining_unclassified": 5679,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 49
   }

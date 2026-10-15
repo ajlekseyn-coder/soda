@@ -48,10 +48,7 @@ final class ClassBehaviorFacts
 
         $type['contracts'] = $class instanceof Stmt\Class_ ? array_map(fn (Node\Name $contract): string => strtolower($contract->toString()), $class->implements) : [];
         $type['abstract'] = $class instanceof Stmt\Class_ && $class->isAbstract();
-        $properties = $type['properties'];
-        $origins = array_fill_keys(array_keys($properties), strtolower($name));
-        $blocked = [];
-        $propertyTypes = [];
+        $type['readonly'] = $class instanceof Stmt\Class_ && $class->isReadonly();
         $methods = [];
         foreach ($class->getMethods() as $method) {
             $scope = $class instanceof Stmt\Trait_ ? null : strtolower($name);
@@ -61,22 +58,26 @@ final class ClassBehaviorFacts
             ];
         }
 
-        foreach (self::fields($class) as $field => $metadata) {
-            $properties[$field] = $metadata['visibility'];
-            $origins[$field] = strtolower($name);
-            if ($metadata['type'] !== null) {
-                $propertyTypes[$field] = $metadata['type'];
-            }
+        return array_replace($type, self::fieldState($class, $type), ['methods' => $methods]);
+    }
 
-            if ($metadata['blocked']) {
-                $blocked[$field] = true;
-            }
-        }
+    /**
+     * Each declared slot carries its own type and mutability through composition.
+     */
+    private static function fieldState(Stmt\ClassLike $class, array $type): array
+    {
+        $fields = iterator_to_array(self::fields($class));
+        $properties = array_map(static fn (array $field): string => $field['visibility'], $fields);
+        $native = array_map(static fn (array $field): ?string => $field['type'], $fields);
 
-        return array_replace($type, [
-            'methods'       => $methods, 'properties' => $properties, 'propertyOrigins' => $origins,
-            'propertyTypes' => $propertyTypes, 'blockedReads' => $blocked,
-        ]);
+        return [
+            'properties'         => array_replace($type['properties'], $properties),
+            'propertyOrigins'    => array_fill_keys(array_keys($properties), strtolower($class->namespacedName?->toString() ?? $class->name->toString())),
+            'propertyTypes'      => array_filter($native, static fn (?string $type): bool => $type !== null),
+            'untypedProperties'  => array_map(static fn (array $field): bool => $field['untyped'], $fields),
+            'readonlyProperties' => array_map(static fn (array $field): bool => $field['readonly'], $fields),
+            'blockedReads'       => array_filter(array_map(static fn (array $field): bool => $field['blocked'], $fields), static fn (bool $blocked): bool => $blocked),
+        ];
     }
 
     /**
@@ -88,6 +89,8 @@ final class ClassBehaviorFacts
             $metadata = [
                 'visibility' => $property->isPrivate() ? 'private' : 'public',
                 'type'       => self::typeName($property->type),
+                'untyped'    => $property->type === null,
+                'readonly'   => $property->isReadonly(),
                 'blocked'    => $property->hooks !== [] || $property->isStatic(),
             ];
             foreach ($property->props as $item) {
@@ -106,6 +109,8 @@ final class ClassBehaviorFacts
             yield $parameter->var->name => [
                 'visibility'  => $parameter->isPrivate() ? 'private' : 'public',
                 'type'        => self::typeName($parameter->type),
+                'untyped'     => $parameter->type === null,
+                'readonly'    => $parameter->isReadonly(),
                 'blocked'     => $parameter->hooks !== [],
                 'objectCache' => false,
             ];

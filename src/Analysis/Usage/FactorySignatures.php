@@ -57,6 +57,14 @@ trait FactorySignatures
     }
 
     /**
+     * A native class declaration bounds an object input without relying on parameter names.
+     */
+    private static function nativeClass(?Node $type): ?string
+    {
+        return $type instanceof Name && ! $type->isSpecialClassName() ? $type->toLowerString() : null;
+    }
+
+    /**
      * Only a single declared class type bounds the factory's receiver family.
      */
     private static function returnedClass(Stmt\ClassMethod $method, Stmt\ClassLike $class, array $nodes): ?string

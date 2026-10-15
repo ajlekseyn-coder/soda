@@ -166,6 +166,8 @@ final class BehaviorComposition
         $base['ambiguousProperties'] = $ambiguous;
         $base['properties'] += $trait['properties'];
         $base['propertyTypes'] = ($base['propertyTypes'] ?? []) + ($trait['propertyTypes'] ?? []);
+        $base['untypedProperties'] = ($base['untypedProperties'] ?? []) + ($trait['untypedProperties'] ?? []);
+        $base['readonlyProperties'] = ($base['readonlyProperties'] ?? []) + ($trait['readonlyProperties'] ?? []);
         $base['blockedReads'] = ($base['blockedReads'] ?? []) + ($trait['blockedReads'] ?? []);
         $base['propertyOrigins'] = ($base['propertyOrigins'] ?? []) + ($trait['propertyOrigins'] ?? []);
         $base['ambiguousProperties'] = ($base['ambiguousProperties'] ?? []) + ($trait['ambiguousProperties'] ?? []);
@@ -220,6 +222,8 @@ final class BehaviorComposition
         return [
             'contracts'           => array_values(array_unique([...($base['contracts'] ?? []), ...($own['contracts'] ?? [])])),
             'propertyTypes'       => array_replace($base['propertyTypes'] ?? [], $own['propertyTypes'] ?? []),
+            'untypedProperties'   => array_replace($base['untypedProperties'] ?? [], $own['untypedProperties'] ?? []),
+            'readonlyProperties'  => array_replace($base['readonlyProperties'] ?? [], $own['readonlyProperties'] ?? []),
             'blockedReads'        => ($base['blockedReads'] ?? []) + ($own['blockedReads'] ?? []),
             'ambiguousProperties' => $ambiguous,
             'propertyOrigins'     => array_replace($base['propertyOrigins'] ?? [], $own['propertyOrigins'] ?? []),

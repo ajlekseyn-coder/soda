@@ -48,6 +48,9 @@ trait FactoryParameterDispatch
         $dispatches = [];
         foreach ($method->stmts ?? [] as $statement) {
             $assignment = $statement instanceof Stmt\Expression ? $statement->expr : null;
+            if (! $assignment instanceof Expr\Assign) {
+                continue;
+            }
             $bound = self::factoryBinding($assignment, $class, $nodes, $method);
             $guards = $bound === null ? null : self::bindingGuards($assignment, $method);
             if ($guards === null) {
@@ -75,7 +78,7 @@ trait FactoryParameterDispatch
 
         $dispatches = [];
         foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\MethodCall::class) as $call) {
-            if (! $call->name instanceof Expr || ! self::isOwnPositionalCall($call, $method)) {
+            if ($call->name instanceof Node\Identifier || ! self::isOwnPositionalCall($call, $method)) {
                 continue;
             }
             $assignment = self::ownSelector($call, $method);
@@ -83,7 +86,7 @@ trait FactoryParameterDispatch
             $guards = $assignment === null ? [] : self::selectorGuards($assignment, $call, $method);
             if ($pattern !== null && $guards !== null) {
                 $owner = $class->namespacedName?->toLowerString() ?? $class->name->toLowerString();
-                $dispatches[] = ['caller' => $owner.'::'.$method->name->toLowerString(), 'method' => $pattern, 'arity' => count($call->args), 'guards' => $guards];
+                $dispatches[] = ['caller' => $owner.'::'.$method->name->toLowerString(), 'property' => self::ownProperty($call->var), 'method' => $pattern, 'arity' => count($call->args), 'guards' => $guards];
             }
         }
 
@@ -111,9 +114,9 @@ trait FactoryParameterDispatch
      */
     private static function isOwnPositionalCall(Expr\MethodCall $call, Stmt\ClassMethod $method): bool
     {
-        $isThis = $call->var instanceof Expr\Variable && $call->var->name === self::THIS_VARIABLE && ! $method->isStatic();
+        $isThis = ($call->var instanceof Expr\Variable && $call->var->name === self::THIS_VARIABLE) || self::ownProperty($call->var) !== null;
 
-        return $isThis && ! $call->isFirstClassCallable() && self::isOwnedBy($call, $method) && self::hasPositionalArguments($call);
+        return $isThis && ! $method->isStatic() && ! $call->isFirstClassCallable() && self::isOwnedBy($call, $method) && self::hasPositionalArguments($call);
     }
 
     /**
@@ -121,7 +124,7 @@ trait FactoryParameterDispatch
      */
     private static function selectorGuards(Expr\Assign $assignment, Expr\MethodCall $call, Stmt\ClassMethod $method): ?array
     {
-        $guards = self::bindingGuards($assignment, $method);
+        $guards = self::bindingGuards($assignment, $method, $call);
         if ($guards === null) {
             return null;
         }
@@ -172,9 +175,9 @@ trait FactoryParameterDispatch
     /**
      * Match the actual local factory declaration rather than an unrelated same-named method.
      */
-    private static function factoryBinding(?Expr $expression, Stmt\ClassLike $class, array $nodes, Stmt\ClassMethod $method): ?string
+    private static function factoryBinding(Expr\Assign $expression, Stmt\ClassLike $class, array $nodes, Stmt\ClassMethod $method): ?string
     {
-        if (! $expression instanceof Expr\Assign || ! $expression->var instanceof Expr\Variable || ! is_string($expression->var->name)) {
+        if (! $expression->var instanceof Expr\Variable || ! is_string($expression->var->name)) {
             return null;
         }
 
@@ -218,7 +221,7 @@ trait FactoryParameterDispatch
 
         foreach ($factory->stmts ?? [] as $statement) {
             if ($statement instanceof Stmt\Return_) {
-                return self::hasOpenConstruction($statement->expr, $factory, $call, $class);
+                return $statement->expr instanceof Expr\New_ && self::hasOpenConstruction($statement->expr, $factory, $call, $class);
             }
         }
 
@@ -228,9 +231,9 @@ trait FactoryParameterDispatch
     /**
      * A closed factory must construct its provided class parameter directly.
      */
-    private static function hasOpenConstruction(?Expr $instance, Stmt\ClassMethod $factory, Expr\MethodCall $call, Stmt\ClassLike $class): bool
+    private static function hasOpenConstruction(Expr\New_ $instance, Stmt\ClassMethod $factory, Expr\MethodCall $call, Stmt\ClassLike $class): bool
     {
-        if (! $instance instanceof Expr\New_ || ! $instance->class instanceof Expr\Variable) {
+        if (! $instance->class instanceof Expr\Variable) {
             return false;
         }
 
@@ -242,6 +245,204 @@ trait FactoryParameterDispatch
         $position = array_search($instance->class->name, $parameters, true);
 
         return count($factory->stmts ?? []) === 1 && $position !== false && isset($call->args[$position]);
+    }
+
+    /**
+     * Field writers and pure getters remain scalar source facts until composition selects their bodies.
+     */
+    private static function fieldFlows(Stmt\ClassLike $class): array
+    {
+        $flows = [];
+        foreach ($class->getMethods() as $method) {
+            $statements = $method->stmts ?? [];
+            $flow = ['return' => self::returnedField($method), 'writes' => [], 'blocked' => self::hasOpaqueBindings($method) ? ['*' => true] : [], 'guards' => []];
+            foreach ((new NodeFinder)->findInstanceOf($statements, Expr\PropertyFetch::class) as $property) {
+                self::fieldReference($property, $method, $flow);
+            }
+            foreach ($method->params as $parameter) {
+                if ($parameter->isPromoted()) {
+                    $source = self::parameterSource($parameter->var, $method);
+                    self::recordFieldWrite($flow, $parameter->var->name, ['source' => $source, 'constructor' => true, 'setter' => $statements === [] && $source !== null, 'prefix' => []]);
+                }
+            }
+            if (array_filter($flow, static fn ($value): bool => (bool) $value) !== []) {
+                $flows[$method->name->toLowerString()] = $flow;
+            }
+        }
+
+        return $flows;
+    }
+
+    /**
+     * A zero-argument pure getter reads its field without changing the receiver state.
+     */
+    private static function returnedField(Stmt\ClassMethod $method): ?string
+    {
+        if ($method->isStatic() || $method->byRef || $method->params !== []) {
+            return null;
+        }
+        $body = $method->stmts ?? [];
+
+        return count($body) === 1 && $body[0] instanceof Stmt\Return_ ? self::ownProperty($body[0]->expr) : null;
+    }
+
+    /**
+     * Foreign instances and computed field names have no owned storage identity.
+     */
+    private static function ownProperty(?Node $property): ?string
+    {
+        if (! $property instanceof Expr\PropertyFetch || ! $property->var instanceof Expr\Variable || $property->var->name !== self::THIS_VARIABLE) {
+            return null;
+        }
+
+        return $property->name instanceof Node\Identifier ? $property->name->toString() : null;
+    }
+
+    /**
+     * Unknown reference calls and nested field writes cannot preserve an earlier receiver binding.
+     */
+    private static function fieldReference(Expr\PropertyFetch $property, Stmt\ClassMethod $method, array &$flow): void
+    {
+        if (! $property->var instanceof Expr\Variable || $property->var->name !== self::THIS_VARIABLE || ! self::isSameClassScope($property, $method)) {
+            return;
+        }
+        $field = self::ownProperty($property) ?? '*';
+        $parent = $property->getAttribute(self::PARENT_ATTRIBUTE);
+        if ($parent instanceof Expr\Assign && $parent->var === $property && self::isOwnedBy($property, $method)) {
+            self::recordFieldWrite($flow, $field, self::fieldStore($parent, $method));
+
+            return;
+        }
+        $guard = self::variableGuard($property, null);
+        if ($guard === null) {
+            $flow['blocked'] += [$field => true];
+        } elseif ($guard !== '') {
+            $flow['guards'] = [...$flow['guards'], $guard];
+        }
+    }
+
+    /**
+     * A nested class owns a different this instance, while nested closures may still write this field.
+     */
+    private static function isSameClassScope(Node $node, Stmt\ClassMethod $method): bool
+    {
+        $owner = $node->getAttribute(self::PARENT_ATTRIBUTE);
+        while ($owner instanceof Node && ! $owner instanceof Stmt\ClassLike) {
+            $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE);
+        }
+
+        return $owner === $method->getAttribute(self::PARENT_ATTRIBUTE);
+    }
+
+    /**
+     * Public construction can wire an incoming object before any conditional initialization.
+     */
+    private static function fieldStore(Expr\Assign $assignment, Stmt\ClassMethod $method): array
+    {
+        $prefix = self::fieldPrefix($assignment, $method);
+        $source = $prefix === null ? null : self::fieldSource($assignment->expr, $method);
+        $body = $method->stmts ?? [];
+        $last = count($body) === 2 ? $body[1] : null;
+        $returnsThis = $last instanceof Stmt\Return_ && $last->expr instanceof Expr\Variable && $last->expr->name === self::THIS_VARIABLE;
+        $pure = ($body[0] ?? null) === $assignment->getAttribute(self::PARENT_ATTRIBUTE) && (count($body) === 1 || $returnsThis);
+
+        return ['source' => $source, 'constructor' => $method->name->toLowerString() === '__construct', 'setter' => $pure && $source !== null && ! isset($source['getter']), 'prefix' => $prefix ?? []];
+    }
+
+    /**
+     * Prior wiring must be a plain parameter store; effects cannot establish the input's original state.
+     */
+    private static function fieldPrefix(Expr\Assign $assignment, Stmt\ClassMethod $method): ?array
+    {
+        if ($method->isStatic() || $method->byRef) {
+            return null;
+        }
+        $prefix = [];
+        foreach ($method->stmts ?? [] as $statement) {
+            $expression = $statement instanceof Stmt\Expression ? $statement->expr : null;
+            if ($expression === $assignment) {
+                return $prefix;
+            }
+            if (! $expression instanceof Expr\Assign) {
+                return null;
+            }
+            $field = self::ownProperty($expression->var);
+            $source = self::prefixSource($expression, $method);
+            if ($field === null || $source === null || isset($prefix[$field])) {
+                return null;
+            }
+            $prefix[$field] = $source['type'];
+        }
+
+        return null;
+    }
+
+    /**
+     * A preceding plain input store preserves the incoming dependency's identity.
+     */
+    private static function prefixSource(Expr\Assign $assignment, Stmt\ClassMethod $method): ?array
+    {
+        return $assignment->expr instanceof Expr\Variable ? self::parameterSource($assignment->expr, $method) : null;
+    }
+
+    /**
+     * Keep writes grouped by their declared field instead of conflating same-named methods.
+     */
+    private static function recordFieldWrite(array &$flow, string $field, array $write): void
+    {
+        $writes = $flow['writes'];
+        $writes[$field] = [...($writes[$field] ?? []), $write];
+        $flow['writes'] = $writes;
+    }
+
+    /**
+     * A dependency getter must be called on the unchanged incoming native object.
+     */
+    private static function fieldSource(Node $value, Stmt\ClassMethod $method): ?array
+    {
+        if ($value instanceof Expr\Variable) {
+            return self::parameterSource($value, $method);
+        }
+        if (! $value instanceof Expr\MethodCall || ! $value->var instanceof Expr\Variable || ! $value->name instanceof Node\Identifier) {
+            return null;
+        }
+        $source = self::parameterSource($value->var, $method);
+
+        return $source !== null && $value->args === [] && ! $value->isFirstClassCallable() ? $source + ['getter' => $value->name->toLowerString()] : null;
+    }
+
+    /**
+     * Only original native parameters establish an open object input.
+     */
+    private static function parameterSource(Expr\Variable $value, Stmt\ClassMethod $method): ?array
+    {
+        if (self::doesParameterEscape($value, $method)) {
+            return null;
+        }
+        foreach ($method->params as $parameter) {
+            $bound = self::nativeClass($parameter->type);
+            if ($parameter->var->name === $value->name && ! $parameter->byRef && $bound !== null) {
+                return ['type' => $bound];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Aliases, writes and prior receiver operations can replace an incoming object's stored value.
+     */
+    private static function doesParameterEscape(Expr\Variable $value, Stmt\ClassMethod $method): bool
+    {
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\Variable::class) as $variable) {
+            $parent = $variable->getAttribute(self::PARENT_ATTRIBUTE);
+            $escapes = self::doesEscapeInput($variable) || $parent instanceof Expr\MethodCall || $parent instanceof Expr\PropertyFetch;
+            if ($variable->name === $value->name && $variable->getStartFilePos() < $value->getStartFilePos() && self::isBindingReference($variable, $method) && $escapes) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

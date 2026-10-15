@@ -56,6 +56,27 @@ foreign receivers, and nested callable bindings do not donate these positions.
 Nonlocal jumps invalidate binding protocols. Other computed expression operators,
 such as casts and conditional selections, are left unclassified.
 
+A computed call through a native instance field can also establish a public
+receiver protocol. The selected public constructor must store its original typed
+input, or read a pure zero-argument getter on an original typed dependency. That
+getter must return the same storage slot written by a selected public setter from
+its original native input. The setter's actual input family bounds the positions;
+a broader field type does not extend the protocol to unrelated siblings.
+
+Private field ownership follows the selected method's lexical scope, including
+inherited methods and traits. Additional writes, unknown reference escapes,
+intercepted/static/redeclared storage, finite factories and constructor effects
+outside plain input wiring are not used to infer this protocol. Nested callback
+receivers remain separate; a lexical arrow can be rebound before invocation.
+
+A successful native `method_exists($receiver, $selector)` on the exact collaborator
+also proves that an OR fallback is skipped for its declared target methods. This
+requires the invocation in that `if` body's successful branch, an unchanged selector
+and receiver, and an unshadowed native guard. Other OR operands, earlier escapes,
+and unrelated guards do not establish this path. Readonly backing fields accept
+open constructor injection; later public setters cannot replace initialized storage.
+Ordinary native backing fields still retain their compatible input families.
+
 ## Examples
 
 ```php

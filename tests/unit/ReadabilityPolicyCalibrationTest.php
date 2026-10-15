@@ -24,7 +24,7 @@ final class ReadabilityPolicyCalibrationTest extends TestCase
 
     public function testActualIdentityNormalizationNeedsNoExtraLocals(): void
     {
-        $path = 'Analysis/Dependencies/FactoryHookContracts.php';
+        $path = 'Rules/Structure/NoTrivialFactories.php';
         self::assertSame([], $this->findings($this->standard('no_reassigned_parameters'), $path));
         self::assertCount(2, $this->findings(new NoReassignedParameters(allowInputNormalization: false), $path));
     }

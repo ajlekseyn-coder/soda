@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,567 after
-twenty-two review rounds: 1,105 resolved and 50 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,155 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,546 after
+twenty-three review rounds: 1,126 resolved and 50 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,176 removals and
 50 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, and seven commented-code
 ordinals exclude preceding prose. All other retained diagnostics match field-for-field
@@ -22,7 +22,7 @@ with their original multiplicity.
 | --- | ---: | ---: | ---: |
 | `no_dynamic_invocation` | 506 | 505 | 1 |
 | `max_commented_out_code_lines` | 183 | 91 | 92 |
-| `no_unused_parameters` | 950 | 278 | 672 |
+| `no_unused_parameters` | 950 | 257 | 693 |
 | `no_assignment_in_return` | 203 | 197 | 6 |
 | `no_mode_parameters` | 53 | 50 | 3 |
 | `no_reassigned_parameters` | 2,357 | 2,353 | 4 |
@@ -41,7 +41,7 @@ with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,637 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,697 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 ## Source-grounded policy review
@@ -110,9 +110,9 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 2,844 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 2,847 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 49 revised retained findings in `round18-reviewed.jsonl` and
-`round22-reviewed-revised.jsonl`, this leaves 5,703 retained findings unclassified.
+`round22-reviewed-revised.jsonl`, this leaves 5,679 retained findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -156,7 +156,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,105 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,126 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -247,6 +247,32 @@ Literal normalization retains the existing consecutive entry-prefix restriction;
 later writes, other inputs and computed array options remain checked. Throwing a
 new exception does not add a productive dispatch operation; calls in constructor
 arguments and before the throw remain operations.
+`round23-resolved.jsonl` records 21 Schema collaborator contracts. A native field
+receives a value from an unchanged native constructor argument through a selected
+pure getter. Its backing slot accepts the original native input of a declared
+public setter. This establishes an open injection boundary without asserting that
+the setter runs on a particular production path. The caller supplies two positional
+arguments to public matching methods on that actual receiver family. Selected
+trait bodies, private storage identities, field types, references and readonly
+initialization remain explicit boundaries. Native typed backing fields remain
+supported; union and intersection bounds do not imply a wider family. Promoted
+constructors retain their implicit initialization, including readonly fields;
+a second initialization cannot establish a usable input contract.
+The native `method_exists` guard uses the exact receiver and original selector.
+For a declared target it returns true, so the right operand of `||` cannot receive
+or rebind that selector on the observed call's path. A separate source inventory
+checks all 1,639 Framework files for a shadowing namespace function. Independent
+source checks reject altered receivers, selectors, negated guards and a forged
+shadow declaration even when the changed source hashes are supplied correctly.
+No macro method name or package name supplies an exemption. Incorrect receivers,
+false branches, AND expressions, earlier escapes and known shadow functions keep
+their controls. Factory contract checks now live in their single consumer as
+private phases. The native binding proof has a private implementation trait; the
+source type budget remains unchanged. All 78 factory findings match in every
+field before and after that consolidation.
+`round23-reviewed.jsonl` records three parameter rebindings through explicit
+by-reference closure captures, with source offsets and complete binding paths.
+These are binding-policy findings, not a claim that the runtime behavior is wrong.
 `round22-resolved.jsonl` records 92 prose comments and one lexical magic-constant
 method name. Candidate comment lines must parse as complete PHP or a delimited
 code fragment; natural-language explanations
@@ -295,14 +321,14 @@ the uncaptured outer temporary. Returning the closure directly preserves its bod
 PHPDoc and reference captures.
 `revised.jsonl` retains both versions of the Cloud CLI finding, the 42 interface messages
 and seven commented-code ordinals;
-`reviewed-unchanged.jsonl` records 2,844 retained findings: 29 string-policy findings,
+`reviewed-unchanged.jsonl` records 2,847 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
 singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
 recommendations. Round 21 adds 197 return-assignment and 40 literal-concatenation
 policies, 148 structural measurements and 345 explicit environment/native argument
 accesses, plus 1,285 repeated-string policies, 266 computed targets and 12 native
-indirect-call helpers. Round 22 adds 74 unchanged commented-code fragments. Changes
-are compared as diagnostic multisets, including message, location and multiplicity.
+indirect-call helpers. Round 22 adds 74 unchanged commented-code fragments;
+round 23 adds three captured-parameter rebindings. Changes are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
 

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Structure;
 
-use Cosmira\Soda\Analysis\Dependencies\FactoryHookContracts;
+use Cosmira\Soda\Analysis\Dependencies\ExternalParameterContracts;
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\InheritedParameterContracts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node\Expr\New_;
@@ -44,8 +45,8 @@ final class NoTrivialFactories extends Check
 
                 $name = isset($class->namespacedName) ? $class->namespacedName->toString() : $class->name->toString();
                 $identity = strtolower($name.'::'.$method->name->toString());
-                $hooks ??= FactoryHookContracts::forFile($file);
-                $isHook = $hooks->isRequired($name, $method->name->toString());
+                $hooks ??= self::hookTypes($file);
+                $isHook = self::isRequired($hooks, $name, $method->name->toString());
                 if (isset($contracts[$identity]) || $isHook) {
                     continue;
                 }
@@ -76,5 +77,59 @@ final class NoTrivialFactories extends Check
     public function requiredAnalyses(): array
     {
         return [];
+    }
+
+    /**
+     * Use source declarations only; no application class is instantiated or autoloaded.
+     */
+    private static function hookTypes(FileFacts $file): array
+    {
+        $types = InheritedParameterContracts::collect($file->nodes);
+
+        return ExternalParameterContracts::resolve($types, [$file->path]);
+    }
+
+    /**
+     * A hook requires positive contract evidence, not a conventional method name alone.
+     */
+    private static function isRequired(array $types, string $class, string $method): bool
+    {
+        $class = strtolower($class);
+        $method = strtolower($method);
+        $pending = [$class];
+        $visited = [];
+        while ($pending !== []) {
+            $name = array_pop($pending);
+            if (isset($visited[$name])) {
+                continue;
+            }
+
+            $visited[$name] = true;
+            $type = $types[$name] ?? [];
+            $methods = $type['methods'] ?? [];
+            $signature = $methods[$method] ?? [];
+            $isInherited = $name !== $class && ! ($signature['private'] ?? true);
+            if ($isInherited || self::isDispatchMatch($type['factoryDispatch'] ?? [], $method)) {
+                return true;
+            }
+
+            array_push($pending, ...($type['parents'] ?? []), ...array_map(strtolower(...), $type['traitNames'] ?? []));
+        }
+
+        return false;
+    }
+
+    /**
+     * Match method names proved by calls on the declaring receiver.
+     */
+    private static function isDispatchMatch(array $patterns, string $method): bool
+    {
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $method) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

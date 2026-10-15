@@ -23,6 +23,16 @@ use PhpParser\NodeFinder;
 final class NoUnusedParameters extends Check
 {
     /**
+     * Composed visibility values retain PHP's public and private storage boundaries.
+     */
+    private const PUBLIC_VISIBILITY = 'public';
+
+    /**
+     * Private storage remains accessible only to methods bound to its declaring scope.
+     */
+    private const PRIVATE_VISIBILITY = 'private';
+
+    /**
      * Register callable contracts whose parameters are required by external consumers.
      *
      * @param list<string> $contracts Exact qualified method/function names with externally fixed signatures.
@@ -158,7 +168,7 @@ final class NoUnusedParameters extends Check
     {
         $signatures = [];
         $calls = array_merge(...array_map(static fn (array $type): array => $type['parameterDispatch'] ?? [], array_values($types)));
-        foreach ($calls as $call) {
+        foreach ($this->propertyDispatches($calls, $types, $surfaces, $functions) as $call) {
             if (array_intersect_key($functions, array_flip($call['guards'])) !== []) {
                 continue;
             }
@@ -184,14 +194,194 @@ final class NoUnusedParameters extends Check
                 return [];
             }
 
-            return array_filter($methods, static fn (array $method, string $name): bool => $method['visibility'] !== 'private' && preg_match($call['method'], $name) === 1, ARRAY_FILTER_USE_BOTH);
+            return array_filter($methods, static fn (array $method, string $name): bool => $method['visibility'] !== self::PRIVATE_VISIBILITY && preg_match($call['method'], $name) === 1, ARRAY_FILTER_USE_BOTH);
+        }
+        if (($call['pattern'] ?? false) && $this->isReceiverFamily($class, $call['type'], $types, [])) {
+            return array_filter($methods, static fn (array $method, string $name): bool => $method['visibility'] === self::PUBLIC_VISIBILITY && preg_match($call['method'], $name) === 1, ARRAY_FILTER_USE_BOTH);
         }
         $method = $methods[$call['method']] ?? [];
-        if (($method['visibility'] ?? '') !== 'public' || ! $this->isReceiverFamily($class, $call['type'], $types, [])) {
+        if (($method['visibility'] ?? '') !== self::PUBLIC_VISIBILITY || ! $this->isReceiverFamily($class, $call['type'], $types, [])) {
             return [];
         }
 
         return [$method];
+    }
+
+    /**
+     * Native collaborator slots are resolved on the selected caller surface before matching receiver families.
+     */
+    private function propertyDispatches(array $calls, array $types, array $surfaces, array $functions): iterable
+    {
+        foreach ($calls as $call) {
+            if (! isset($call['property'])) {
+                yield $call;
+
+                continue;
+            }
+            foreach ($surfaces as $surface) {
+                $callers = array_filter($surface['methods'], static fn (array $method): bool => $method['origin'] === $call['caller']);
+                $caller = array_shift($callers);
+                if ($caller === null) {
+                    continue;
+                }
+                $bound = $this->propertyBound($call['property'], $surface, $types, $functions, $caller);
+                if ($bound === null) {
+                    continue;
+                }
+                $source = $this->openSourceBound($bound['source'], $surfaces, $types);
+                if ($source !== null && $this->isReceiverFamily($source, $bound['type'], $types, [])) {
+                    yield array_replace($call, ['caller' => null, 'type' => $source, 'pattern' => true]);
+                }
+            }
+        }
+    }
+
+    /**
+     * One supported public constructor store must own the collaborator's native storage slot.
+     */
+    private function propertyBound(string $field, array $surface, array $types, array $functions, array $caller): ?array
+    {
+        $bound = ($surface['propertyTypes'] ?? [])[$field] ?? null;
+        if ($bound === null || ! $this->isKnownField($field, $surface, $caller)) {
+            return null;
+        }
+        $store = $this->stableFieldStore($field, $surface, $types, $functions) ?? [];
+        $methods = $surface['methods'];
+        $constructor = $methods['__construct'] ?? [];
+        $source = $store['source'] ?? null;
+
+        if (($constructor['visibility'] ?? '') !== self::PUBLIC_VISIBILITY || ($store['origin'] ?? null) !== ($constructor['origin'] ?? null) || ! ($store['constructor'] ?? false)) {
+            return null;
+        }
+        if (! $this->isWiringCompatible($store['prefix'] ?? [], $surface, $constructor, $types)) {
+            return null;
+        }
+
+        return $source === null ? null : ['type' => $bound, 'source' => $source];
+    }
+
+    /**
+     * Earlier field types must accept each original input family without narrowing its possible overrides.
+     */
+    private function isWiringCompatible(array $prefix, array $surface, array $constructor, array $types): bool
+    {
+        foreach ($prefix as $field => $input) {
+            $native = ($surface['propertyTypes'] ?? [])[$field] ?? null;
+            if ($native === null || ! $this->isKnownField($field, $surface, $constructor) || ! $this->isReceiverFamily($input, $native, $types, [])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Selected writers must identify one storage slot without unknown rebinding or reference escapes.
+     */
+    private function stableFieldStore(string $field, array $surface, array $types, array $functions): ?array
+    {
+        $stores = [];
+        foreach ($surface['methods'] as $method) {
+            $flow = $this->methodFlow($method, $types);
+            $blocked = $flow['blocked'] ?? [];
+            if (isset($blocked[$field]) || isset($blocked['*']) || array_intersect_key($functions, array_flip($flow['guards'] ?? [])) !== []) {
+                return null;
+            }
+            $writes = $flow['writes'] ?? [];
+            foreach ([...($writes[$field] ?? []), ...($writes['*'] ?? [])] as $store) {
+                if (! $this->isKnownField($field, $surface, $method)) {
+                    return null;
+                }
+                $stores[] = $store + ['origin' => $method['origin']];
+            }
+        }
+
+        return count($stores) === 1 ? $stores[0] : null;
+    }
+
+    /**
+     * Static, intercepted or redeclared fields cannot supply a stable native receiver identity.
+     */
+    private function isKnownField(string $field, array $surface, array $method): bool
+    {
+        $blocked = ($surface['blockedReads'] ?? []) + ($surface['ambiguousProperties'] ?? []);
+
+        $properties = $surface['properties'] ?? [];
+        $origins = $surface['propertyOrigins'] ?? [];
+        $visible = ($properties[$field] ?? '') !== self::PRIVATE_VISIBILITY || ($origins[$field] ?? null) === $method['scope'];
+
+        return isset($properties[$field]) && ! isset($blocked[$field]) && $visible;
+    }
+
+    /**
+     * Selected method provenance indexes its original source facts, including trait aliases.
+     */
+    private function methodFlow(array $method, array $types): array
+    {
+        [$owner, $name] = explode('::', $method['origin'], 2);
+        $flows = ($types[$owner] ?? [])['fieldFlows'] ?? [];
+
+        return $flows[$name] ?? [];
+    }
+
+    /**
+     * A pure public getter can return a native input supplied by a selected public setter.
+     */
+    private function openSourceBound(array $source, array $surfaces, array $types): ?string
+    {
+        if (! isset($source['getter'])) {
+            return $source['type'];
+        }
+        $surface = $surfaces[$source['type']] ?? [];
+        $getter = ($surface['methods'] ?? [])[$source['getter']] ?? [];
+        if (($getter['visibility'] ?? '') !== self::PUBLIC_VISIBILITY) {
+            return null;
+        }
+        $getterFlow = $this->methodFlow($getter, $types);
+        $field = $getterFlow['return'] ?? null;
+        if ($field === null || ! $this->isKnownField($field, $surface, $getter)) {
+            return null;
+        }
+
+        return $this->openSetterBound($field, $surface, $types);
+    }
+
+    /**
+     * A public setter retains only the native input family its selected body actually stores.
+     */
+    private function openSetterBound(string $field, array $surface, array $types): ?string
+    {
+        foreach ($surface['methods'] as $method) {
+            if ($method['visibility'] !== self::PUBLIC_VISIBILITY || ! $this->isKnownField($field, $surface, $method)) {
+                continue;
+            }
+            $flow = $this->methodFlow($method, $types);
+            $writes = $flow['writes'] ?? [];
+            foreach ($writes[$field] ?? [] as $store) {
+                $input = $this->setterInput($store, $field, $surface, $types, count($writes[$field]) === 1);
+                if ($input !== null) {
+                    return $input;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A readonly slot accepts constructor injection, while later setters cannot replace its initialized value.
+     */
+    private function setterInput(array $store, string $field, array $surface, array $types, bool $singleWrite): ?string
+    {
+        $readonly = $surface['readonly'] || (($surface['readonlyProperties'] ?? [])[$field] ?? false);
+        if (! ($store['setter'] ?? false) || ($readonly && (! $store['constructor'] || ! $singleWrite))) {
+            return null;
+        }
+        $input = $store['source'];
+        $native = ($surface['propertyTypes'] ?? [])[$field] ?? null;
+        $untyped = ($surface['untypedProperties'] ?? [])[$field] ?? false;
+
+        return $untyped || ($native !== null && $this->isReceiverFamily($input['type'], $native, $types, [])) ? $input['type'] : null;
     }
 
     /**
@@ -235,7 +425,7 @@ final class NoUnusedParameters extends Check
             }
 
             foreach (($surfaces[$name] ?? [])['methods'] ?? [] as $method => $signature) {
-                if ($signature['visibility'] !== 'private') {
+                if ($signature['visibility'] !== self::PRIVATE_VISIBILITY) {
                     $signatures[strtolower($signature['origin'])] = null;
                 }
             }

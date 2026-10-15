@@ -61,6 +61,7 @@ final readonly class InheritedParameterContracts
             'methods'           => $methods,
             'factoryDispatch'   => self::factoryPatterns($class),
             'parameterDispatch' => self::parameterDispatch($class, $nodes),
+            'fieldFlows'        => self::fieldFlows($class),
         ];
     }
 
