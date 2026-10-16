@@ -8,16 +8,16 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,678 findings are not yet classified.",
-  "final_source_sha256": "af7a3d13eaf184346df51ee13832d4c10e152604e614fac150c1e307018d3beb",
-  "after": 61545,
-  "removed": 1177,
+  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,671 findings are not yet classified.",
+  "final_source_sha256": "3e3c19460c33001c3c081edf68aa9ca54b5e5ee3deb859ac7f980dc5569ace78",
+  "after": 61538,
+  "removed": 1184,
   "added": 50,
-  "resolved": 1127,
+  "resolved": 1134,
   "revised": 50,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1177,
+    "removed": 1184,
     "added": 50
   },
   "changed_rules": {
@@ -88,8 +88,8 @@
     },
     "no_unused_parameters": {
       "before": 950,
-      "after": 257,
-      "net_removed": 693
+      "after": 250,
+      "net_removed": 700
     },
     "no_unused_private_state": {
       "before": 2,
@@ -274,6 +274,13 @@
       "before": 61546,
       "after": 61545,
       "resolved": 1,
+      "revised": 0
+    },
+    {
+      "round": 25,
+      "before": 61545,
+      "after": 61538,
+      "resolved": 7,
       "revised": 0
     }
   ],
@@ -524,8 +531,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26271,
-      "removed": 609,
+      "after": 26264,
+      "removed": 616,
       "added": 22
     },
     {
@@ -1097,7 +1104,7 @@
   "review_coverage": {
     "source_grounded_policy_findings": 52971,
     "individually_reviewed_retained": 2847,
-    "remaining_unclassified": 5678,
+    "remaining_unclassified": 5671,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 49
   }

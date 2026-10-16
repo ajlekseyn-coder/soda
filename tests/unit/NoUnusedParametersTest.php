@@ -118,6 +118,112 @@ final class NoUnusedParametersTest extends TestCase
         self::assertSame([], $this->findings('<?php interface Contract { function run($input); } class Record { function __construct(public string $input) {} }'));
     }
 
+    #[DataProvider('abstractTraitRequirements')]
+    public function testAbstractTraitRequirementsAcrossFiles(string $traits, string $declaration, string $method = 'compile', int $requiredCount = 1): void
+    {
+        $root = sys_get_temp_dir().'/soda-abstract-trait-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $contract = $root.'/Contract.php';
+        $implementation = $root.'/Implementation.php';
+        file_put_contents($contract, '<?php namespace App; '.$traits.' trait Concrete { public function compile($query, $column = null, $aggregate = null) { return $query; } }');
+        file_put_contents($implementation, '<?php namespace App; '.$declaration.' class Owned { use Concrete; public function compile($query, $column = null, $aggregate = null, $extra = null) { return $query; } } class Unrelated { public function compile($unused) {} }');
+
+        try {
+            foreach ([[new NoUnusedParameters], RuleCatalog::standard()] as $checks) {
+                foreach ([[$contract, $implementation], [$implementation, $contract]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_unused_parameters' && in_array($row->class, ['App\\Contracted', 'App\\Owned', 'App\\Unrelated'], true))->values();
+                    self::assertCount($requiredCount + 4, $findings);
+                    $required = $findings->filter(static fn ($row): bool => $row->class === 'App\\Contracted')->values();
+                    self::assertCount($requiredCount, $required);
+                    $inputs = $requiredCount === 1 ? ['extra'] : ['column', 'aggregate', 'extra'];
+                    foreach ($inputs as $position => $input) {
+                        self::assertSame($method, $required[$position]->method);
+                        self::assertStringContainsString('$'.$input, $required[$position]->message);
+                    }
+                    self::assertCount(3, $findings->filter(static fn ($row): bool => $row->class === 'App\\Owned'));
+                    self::assertCount(1, $findings->filter(static fn ($row): bool => $row->class === 'App\\Unrelated'));
+                }
+            }
+        } finally {
+            unlink($contract);
+            unlink($implementation);
+            rmdir($root);
+        }
+    }
+
+    public static function abstractTraitRequirements(): iterable
+    {
+        $signature = 'abstract public function compile($query, $column = null, $aggregate = null);';
+        $implementation = 'public function compile($query, $column = null, $aggregate = null, $extra = null) { return $query; }';
+        yield 'direct requirement' => ['trait Required { '.$signature.' }', 'class Contracted { use Required; '.$implementation.' }'];
+        yield 'nested requirement' => ['trait Required { '.$signature.' } trait Nested { use Required; }', 'class Contracted { use Nested; '.$implementation.' }'];
+        yield 'case insensitive method' => ['trait Required { '.str_replace('compile', 'COMPILE', $signature).' }', 'class Contracted { use Required; '.$implementation.' }'];
+        yield 'abstract constructor requirement' => ['trait Required { '.str_replace('compile', '__construct', $signature).' }', 'class Contracted { use Required; '.str_replace(['compile', 'return $query;'], ['__construct', 'echo $query;'], $implementation).' }', '__construct'];
+        yield 'private abstract requirement' => ['trait Required { '.str_replace('public', 'private', $signature).' }', 'class Contracted { use Required; '.$implementation.' }'];
+        yield 'visibility adaptation retains requirement' => ['trait Required { '.$signature.' }', 'class Contracted { use Required { compile as private; } '.str_replace('public', 'private', $implementation).' }'];
+        yield 'abstract alias adds its own requirement' => ['trait Required { '.$signature.' }', 'class Contracted { use Required { compile as execute; } public function compile($query, $column = null, $aggregate = null) { return [$query, $column, $aggregate]; } '.str_replace('compile', 'execute', $implementation).' }', 'execute'];
+        yield 'insteadof cannot remove abstract obligation' => ['trait Required { '.$signature.' } trait Selected { public function compile($query, $column = null, $aggregate = null) { return $query; } }', 'class Contracted { use Required, Selected { Selected::compile insteadof Required; } '.$implementation.' }'];
+        yield 'intermediate concrete implementation owns later overrides' => ['trait Required { '.$signature.' } trait Nested { use Required; public function compile($query, $column = null, $aggregate = null) { return $query; } }', 'class Contracted { use Nested; '.$implementation.' }', 'compile', 3];
+        yield 'concrete alias does not acquire abstract requirement' => ['trait Required { '.$signature.' } trait Selected { public function compile($query, $column = null, $aggregate = null) { return $query; } }', 'class Contracted { use Required, Selected { Selected::compile insteadof Required; Selected::compile as execute; } '.str_replace('compile', 'execute', $implementation).' }', 'execute', 3];
+        yield 'qualified abstract alias across separate use groups' => ['trait Required { '.$signature.' } trait Other { public function compile($query, $column = null, $aggregate = null) { return $query; } }', 'class Contracted { use Required { Required::compile as execute; } use Other; public function compile($query, $column = null, $aggregate = null) { return [$query, $column, $aggregate]; } '.str_replace('compile', 'execute', $implementation).' }', 'execute'];
+        yield 'qualified concrete alias across separate use groups' => ['trait Required { '.$signature.' } trait Other { public function compile($query, $column = null, $aggregate = null) { return $query; } }', 'class Contracted { use Other { Other::compile as execute; } use Required; public function compile($query, $column = null, $aggregate = null) { return [$query, $column, $aggregate]; } '.str_replace('compile', 'execute', $implementation).' }', 'execute', 3];
+    }
+
+    #[DataProvider('composedAbstractTraitRequirements')]
+    public function testAbstractTraitRequirementsFollowSelectedBodies(string $traits, string $classes, array $expected): void
+    {
+        $root = sys_get_temp_dir().'/soda-trait-selection-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $contract = $root.'/Contract.php';
+        $implementation = $root.'/Implementation.php';
+        file_put_contents($contract, '<?php namespace App; '.$traits);
+        file_put_contents($implementation, '<?php namespace App; '.$classes);
+
+        try {
+            foreach ([[new NoUnusedParameters], RuleCatalog::standard()] as $checks) {
+                foreach ([[$contract, $implementation], [$implementation, $contract]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_unused_parameters')->values();
+                    self::assertCount(count($expected), $findings);
+                    foreach ($expected as $entry) {
+                        [$class, $input] = $entry;
+                        $method = $entry[2] ?? 'run';
+                        $matches = $findings->filter(static fn ($row): bool => $row->class === 'App\\'.$class && $row->method === $method && str_contains($row->message, 'Parameter $'.$input.' '))->values();
+                        self::assertCount(1, $matches);
+                        self::assertSame(1, $matches[0]->line);
+                        self::assertSame(1, $matches[0]->value);
+                        self::assertSame(0, $matches[0]->threshold);
+                    }
+                }
+            }
+        } finally {
+            unlink($contract);
+            unlink($implementation);
+            rmdir($root);
+        }
+    }
+
+    public static function composedAbstractTraitRequirements(): iterable
+    {
+        $required = 'trait Required { abstract public function run($first, $second = null); }';
+        $body = 'trait Body { public function run($first, $second = null) {} }';
+        yield 'selected sibling concrete body satisfies requirement' => [$required.$body, 'class Consumer { use Required, Body; }', []];
+        yield 'concrete body fulfills earlier abstract use group' => [$required.$body, 'class Consumer { use Required; use Body; }', []];
+        yield 'concrete body fulfills later abstract use group' => [$required.$body, 'class Consumer { use Body; use Required; }', []];
+        yield 'concrete body without requirement owns inputs' => [$body, 'class Consumer { use Body; }', [['Body', 'first'], ['Body', 'second']]];
+        yield 'replaced sibling body receives no requirement' => [$required.$body, 'class Consumer { use Required, Body; public function run($first, $second = null) {} }', [['Body', 'first'], ['Body', 'second']]];
+        yield 'excluded concrete body cannot discharge nested requirement' => [$required.$body.' trait Nested { use Required, Body { Required::run insteadof Body; } }', 'class Consumer { use Nested; public function run($first, $second = null) {} }', [['Body', 'first'], ['Body', 'second']]];
+        yield 'private parent implementation discharges obligation' => ['trait Required { abstract private function run($first, $second = null); }', 'class Base { use Required; private function run($first, $second = null) {} } class Child extends Base { private function run($owned) {} }', [['Child', 'owned']]];
+        yield 'child abstract requirement does not constrain private parent body' => [$required, 'class Base { private function run($first, $second = null) {} } abstract class Child extends Base { use Required; }', [['Base', 'first'], ['Base', 'second']]];
+        yield 'inherited abstract alias preserves only declared positions' => ['trait Required { abstract public function compile($first, $second = null, $third = null); }', 'abstract class Base { use Required { compile as run; } public function compile($first, $second = null, $third = null) {} } class Child extends Base { public function run($first, $second = null, $third = null, $extra = null) {} }', [['Child', 'extra']]];
+        yield 'private renamed parent alias keeps child inputs owned' => ['trait Body { public function compile($first, $second = null) {} }', 'class Base { use Body { compile as private run; } } class Child extends Base { public function run($first, $second = null) {} }', [['Child', 'first'], ['Child', 'second']]];
+        yield 'private visibility adaptation keeps child inputs owned' => [$body, 'class Base { use Body { run as private; } } class Child extends Base { public function run($first, $second = null) {} }', [['Body', 'first'], ['Body', 'second'], ['Child', 'first'], ['Child', 'second']]];
+        yield 'public alias of private method preserves only inherited positions' => ['trait Body { private function compile($first, $second = null) {} }', 'class Base { use Body { compile as public run; } } class Child extends Base { public function run($first, $second = null, $extra = null) {} }', [['Body', 'first', 'compile'], ['Body', 'second', 'compile'], ['Child', 'extra']]];
+    }
+
     public function testPhpMagicSignaturesPreserveOnlyRequiredPositions(): void
     {
         $source = '<?php class Attributes { public function __call($method, $arguments) {} public static function __callStatic($method, $arguments) {} public function __get($name) {} public function __set($name, $value) {} public function __isset($name) {} public function __unset($name) {} public function __unserialize(array $data): void {} public static function __set_state(array $properties) {} }';

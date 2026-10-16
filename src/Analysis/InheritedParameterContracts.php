@@ -25,6 +25,11 @@ final readonly class InheritedParameterContracts
     private const CONSTRUCTOR = '__construct';
 
     /**
+     * Every signature packet counts all declared positional entries, including optional ones.
+     */
+    private const ARITY = 'arity';
+
+    /**
      * Store signatures and parent edges without retaining AST nodes.
      */
     public static function collect(array $nodes): array
@@ -53,6 +58,9 @@ final readonly class InheritedParameterContracts
 
         return [
             'isInterface'       => $class instanceof Stmt\Interface_,
+            'isTrait'           => $class instanceof Stmt\Trait_,
+            'traitAliases'      => self::traitAliases($class),
+            'traitExclusions'   => self::traitExclusions($class),
             'hasProperties'     => $class->getProperties() !== [],
             'parentClass'       => self::parentClass($class),
             'traitNames'        => self::traitNames($class),
@@ -63,20 +71,6 @@ final readonly class InheritedParameterContracts
             'parameterDispatch' => self::parameterDispatch($class, $nodes),
             'fieldFlows'        => self::fieldFlows($class),
         ];
-    }
-
-    /**
-     * Nonlocal jumps can bypass an earlier lexical assignment.
-     */
-    private static function hasBindingJump(Stmt\ClassMethod $method): bool
-    {
-        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Stmt\Goto_::class) as $jump) {
-            if (self::isOwnedBy($jump, $method)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -138,6 +132,7 @@ final readonly class InheritedParameterContracts
         return [
             'arity'               => count($method->params),
             'private'             => $method->isPrivate(),
+            'abstract'            => $method->isAbstract(),
             'constructorContract' => $class instanceof Stmt\Interface_ || $method->isAbstract(),
             'forwardsParent'      => self::doesForwardConstructor($method),
             'reads'               => array_keys(array_filter($method->params, static fn (Node\Param $input): bool => (new ParameterUseAnalysis($input))->isUsed($method))),
@@ -159,6 +154,24 @@ final readonly class InheritedParameterContracts
         }
 
         return $traitNames;
+    }
+
+    /**
+     * Excluding a concrete trait body cannot discharge an abstract requirement exported in its place.
+     */
+    private static function traitExclusions(Stmt\ClassLike $class): array
+    {
+        $excluded = [];
+        foreach ($class->getTraitUses() as $use) {
+            foreach ($use->adaptations as $adaptation) {
+                if ($adaptation instanceof Stmt\TraitUseAdaptation\Precedence) {
+                    $name = $adaptation->method->toLowerString();
+                    $excluded[$name] = ($excluded[$name] ?? []) + array_fill_keys(array_map(static fn (Name $trait): string => $trait->toLowerString(), $adaptation->insteadof), true);
+                }
+            }
+        }
+
+        return $excluded;
     }
 
     /**
@@ -185,7 +198,10 @@ final readonly class InheritedParameterContracts
             return 0;
         }
 
-        return $this->inherited(strtolower($class), strtolower($method), []);
+        $owner = strtolower($class);
+        $name = strtolower($method);
+
+        return max($this->inherited($owner, $name, []), $this->traitRequirement($owner, $name));
     }
 
     /**
@@ -291,15 +307,13 @@ final readonly class InheritedParameterContracts
             return $methods[$method];
         }
 
-        $matches = [];
-        foreach ($declaration['traitNames'] ?? [] as $trait) {
-            $signature = $this->signature(strtolower($trait), $method, $seen);
-            if ($signature !== []) {
-                $matches[] = $signature;
-            }
+        $matches = $this->importedTraitSignatures($declaration, $method, $seen, true);
+        $concrete = array_filter($matches, static fn (array $signature): bool => ! ($signature['abstract'] ?? false));
+        if ($concrete !== []) {
+            return count($concrete) === 1 ? reset($concrete) : [];
         }
 
-        return count($matches) === 1 ? reset($matches) : [];
+        return $matches === [] ? [] : $this->abstractSignature($matches);
     }
 
     /**
@@ -322,6 +336,105 @@ final readonly class InheritedParameterContracts
             'arity'               => $signature->getNumberOfParameters(),
             'private'             => $signature->isPrivate(),
             'constructorContract' => $native->isInterface() || $signature->isAbstract(),
+        ];
+    }
+
+    /**
+     * Abstract imports constrain an implementing body even when that body's class has its own declaration.
+     */
+    private function traitRequirement(string $class, string $method): int
+    {
+        $signatures = $this->importedTraitSignatures($this->types[$class] ?? [], $method, []);
+        $required = array_filter($signatures, static fn (array $signature): bool => $signature['abstract'] ?? false);
+
+        return max([0, ...array_column($required, self::ARITY)]);
+    }
+
+    /**
+     * An intermediate trait's concrete implementation discharges its exported abstract requirement.
+     */
+    private function traitSignature(string $name, string $method, array $seen): array
+    {
+        $type = $this->types[$name] ?? [];
+        if (isset($seen[$name]) || ! ($type['isTrait'] ?? false)) {
+            return [];
+        }
+        $seen[$name] = true;
+        $methods = $type['methods'] ?? [];
+        if (isset($methods[$method])) {
+            return $methods[$method];
+        }
+        $signatures = $this->importedTraitSignatures($type, $method, $seen, true);
+        $concrete = array_filter($signatures, static fn (array $signature): bool => ! ($signature['abstract'] ?? false));
+        if ($concrete !== []) {
+            return reset($concrete);
+        }
+
+        return $signatures === [] ? [] : $this->abstractSignature($signatures);
+    }
+
+    /**
+     * Renamed imports retain their original use group's sources instead of borrowing another group's method.
+     */
+    private function importedTraitSignatures(array $type, string $method, array $seen, bool $selected = false): array
+    {
+        $signatures = [];
+        foreach ($this->traitImports($type, $method, $selected) as $import) {
+            foreach ($import['traits'] as $trait) {
+                $signature = $this->traitSignature(strtolower($trait), $import['method'], $seen);
+                $excluded = $import['excluded'] ?? [];
+                $isExcludedBody = isset($excluded[strtolower($trait)]) && ! ($signature['abstract'] ?? false);
+                if ($signature !== [] && ! $isExcludedBody) {
+                    $signatures[] = $this->adaptedTraitSignature($signature, $import['modifier'] ?? null);
+                }
+            }
+        }
+
+        return $signatures;
+    }
+
+    /**
+     * Visibility-only adaptations replace the original import, while a new alias keeps both names.
+     */
+    private function traitImports(array $type, string $method, bool $selected): array
+    {
+        $traits = array_map(strtolower(...), $type['traitNames'] ?? []);
+        $excluded = $selected ? ($type['traitExclusions'] ?? [])[$method] ?? [] : [];
+        $imports = [];
+        foreach (($type['traitAliases'] ?? [])[$method] ?? [] as $alias) {
+            if (! $alias['renamed']) {
+                $traits = array_diff($traits, $alias['traits']);
+                $alias['excluded'] = $excluded;
+            }
+            $imports[] = $alias;
+        }
+        $imports[] = ['traits' => $traits, 'method' => $method, 'excluded' => $excluded];
+
+        return $imports;
+    }
+
+    /**
+     * Inheritance sees the alias's visibility rather than the original trait method's visibility.
+     */
+    private function adaptedTraitSignature(array $signature, ?int $modifier): array
+    {
+        $visibility = Stmt\Class_::MODIFIER_PUBLIC | Stmt\Class_::MODIFIER_PROTECTED | Stmt\Class_::MODIFIER_PRIVATE;
+        if ($modifier !== null && ($modifier & $visibility) !== 0) {
+            $signature['private'] = ($modifier & Stmt\Class_::MODIFIER_PRIVATE) !== 0;
+        }
+
+        return $signature;
+    }
+
+    /**
+     * Combined abstract declarations require their widest signature and remain private only when all are private.
+     */
+    private function abstractSignature(array $signatures): array
+    {
+        return [
+            'arity'    => max(array_column($signatures, self::ARITY)),
+            'private'  => ! in_array(false, array_column($signatures, 'private'), true),
+            'abstract' => true, 'constructorContract' => true,
         ];
     }
 

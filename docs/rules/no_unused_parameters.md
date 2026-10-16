@@ -15,6 +15,13 @@ An exit in a `try` block, switch case or match arm does not hide reads in
 alternative paths or `finally`. Match conditions short-circuit within an arm;
 `default` is selected after the explicit conditions even when written first.
 
+Abstract trait methods also require compatible parameter positions, including
+private methods and constructors. Trait aliases retain their own abstract
+requirements. A concrete implementation in an intermediate trait fulfills that
+requirement before later composition; an ordinary concrete trait method does
+not fix the signature of a class override. Additional positions remain eligible
+for diagnostics.
+
 Anonymous classes retain declared parent and interface contracts. Their identities
 are scoped to the source file, and additional parameters beyond the inherited
 signature remain eligible for diagnostics.

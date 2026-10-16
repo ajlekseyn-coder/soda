@@ -122,13 +122,27 @@ trait FactorySignatures
     }
 
     /**
-     * Do not guess named bindings, expressions, duplicate positions or reference effects.
+     * An abstract method alias adds a separate requirement within the exact importing use group.
      */
-    private static function argument(Node\Arg $argument): ?string
+    private static function traitAliases(Stmt\ClassLike $class): array
     {
-        $isVariable = $argument->value instanceof Expr\Variable && is_string($argument->value->name);
+        $aliases = [];
+        foreach ($class->getTraitUses() as $use) {
+            foreach ($use->adaptations as $adaptation) {
+                if (! $adaptation instanceof Stmt\TraitUseAdaptation\Alias) {
+                    continue;
+                }
+                $name = ($adaptation->newName ?? $adaptation->method)->toLowerString();
+                $sources = $adaptation->trait === null ? $use->traits : [$adaptation->trait];
+                $aliases[$name] = [...($aliases[$name] ?? []), [
+                    'method'   => $adaptation->method->toLowerString(),
+                    'renamed'  => $name !== $adaptation->method->toLowerString(),
+                    'modifier' => $adaptation->newModifier,
+                    'traits'   => array_map(static fn (Name $trait): string => $trait->toLowerString(), $sources),
+                ]];
+            }
+        }
 
-        return ! $argument->name instanceof Node\Identifier && ! $argument->unpack && ! $argument->byRef && $isVariable
-            ? $argument->value->name : null;
+        return $aliases;
     }
 }

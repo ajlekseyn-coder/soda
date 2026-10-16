@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,545 after
-twenty-four review rounds: 1,127 resolved and 50 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,177 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,538 after
+twenty-five review rounds: 1,134 resolved and 50 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,184 removals and
 50 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, and seven commented-code
 ordinals exclude preceding prose. All other retained diagnostics match field-for-field
@@ -22,7 +22,7 @@ with their original multiplicity.
 | --- | ---: | ---: | ---: |
 | `no_dynamic_invocation` | 506 | 505 | 1 |
 | `max_commented_out_code_lines` | 183 | 91 | 92 |
-| `no_unused_parameters` | 950 | 257 | 693 |
+| `no_unused_parameters` | 950 | 250 | 700 |
 | `no_assignment_in_return` | 203 | 197 | 6 |
 | `no_mode_parameters` | 53 | 50 | 3 |
 | `no_reassigned_parameters` | 2,357 | 2,353 | 4 |
@@ -41,7 +41,7 @@ with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,730 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,754 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -51,6 +51,15 @@ project facts retain scalar declarations and call sites; closed, ambiguous or
 unobserved factories remain checked. `round24-resolved.jsonl` records the exact
 finding and pinned source evidence. A single-consumer PHPDoc scanner was moved
 into private methods of its collector without changing its parsing behavior.
+
+Round 25 preserves seven parameter positions required by abstract traits in
+Framework’s `HasOne`, `HasOneThrough` and `MorphOne`. This includes the protected
+`SupportsDefaultModels::newRelatedInstanceFor()` contract. Selected concrete
+trait bodies fulfill abstract requirements; class overrides, renamed methods,
+visibility adaptations and intermediate traits retain their actual source origins.
+Private parent methods cannot fulfill a child’s abstract trait requirement. Extra
+positions and ordinary concrete trait signatures remain checked. The seven exact
+diagnostics and pinned declarations are recorded in `round25-resolved.jsonl`.
 
 ## Source-grounded policy review
 
@@ -120,7 +129,7 @@ thresholds, values, lines, messages and duplicate occurrences were rejected.
 
 Together with the 2,847 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 49 revised retained findings in `round18-reviewed.jsonl` and
-`round22-reviewed-revised.jsonl`, this leaves 5,678 retained findings unclassified.
+`round22-reviewed-revised.jsonl`, this leaves 5,671 retained findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:
@@ -164,7 +173,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,127 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,134 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.

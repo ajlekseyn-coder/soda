@@ -110,16 +110,34 @@ final class BehaviorComposition
         $composed = $base;
         foreach ($type['uses'] as $use) {
             $import = $this->traitSurface($use, $types, $seen, $type['methods']);
-            $conflicts = array_diff_key(array_intersect_key($imported, $import['methods']), $type['methods']);
+            $concrete = array_filter($import['methods'], static fn (array $method): bool => ! ($method['abstract'] ?? false));
+            $conflicts = array_diff_key(array_intersect_key($imported, $concrete), $type['methods']);
             foreach (array_keys($conflicts) as $method) {
                 $import['unknown'] = [...$import['unknown'], 'trait conflict across use groups '.$method];
             }
 
-            $imported += $import['methods'];
+            $imported += $concrete;
+            $import['methods'] = $this->concreteImports($composed['methods'], $import['methods']);
             $composed = $this->mergeSurface($composed, $import);
         }
 
         return $composed;
+    }
+
+    /**
+     * A later abstract use cannot replace the concrete body supplied by an earlier trait group.
+     */
+    private function concreteImports(array $existing, array $incoming): array
+    {
+        foreach ($existing as $name => $method) {
+            $candidate = $incoming[$name] ?? [];
+            $inheritedPrivate = $method['visibility'] === 'private' && $method['scope'] !== null;
+            if (! ($method['abstract'] ?? false) && ($candidate['abstract'] ?? false) && ! $inheritedPrivate) {
+                $incoming[$name] = $method;
+            }
+        }
+
+        return $incoming;
     }
 
     /**
@@ -188,6 +206,8 @@ final class BehaviorComposition
     private function selectedTraitMethods(array $base, array $selected, array $own): array
     {
         foreach ($selected as $method => $candidates) {
+            $concrete = array_filter($candidates, static fn (array $body): bool => ! ($body['abstract'] ?? false));
+            $candidates = $concrete === [] ? $candidates : $concrete;
             $origins = array_unique(array_column($candidates, 'origin'));
             $isConflict = count($origins) !== 1 && ! isset($own[$method]);
             if ($isConflict) {

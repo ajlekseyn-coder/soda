@@ -27,6 +27,7 @@ final class MethodBehaviorFacts
         return [
             'name'        => $method->name->toString(), 'line' => $method->getStartLine(),
             'visibility'  => self::visibility($method),
+            'abstract'    => $method->isAbstract(),
             'scope'       => $scope,
             'origin'      => strtolower($owner).'::'.$method->name->toLowerString(),
             'delegate'    => (new TrivialDelegatingMethodProbe)->delegatedProperty($method),

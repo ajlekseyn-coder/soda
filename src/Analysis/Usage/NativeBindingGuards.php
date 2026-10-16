@@ -164,4 +164,29 @@ trait NativeBindingGuards
 
         return false;
     }
+
+    /**
+     * Do not guess named bindings, expressions, duplicate positions or reference effects.
+     */
+    private static function argument(Node\Arg $argument): ?string
+    {
+        $isVariable = $argument->value instanceof Expr\Variable && is_string($argument->value->name);
+
+        return ! $argument->name instanceof Node\Identifier && ! $argument->unpack && ! $argument->byRef && $isVariable
+            ? $argument->value->name : null;
+    }
+
+    /**
+     * Nonlocal jumps can bypass an earlier lexical assignment.
+     */
+    private static function hasBindingJump(Stmt\ClassMethod $method): bool
+    {
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Stmt\Goto_::class) as $jump) {
+            if (self::isOwnedBy($jump, $method)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
