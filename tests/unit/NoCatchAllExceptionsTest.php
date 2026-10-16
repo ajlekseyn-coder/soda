@@ -257,6 +257,33 @@ final class NoCatchAllExceptionsTest extends TestCase
     {
         $try = 'try { $result = work(); } catch (\\Throwable $error) { $result = fallback($error); }';
 
+        yield 'selector retry: direct function retry' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}', 0];
+        yield 'selector retry: direct method retry' => ['class Target{function run($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}}', 0];
+        yield 'selector retry: closure scope remains unsupported' => ['function outer($selectors){return function()use($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;};}', 1];
+        yield 'selector retry: own anonymous method retry' => ['function outer(){return new class{function run($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}};}', 0];
+        yield 'selector retry: byref parameter error' => ['function target($selectors,&$error){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}', 1];
+        yield 'selector retry: byref closure capture error' => ['function outer($selectors,&$error){return function()use($selectors,&$error){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;};}', 1];
+        yield 'selector retry: prior error reference alias' => ['function target($selectors){$alias=&$error;foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}', 1];
+        yield 'selector retry: prior global error' => ['function target($selectors){global$error;foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}', 1];
+        yield 'selector retry: prior static error' => ['function target($selectors){static$error;foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}', 1];
+        yield 'selector retry: return expression error escape' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($error,$selector);}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: return expression byref capture' => ['function target($selectors){foreach((array)$selectors as$selector){try{return invoke(function()use(&$error){});}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: return expression eval' => ['function target($selectors){foreach((array)$selectors as$selector){try{return eval("probe();");}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: return expression include' => ['function target($selectors){foreach((array)$selectors as$selector){try{return include "foreign.php";}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: return expression extract' => ['function target($selectors,$values){foreach((array)$selectors as$selector){try{return extract($values);}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: catch writes binding' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){$error=null;}}throw$error;}', 1];
+        yield 'selector retry: another catch continues' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\RuntimeException$other){}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: finally overrides failure' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){}finally{return;}}throw$error;}', 1];
+        yield 'selector retry: outer finally overrides failure' => ['function target($selectors){try{foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;}finally{return;}}', 1];
+        yield 'selector retry: intervening binding rewrite' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){}}$error=null;throw$error;}', 1];
+        yield 'selector retry: different throw binding' => ['function target($selectors,$other){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){}}throw$other;}', 1];
+        yield 'selector retry: byref foreach target' => ['function target($selectors){foreach((array)$selectors as&$selector){try{return probe($selector);}catch(\\Exception$error){}}throw$error;}', 1];
+        yield 'selector retry: goto from catch' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){goto end;}}throw$error;end:return;}', 1];
+        yield 'selector retry: break from catch' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){break;}}throw$error;}', 1];
+        yield 'selector retry: nested fallback cannot donate' => ['function target($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception$error){$fallback=function()use($error){throw$error;};}}}', 1];
+        yield 'selector retry: closure inside finally remains unsupported' => ['function outer($selectors){try{return function()use($selectors){foreach((array)$selectors as$selector){try{return probe($selector);}catch(\\Exception $error){}}throw$error;};}finally{report();}}', 1];
+        yield 'selector retry: iterator unknown' => ['function target($selectors){foreach($selectors as$selector){try{return probe($selector);}catch(\\Exception$error){}}throw$error;}', 1];
+
         yield 'direct local fallback' => ['function target() { '.$try.' return $result; }', 0];
         yield 'class caller carries fallback in explicit allocation' => ['class Consumer { public function target() { '.$try.' return new Outcome($result); } }', 0];
         yield 'native array value carries fallback' => ['function target() { '.$try.' return ["error" => $result, "other" => null]; }', 0];

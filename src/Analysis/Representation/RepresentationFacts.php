@@ -33,6 +33,21 @@ final class RepresentationFacts
     private const CONDITIONAL_DECLARATION = 'Conditional or nested declaration.';
 
     /**
+     * AST parent link shared by same-list and own-callable outcome proofs.
+     */
+    private const PARENT_ATTRIBUTE = 'parent';
+
+    /**
+     * Scalar IR discriminant for a plain local binding.
+     */
+    private const VALUE_VARIABLE = 'variable';
+
+    /**
+     * Scalar IR discriminant for an unresolved statement boundary.
+     */
+    private const STATEMENT_BARRIER = 'barrier';
+
+    /**
      * Index scalar declarations and preserve explicit gaps for unsafe declarations.
      *
      * @param list<Node> $nodes
@@ -59,6 +74,12 @@ final class RepresentationFacts
     {
         $returned = [];
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\TryCatch::class) as $try) {
+            $retry = self::retryCatch($try);
+            if ($retry !== null) {
+                $returned[$retry] = true;
+
+                continue;
+            }
             $following = self::followingReturn($try, $nodes);
             if ($following === null) {
                 continue;
@@ -74,6 +95,118 @@ final class RepresentationFacts
     }
 
     /**
+     * A finite selector retry returns a value or reaches an explicit exhaustion throw.
+     */
+    private static function retryCatch(Stmt\TryCatch $try): ?int
+    {
+        $loop = $try->getAttribute(self::PARENT_ATTRIBUTE);
+        if (! $loop instanceof Stmt\Foreach_ || ! self::hasRetryLoop($try, $loop)) {
+            return null;
+        }
+        $scope = $loop->getAttribute(self::PARENT_ATTRIBUTE);
+        if (! $scope instanceof Stmt\ClassMethod && ! $scope instanceof Stmt\Function_) {
+            return null;
+        }
+        $name = self::retryLocal($try, $scope);
+        $failure = self::retryThrow($loop, $scope);
+
+        return $name !== null && $failure !== null && self::hasRetryValues($try, $loop, $failure, $name)
+            ? $try->catches[0]->getStartFilePos() : null;
+    }
+
+    /**
+     * The loop must only attempt a value-returning operation and advance after one empty handler.
+     */
+    private static function hasRetryLoop(Stmt\TryCatch $try, Stmt\Foreach_ $loop): bool
+    {
+        if ($try->finally !== null || count($try->catches) !== 1 || $loop->stmts !== [$try]) {
+            return false;
+        }
+        if ($loop->byRef || $loop->keyVar !== null) {
+            return false;
+        }
+        $attempt = $try->stmts[0] ?? null;
+
+        return count($try->stmts) === 1 && $attempt instanceof Stmt\Return_ && $attempt->expr !== null;
+    }
+
+    /**
+     * Shared parameters remain outside the bounded retry binding proof.
+     */
+    private static function retryLocal(Stmt\TryCatch $try, Stmt\ClassMethod|Stmt\Function_ $scope): ?string
+    {
+        $catch = $try->catches[0];
+        $name = $catch->var?->name;
+        $body = array_filter($catch->stmts, static fn (Node $node): bool => ! $node instanceof Stmt\Nop);
+        if (! is_string($name) || $body !== []) {
+            return null;
+        }
+        foreach ($scope->params as $parameter) {
+            if ($parameter->byRef && $parameter->var->name === $name) {
+                return null;
+            }
+        }
+
+        return $name;
+    }
+
+    /**
+     * Exhaustion reaches the next and final statement in this own callable body.
+     */
+    private static function retryThrow(Stmt\Foreach_ $loop, Stmt\ClassMethod|Stmt\Function_ $scope): ?Expr\Throw_
+    {
+        $body = array_values(array_filter($scope->stmts ?? [], static fn (Node $node): bool => ! $node instanceof Stmt\Nop));
+        $last = $body[1] ?? null;
+        if (count($body) !== 2 || $body[0] !== $loop || ! $last instanceof Stmt\Expression) {
+            return null;
+        }
+
+        return $last->expr instanceof Expr\Throw_ ? $last->expr : null;
+    }
+
+    /**
+     * Bounded scalar syntax preserves the selector and final error bindings without retaining ASTs.
+     */
+    private static function hasRetryValues(Stmt\TryCatch $try, Stmt\Foreach_ $loop, Expr\Throw_ $failure, string $name): bool
+    {
+        $remaining = self::MAX_FACTS;
+        $iterable = self::expression($loop->expr, null, $remaining);
+        $input = $iterable['value'] ?? [];
+        $selector = self::expression($loop->valueVar, null, $remaining);
+        $error = self::expression($failure->expr, null, $remaining);
+        $value = self::statement($try->stmts[0], null, $remaining);
+        if (($iterable['op'] ?? null) !== 'cast' || $iterable['type'] !== 'array' || ($input['op'] ?? null) !== self::VALUE_VARIABLE) {
+            return false;
+        }
+        if (($selector['op'] ?? null) !== self::VALUE_VARIABLE || $selector['name'] === $name) {
+            return false;
+        }
+
+        return ($error['op'] ?? null) === self::VALUE_VARIABLE && $error['name'] === $name
+            && $remaining >= 0 && ! self::hasRetryBindingGap([$iterable, $value], $name);
+    }
+
+    /**
+     * Symbol-table operations or exposure of the catch local leave the final binding unproved.
+     */
+    private static function hasRetryBindingGap(array $values, string $name): bool
+    {
+        if (in_array($values['op'] ?? null, ['unknown', self::STATEMENT_BARRIER], true) || (($values['op'] ?? null) === self::VALUE_VARIABLE && $values['name'] === $name)) {
+            return true;
+        }
+        if (($values['kind'] ?? null) === 'function' && basename(str_replace('\\', '/', $values['name'])) === 'extract') {
+            return true;
+        }
+        foreach ($values as $value) {
+            if (is_array($value) && self::hasRetryBindingGap($value, $name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Only the next statement in the same execution list can consume this catch's fallback.
      */
     private static function followingReturn(Stmt\TryCatch $try, array $nodes): ?Stmt\Return_
@@ -81,7 +214,7 @@ final class RepresentationFacts
         if ($try->finally !== null) {
             return null;
         }
-        $parent = $try->getAttribute('parent');
+        $parent = $try->getAttribute(self::PARENT_ATTRIBUTE);
         if (! $parent instanceof Node) {
             return self::nextReturn($try, $nodes);
         }
@@ -129,7 +262,7 @@ final class RepresentationFacts
         $remaining = self::MAX_FACTS;
         $assignment = self::statement($body[0], null, $remaining);
         $target = $assignment['target'] ?? [];
-        if (($assignment['op'] ?? null) !== 'assign' || ($target['op'] ?? null) !== 'variable') {
+        if (($assignment['op'] ?? null) !== 'assign' || ($target['op'] ?? null) !== self::VALUE_VARIABLE) {
             return false;
         }
         $value = self::expression($following->expr, null, $remaining);
@@ -321,7 +454,7 @@ final class RepresentationFacts
      */
     private static function hasOutcomeGap(array $values): bool
     {
-        if (in_array($values['op'] ?? null, ['unknown', 'barrier', 'return'], true)) {
+        if (in_array($values['op'] ?? null, ['unknown', self::STATEMENT_BARRIER, 'return'], true)) {
             return true;
         }
         foreach ($values as $value) {
@@ -395,13 +528,8 @@ final class RepresentationFacts
             return ['op' => 'return', 'value' => $statement->expr !== null ? self::expression($statement->expr, $class, $remaining) : null, 'line' => $line];
         }
 
-        if ($statement instanceof Stmt\Expression && $statement->expr instanceof Expr\Assign) {
-            return ['op' => 'assign', 'target' => self::expression($statement->expr->var, $class, $remaining),
-                'value'  => self::expression($statement->expr->expr, $class, $remaining), 'line' => $line];
-        }
-
         if ($statement instanceof Stmt\Expression) {
-            return ['op' => 'expression', 'value' => self::expression($statement->expr, $class, $remaining), 'line' => $line];
+            return self::expressionStatement($statement->expr, $class, $remaining, $line);
         }
 
         return self::barrier($statement->getType(), $line);
@@ -412,6 +540,6 @@ final class RepresentationFacts
      */
     private static function barrier(string $reason, int $line): array
     {
-        return ['op' => 'barrier', 'reason' => $reason, 'line' => $line];
+        return ['op' => self::STATEMENT_BARRIER, 'reason' => $reason, 'line' => $line];
     }
 }

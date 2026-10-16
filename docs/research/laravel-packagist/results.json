@@ -8,16 +8,16 @@
   "analyzed_packages": 82,
   "files": 5890,
   "before": 62793,
-  "remaining_review": "Thirty-six standard policies have 53,467 source-grounded findings; 4484 unchanged and 54 revised retained findings were reviewed individually. The remaining 3,506 findings are not yet classified.",
-  "final_source_sha256": "55fbf7ab31099d4b24fc4258de841394aef941880c8fbd0c0fdf141a56936658",
-  "after": 61511,
-  "removed": 1337,
+  "remaining_review": "Thirty-six standard policies have 53,467 source-grounded findings; 4484 unchanged and 54 revised retained findings were reviewed individually. The remaining 3,505 findings are not yet classified.",
+  "final_source_sha256": "f54b33495822903f14fdf2fb82f42c9f6b6373f36682ca05cbff7a63624faa9e",
+  "after": 61510,
+  "removed": 1338,
   "added": 55,
-  "resolved": 1282,
+  "resolved": 1283,
   "revised": 55,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1337,
+    "removed": 1338,
     "added": 55
   },
   "changed_rules": {
@@ -48,8 +48,8 @@
     },
     "no_catch_all_exceptions": {
       "before": 226,
-      "after": 207,
-      "net_removed": 19
+      "after": 206,
+      "net_removed": 20
     },
     "no_consecutive_block_comments": {
       "before": 8,
@@ -377,6 +377,15 @@
       "revised": 0,
       "reviewed_unchanged": 11,
       "reviewed_policy_findings": 0
+    },
+    {
+      "round": 35,
+      "before": 61511,
+      "after": 61510,
+      "resolved": 1,
+      "revised": 0,
+      "reviewed_unchanged": 0,
+      "reviewed_policy_findings": 0
     }
   ],
   "packages": [
@@ -566,8 +575,8 @@
       "files": 31,
       "source_sha256": "d8fa6efd06627047f2fad13918c77ea529c4982113bbdd0d74fd819dcaa25681",
       "before": 650,
-      "after": 646,
-      "removed": 4,
+      "after": 645,
+      "removed": 5,
       "added": 0
     },
     {
@@ -1206,7 +1215,7 @@
   "review_coverage": {
     "source_grounded_policy_findings": 53467,
     "individually_reviewed_retained": 4484,
-    "remaining_unclassified": 3506,
+    "remaining_unclassified": 3505,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 54
   },

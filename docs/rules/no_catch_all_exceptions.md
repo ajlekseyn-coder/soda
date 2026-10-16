@@ -26,6 +26,14 @@ empty handler would have the same outcome. A bare return, an intervening
 statement or an enclosing `finally` does not supply this proof. The separate
 empty-catch policy still applies to syntactically empty handlers.
 
+A named function or method can also retry a finite selector list: its first
+statement casts an input to an array and loops over it, returning each attempted
+result from a single try. An empty catch advances to the next selector; the
+immediately following statement must throw that same catch local after exhaustion.
+References, intervening work, additional handlers, an enclosing finally and
+exposure of the catch local leave this bounded path unproved. Closure bodies
+remain outside this retry proof.
+
 A catch may also define its fallback in one ordinary local assignment and use
 that unchanged local in the immediately following return. The return may carry
 the local directly, in a native array value, or in an explicitly named new

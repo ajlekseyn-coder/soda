@@ -15,9 +15,9 @@ executed, and no package dependencies were installed. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,890 selected PHP files produced 62,793 baseline diagnostics and 61,511 after
-thirty-four review rounds: 1,282 resolved and 55 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,337 removals and
+The 5,890 selected PHP files produced 62,793 baseline diagnostics and 61,510 after
+thirty-five review rounds: 1,283 resolved and 55 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,338 removals and
 55 additions: the Cloud CLI dispatch group now names three methods instead of four,
 43 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
@@ -37,7 +37,7 @@ original multiplicity.
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 11 | 5 |
-| `no_catch_all_exceptions` | 226 | 207 | 19 |
+| `no_catch_all_exceptions` | 226 | 206 | 20 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
@@ -236,6 +236,15 @@ plain-variable fallback assignments, independently reconstructed as syntax-polic
 findings without claiming runtime defects. All 36 existing policy proofs retain
 their full diagnostic fields and occurrence multiplicities.
 
+Round 35 preserves Dusk's selector retry: a successful attempt returns a value,
+and exhaustion throws the caught exception immediately after the loop. The
+empty handler therefore has an explicit failure outcome. The bounded proof
+excludes intervening work, additional handlers, references and `finally`.
+`round35-resolved.jsonl` records the single confirmed removal; regression cases
+belong to `NoCatchAllExceptionsTest`. Independent comparison of all 5,890 files
+preserved every existing representation fact and added only this catch outcome.
+All other diagnostics retain their full fields and multiplicities.
+
 ## Source-grounded policy review
 
 `verified-policies.json` records 53,467 findings across 36 policies checked against the pinned source:
@@ -310,7 +319,7 @@ thresholds, values, lines, messages and duplicate occurrences were rejected.
 Together with the 4,484 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 54 revised retained findings in `round18-reviewed.jsonl`,
 `round22-reviewed-revised.jsonl`, `round26-revised.jsonl` and
-`round33-reviewed-revised.jsonl`, this leaves 3,506 retained
+`round33-reviewed-revised.jsonl`, this leaves 3,505 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
@@ -355,7 +364,7 @@ quality findings themselves are expected and do not stop the corpus run.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,282 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,283 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.

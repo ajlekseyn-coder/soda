@@ -145,9 +145,22 @@ trait RepresentationValueSyntax
     }
 
     /**
+     * An assignment statement binds its target; other expressions only produce a value.
+     */
+    private static function expressionStatement(Node $node, ?string $class, int &$remaining, int $line): array
+    {
+        if ($node instanceof Expr\Assign) {
+            return ['op' => 'assign', 'target' => self::expression($node->var, $class, $remaining),
+                'value'  => self::expression($node->expr, $class, $remaining), 'line' => $line];
+        }
+
+        return ['op' => 'expression', 'value' => self::expression($node, $class, $remaining), 'line' => $line];
+    }
+
+    /**
      * Reduce leaf syntax to scalar facts before dispatching composite expressions.
      */
-    private static function expression(Expr $node, ?string $class, int &$remaining): array
+    private static function expression(Node $node, ?string $class, int &$remaining): array
     {
         $line = $node->getStartLine();
         $remaining--;
@@ -214,7 +227,7 @@ trait RepresentationValueSyntax
     /**
      * Distinguish calls and allocation from value-producing operations.
      */
-    private static function composite(Expr $node, ?string $class, int &$remaining): array
+    private static function composite(Node $node, ?string $class, int &$remaining): array
     {
         return match ($node->getType()) {
             'Expr_MethodCall' => self::methodCall($node, $class, $remaining),
@@ -228,7 +241,7 @@ trait RepresentationValueSyntax
     /**
      * Preserve operators and casts even when the eventual semantic result is unknown.
      */
-    private static function operation(Expr $node, ?string $class, int &$remaining): array
+    private static function operation(Node $node, ?string $class, int &$remaining): array
     {
         $line = $node->getStartLine();
         if ($node instanceof Expr\BinaryOp) {
