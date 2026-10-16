@@ -8,13 +8,20 @@
 
 An `implements` clause alone does not constitute a consumer of a local abstraction: a class can implement an interface no other code ever references as a type, leaving a decorative contract that must be kept in sync with its implementations. The rule scans the whole project for interface declarations and reports those with no reachable type consumer — a parameter type, return type, property, registration call, or PHPDoc type reference. Interfaces consumed by code outside the analyzed source can be listed via the `contracts` constructor argument instead of being deleted, so an exported package contract is not flagged just because its consumers live elsewhere.
 
-A qualified `@mixin` on a class or trait also declares a type consumer through
+A `@mixin` on a class or trait also declares a type consumer through
 [documented delegation](https://phpstan.org/writing-php-code/phpdocs-basics#mixins).
-Qualified return and parameter types in a class or trait's
+Return and parameter types in a class or trait's
 [`@method` signature](https://phpstan.org/writing-php-code/phpdocs-basics#magic-methods)
 also consume the declared contract. Descriptions after the signature and parameter
-default values do not declare types. Imported and relative PHPDoc names remain
-outside this analysis.
+default values do not declare types. PHPDoc names resolve through the declaration's
+namespace and preceding class imports, including grouped imports. Function and
+constant imports do not supply class aliases; template variables shadow class names
+only in their lexical declaration scope.
+Balanced [PHPDoc types](https://phpstan.org/writing-php-code/phpdoc-types), including
+multiline generics, array shapes and callable signatures, retain their type
+references. Shape keys, literal values, unfinished types and malformed `class-string`
+bounds do not declare a type consumer. Conditional types and external PHPDoc type
+aliases remain outside this bounded analysis.
 Prose and tags on unrelated declaration kinds do not count. References owned by an
 interface remain dependencies; a self-reference alone does not consume it.
 

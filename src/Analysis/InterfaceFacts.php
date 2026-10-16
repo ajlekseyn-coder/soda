@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
-use PhpParser\Comment\Doc;
+use PhpParser\ErrorHandler\Throwing;
+use PhpParser\NameContext;
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
@@ -15,6 +16,44 @@ use PhpToken;
  */
 final class InterfaceFacts
 {
+    /**
+     * Parsed declarations retain their lexical parent before facts are flattened.
+     */
+    private const PARENT_ATTRIBUTE = 'parent';
+
+    /**
+     * A complete type prefix ends before a description, never inside an unfinished type.
+     */
+    private const TYPE_PATTERN = <<<'REGEX'
+    ~
+        (?(DEFINE)
+            (?<name> \\? [a-z_][a-z0-9_-]* (?: \\ [a-z_][a-z0-9_]* )* )
+            (?<literal> \'(?:[^\'\\]|\\.)*\' | "(?:[^"\\]|\\.)*" | -?[0-9]+ )
+            (?<type> \?? (?&atom) (?: \s* [|&] \s* \?? (?&atom) )* )
+            (?<arguments> (?&type) (?: \s+ &? (?:\.\.\.)? \$[a-z_][a-z0-9_]* )? )
+            (?<entry> (?: (?: (?&name) | (?&literal) ) \?? \s* : \s* )? (?&type) )
+            (?<object>
+                (?! (?:int|integer|string|bool|boolean|float|double|number|numeric|scalar|resource|mixed|array|iterable|list|null|true|false|void|never)\b )
+                \\? [a-z_][a-z0-9_]* (?: \\ [a-z_][a-z0-9_]* )*
+                (?: < \s* (?&type) (?: \s*,\s* (?&type) )* \s* > )?
+                (?: \s* [|&] \s* (?&object) )?
+            )
+            (?<atom>
+                (?: (?:class-string|interface-string|trait-string|enum-string) < \s* (?&object) \s* >
+                    | int < \s* (?:min|-?[0-9]+) \s*,\s* (?:max|-?[0-9]+) \s* >
+                    | (?! (?:class-string|interface-string|trait-string|enum-string|int)\s* < ) (?&name)
+                    (?: < \s* (?&type) (?: \s*,\s* (?&type) )* \s* > )?
+                    (?: \{ \s* (?: (?&entry) (?: \s*,\s* (?&entry) )* \s*,? )? \s* \} )?
+                    (?: \( \s* (?: (?&arguments) (?: \s*,\s* (?&arguments) )* )? \s* \)
+                        (?: \s* : \s* (?&type) )? )?
+                    | (?&literal) | \( \s* (?&type) \s* \)
+                ) (?: \[\] )*
+            )
+        )
+        ^ (?<prefix> (?&type) ) (?= \s | $ ) (?! \s* (?: [|<\[({] | & (?! \s* (?:\.\.\.\s*)? \$ ) ) )
+    ~ix
+    REGEX;
+
     /**
      * Separate outside consumers from references that become useful with their interface owner.
      *
@@ -95,8 +134,8 @@ final class InterfaceFacts
     private static function documentedReferences(array $nodes, array $references, array $dependencies): array
     {
         $free = $references;
-        foreach ((new NodeFinder)->find($nodes, static fn (Node $node): bool => $node->getDocComment() instanceof Doc) as $node) {
-            $documented = self::documentedTypes($node);
+        foreach ((new NodeFinder)->find($nodes, static fn (Node $node): bool => $node->getDocComment() !== null) as $node) {
+            $documented = self::documentedTypes($node, self::nameContext($node, $nodes));
             $owner = self::interfaceOwner($node);
             if ($owner === null) {
                 $free += $documented;
@@ -115,7 +154,7 @@ final class InterfaceFacts
      */
     private static function isTypeReference(Node\Name $reference): bool
     {
-        $parent = $reference->getAttribute('parent');
+        $parent = $reference->getAttribute(self::PARENT_ATTRIBUTE);
         if ($parent instanceof Stmt\Class_ && in_array($reference, $parent->implements, true)) {
             return false;
         }
@@ -136,7 +175,7 @@ final class InterfaceFacts
                 return strtolower($parent->namespacedName?->toString() ?? $parent->name->toString());
             }
 
-            $parent = $parent->getAttribute('parent');
+            $parent = $parent->getAttribute(self::PARENT_ATTRIBUTE);
         }
 
         return null;
@@ -145,31 +184,44 @@ final class InterfaceFacts
     /**
      * Preserve explicit class types in signatures, properties and delegation annotations.
      */
-    private static function documentedTypes(Node $node): array
+    private static function documentedTypes(Node $node, NameContext $context): array
     {
         $comment = $node->getDocComment();
-        if (! $comment instanceof Doc) {
+        if ($comment === null) {
             return [];
         }
 
-        preg_match_all('/^\s*(?:\/\*\*|\*)\s*@(param|return|var|mixin|method|template(?:-covariant|-contravariant)?)\s+([^\r\n]+)/m', $comment->getText(), $annotations, PREG_SET_ORDER);
+        preg_match_all('/^[ \t]*@([a-z][a-z0-9_-]*)(?=[ \t\r\n]|$)[ \t]*([\s\S]*?)(?=^[ \t]*@[a-z][a-z0-9_-]*(?=[ \t\r\n]|$)|\z)/mi', self::annotationText($comment->getText()), $annotations, PREG_SET_ORDER);
         $references = [];
         foreach ($annotations as $annotation) {
             array_shift($annotation);
             $tag = array_shift($annotation);
-            $type = self::typeExpression($tag, array_shift($annotation));
             if (! self::isDeclarationTag($node, $tag)) {
                 continue;
             }
-
+            $type = self::typeExpression($tag, array_shift($annotation));
+            $type = preg_replace('/\bint<\s*(?:min|-?[0-9]+)\s*,\s*(?:max|-?[0-9]+)\s*>/i', '', $type);
             $type = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/s', '', $type);
-            preg_match_all('/(?<![A-Za-z0-9_\\\\])\\\\[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*/', $type, $classes);
+            preg_match_all('/(?<![A-Za-z0-9_$\\\\-])\\\\?[A-Za-z_][A-Za-z0-9_-]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*(?![A-Za-z0-9_\\\\-]|\??\s*:)/', $type, $classes);
             foreach ($classes[0] as $class) {
-                $references[strtolower(ltrim($class, '\\'))] = true;
+                $resolved = self::documentedName($class, $context, self::typeBindings($node));
+                if ($resolved !== null) {
+                    $references[$resolved] = true;
+                }
             }
         }
 
         return $references;
+    }
+
+    /**
+     * Docblock line decoration separates comment syntax from multiline annotation payloads.
+     */
+    private static function annotationText(string $comment): string
+    {
+        $body = preg_replace('~^/\*\*|\*/$~', '', trim($comment));
+
+        return preg_replace('/^[ \t]*\*[ \t]?/m', '', $body);
     }
 
     /**
@@ -180,24 +232,19 @@ final class InterfaceFacts
         if ($tag === 'method') {
             return self::methodTypes(trim($text));
         }
-        $normalized = trim($text);
-        $tokens = preg_split('/\s+/', $normalized);
-        if ($tokens === false) {
+        if (str_starts_with($tag, 'template') && preg_match('/^[A-Za-z_][A-Za-z0-9_]*\s+(?:of|as)\s+(.+)$/s', trim($text), $bound) !== 1) {
             return '';
         }
 
-        $first = array_shift($tokens) ?? '';
-        $isTemplate = str_starts_with($tag, 'template');
-        if (! $isTemplate) {
-            return $first;
-        }
+        return self::typePrefix($bound[1] ?? $text);
+    }
 
-        $relation = array_shift($tokens);
-        if (! in_array($relation, ['of', 'as'], true)) {
-            return '';
-        }
-
-        return array_shift($tokens) ?? '';
+    /**
+     * A malformed delimiter or trailing operator cannot leave a shorter valid prefix.
+     */
+    private static function typePrefix(string $text): string
+    {
+        return preg_match(self::TYPE_PATTERN, trim($text), $match) === 1 ? $match['prefix'] : '';
     }
 
     /**
@@ -205,11 +252,17 @@ final class InterfaceFacts
      */
     private static function methodTypes(string $text): string
     {
-        if (preg_match('/^(?:static\s+)?(?:(\S+)\s+)?[A-Za-z_][A-Za-z0-9_]*\s*\(/', $text, $signature) !== 1) {
+        $declaration = preg_replace('/^static\s+/', '', $text);
+        $returnType = self::typePrefix($declaration);
+        $afterType = ltrim(substr($declaration, strlen($returnType)));
+        if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*\s*\(/', $afterType, $signature) !== 1) {
+            [$afterType, $returnType] = [$declaration, ''];
+        }
+        if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*\s*\(/', $afterType, $signature) !== 1) {
             return '';
         }
 
-        return self::methodParameterTypes(substr($text, strlen($signature[0])), $signature[1] ?? '');
+        return self::methodParameterTypes(substr($afterType, strlen($signature[0])), $returnType);
     }
 
     /**
@@ -224,25 +277,122 @@ final class InterfaceFacts
         foreach (array_slice(PhpToken::tokenize('<?php '.$text), 1) as $token) {
             $boundary = $depth === 0 ? $token->id : null;
             if ($boundary === ord(')')) {
-                return $types.' '.$parameter;
+                return $types.' '.self::typePrefix($parameter);
             }
             if ($boundary === ord(',')) {
-                $types .= ' '.$parameter;
+                $types .= ' '.self::typePrefix($parameter);
                 [$parameter, $readingType] = ['', true];
 
                 continue;
             }
             if ($depth === 0 && $token->id === T_VARIABLE) {
+                $parameter = preg_replace('/(?:&\s*)?(?:\.\.\.\s*)?$/', '', $parameter);
                 $readingType = false;
             }
             if ($readingType && $token->id === ord('=')) {
                 return '';
             }
             $parameter .= $readingType ? $token->text : '';
-            $depth += $nesting[$token->id] ?? 0;
+            $depth += ($nesting[$token->id] ?? 0) + (int) $readingType * ([ord('<') => 1, ord('>') => -1, T_SR => -2][$token->id] ?? 0);
         }
 
         return '';
+    }
+
+    /**
+     * PHPDoc class names share only preceding imports in their own namespace block.
+     */
+    private static function nameContext(Node $node, array $nodes): NameContext
+    {
+        $owner = $node;
+        while ($owner instanceof Node && ! $owner instanceof Stmt\Namespace_) {
+            $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE);
+        }
+        $context = new NameContext(new Throwing);
+        $context->startNamespace($owner?->name);
+        foreach ($owner?->stmts ?? $nodes as $statement) {
+            if ($statement->getStartFilePos() >= $node->getStartFilePos()) {
+                break;
+            }
+            if ($statement instanceof Stmt\Use_ || $statement instanceof Stmt\GroupUse) {
+                self::importNames($statement, $context);
+            }
+        }
+
+        return $context;
+    }
+
+    /**
+     * Group items retain their own import kind and the containing prefix.
+     */
+    private static function importNames(Stmt\Use_|Stmt\GroupUse $statement, NameContext $context): void
+    {
+        foreach ($statement->uses as $use) {
+            $name = $statement instanceof Stmt\GroupUse ? Node\Name::concat($statement->prefix, $use->name) : $use->name;
+            $context->addAlias($name, $use->getAlias()->toString(), $use->type !== Stmt\Use_::TYPE_UNKNOWN ? $use->type : $statement->type);
+        }
+    }
+
+    /**
+     * Lexical PHPDoc bindings take precedence over class imports with the same spelling.
+     */
+    private static function typeBindings(Node $node): array
+    {
+        $names = [];
+        $owner = $node;
+        do {
+            if ($owner instanceof Stmt\ClassLike || $owner instanceof Node\FunctionLike) {
+                $names += self::declaredBindings($owner);
+            }
+            if ($owner instanceof Stmt\ClassLike) {
+                break;
+            }
+            $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE);
+        } while ($owner instanceof Node);
+
+        return $names;
+    }
+
+    /**
+     * Unresolved local and imported type aliases cannot become native class consumers.
+     */
+    private static function declaredBindings(Node $owner): array
+    {
+        $tags = $owner instanceof Stmt\ClassLike ? 'template(?:-covariant|-contravariant)?|(?:phpstan|psalm)-type' : 'template(?:-covariant|-contravariant)?';
+        $comment = self::annotationText($owner->getDocComment()?->getText() ?? '');
+        preg_match_all('/^[ \t]*@(?:'.$tags.')\s+([A-Za-z_][A-Za-z0-9_]*)\b/m', $comment, $bindings);
+        $names = array_fill_keys($bindings[1], true);
+        if (! $owner instanceof Stmt\ClassLike) {
+            return $names;
+        }
+        preg_match_all('/^[ \t]*@(?:phpstan|psalm)-import-type\s+([A-Za-z_][A-Za-z0-9_]*)\s+from\s+\\\\?[A-Za-z_][A-Za-z0-9_\\\\]*(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?/m', $comment, $imports, PREG_SET_ORDER);
+        foreach ($imports as $import) {
+            $names[$import[2] ?? $import[1]] = true;
+        }
+
+        return $names;
+    }
+
+    /**
+     * Resolve whole class names without interpreting template variables as imported classes.
+     */
+    private static function documentedName(string $class, NameContext $context, array $templates): ?string
+    {
+        if (isset($templates[$class]) || str_contains($class, '-')) {
+            return null;
+        }
+        if (preg_match('/^(?:int|integer|string|bool|boolean|float|double|number|numeric|scalar|resource|mixed|array|iterable|list|null|true|false|void|never|empty|object|callable)$/i', $class) === 1) {
+            return null;
+        }
+        if (str_starts_with($class, '\\')) {
+            return strtolower(ltrim($class, '\\'));
+        }
+        if (str_starts_with(strtolower($class), 'namespace\\')) {
+            return strtolower(ltrim(($context->getNamespace()?->toString() ?? '').'\\'.substr($class, 10), '\\'));
+        }
+        $name = new Node\Name($class);
+
+        return $name->isSpecialClassName() ? null : $context->getResolvedClassName($name)->toLowerString();
     }
 
     /**

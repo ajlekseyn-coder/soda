@@ -37,7 +37,7 @@ final class RepresentationFacts
      *
      * @param list<Node> $nodes
      *
-     * @return array{types: array<string, array>, callables: array<string, array>, truncated: list<array>, catchCalls: array<int,array>}
+     * @return array{types: array<string, array>, callables: array<string, array>, truncated: list<array>, catchCalls: array<int,array>, returnedCatches: array<int,true>}
      */
     public static function collect(array $nodes): array
     {
@@ -48,7 +48,75 @@ final class RepresentationFacts
         self::classes($nodes, $unconditional, $types, $callables, $truncated);
         self::functions($nodes, $unconditional, $callables, $truncated);
 
-        return ['types' => $types, 'callables' => $callables, 'truncated' => $truncated, 'catchCalls' => self::catchCalls($nodes)];
+        return ['types'       => $types, 'callables' => $callables, 'truncated' => $truncated, 'catchCalls' => self::catchCalls($nodes),
+            'returnedCatches' => self::returnedCatches($nodes)];
+    }
+
+    /**
+     * Catch-defined locals can carry their fallback into the immediately following return.
+     */
+    private static function returnedCatches(array $nodes): array
+    {
+        $returned = [];
+        foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\TryCatch::class) as $try) {
+            $following = self::followingReturn($try);
+            if ($following === null) {
+                continue;
+            }
+            foreach ($try->catches as $catch) {
+                if (self::doesReturnCatchBinding($catch->stmts, $following)) {
+                    $returned[$catch->getStartFilePos()] = true;
+                }
+            }
+        }
+
+        return $returned;
+    }
+
+    /**
+     * Only the next statement in the same execution list can consume this catch's fallback.
+     */
+    private static function followingReturn(Stmt\TryCatch $try): ?Stmt\Return_
+    {
+        $parent = $try->getAttribute('parent');
+        if ($try->finally !== null || ! $parent instanceof Node) {
+            return null;
+        }
+        foreach ($parent->getSubNodeNames() as $field) {
+            $siblings = get_object_vars($parent)[$field];
+            if (! is_array($siblings)) {
+                continue;
+            }
+            $siblings = array_values($siblings);
+            $position = array_search($try, $siblings, true);
+            $following = $position === false ? null : ($siblings[$position + 1] ?? null);
+            if ($following instanceof Stmt\Return_) {
+                return $following;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A sole ordinary assignment defines the returned local on every continuing catch path.
+     */
+    private static function doesReturnCatchBinding(array $statements, Stmt\Return_ $following): bool
+    {
+        if (count($statements) !== 1 || $following->expr === null) {
+            return false;
+        }
+        $remaining = self::MAX_FACTS;
+        $assignment = self::statement($statements[0], null, $remaining);
+        $target = $assignment['target'] ?? [];
+        if (($assignment['op'] ?? null) !== 'assign' || ($target['op'] ?? null) !== 'variable') {
+            return false;
+        }
+        $value = self::expression($following->expr, null, $remaining);
+        $variables = self::returnedVariables($value);
+        $name = $target['name'];
+
+        return $remaining >= 0 && $variables !== null && isset($variables[$name]);
     }
 
     /**
@@ -300,7 +368,7 @@ final class RepresentationFacts
     /**
      * Preserve straight-line statements and stop at unsupported control or effects.
      */
-    private static function statement(Stmt $statement, ?string $class, int &$remaining): array
+    private static function statement(Node $statement, ?string $class, int &$remaining): array
     {
         $line = $statement->getStartLine();
         if ($statement instanceof Stmt\Return_) {

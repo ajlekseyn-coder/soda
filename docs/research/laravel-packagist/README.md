@@ -5,14 +5,14 @@ including abandoned packages and aliases. Selection uses the newest stable
 release in Packagist's p2 ordering, or a development reference when no stable
 release exists. Package versions and commit references are immutable audit inputs.
 
-The source archive for `laravel/liferaft` returns HTTP 404. The other 81 packages
+The source archive for `laravel/liferaft` still returns HTTP 404 on 2026-10-16. The other 81 packages
 were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,429 after
-thirty review rounds: 1,243 resolved and 54 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,297 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,415 after
+thirty-one review rounds: 1,257 resolved and 54 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,311 removals and
 54 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
@@ -32,7 +32,7 @@ original multiplicity.
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
-| `no_catch_all_exceptions` | 221 | 216 | 5 |
+| `no_catch_all_exceptions` | 221 | 214 | 7 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
@@ -40,12 +40,12 @@ original multiplicity.
 | `no_trivial_factories` | 127 | 77 | 50 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 | `avoid_redundant_naming` | 101 | 15 | 86 |
-| `no_redundant_local_interfaces` | 42 | 40 | 2 |
+| `no_redundant_local_interfaces` | 42 | 28 | 14 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,920 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,991 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -144,6 +144,25 @@ claims. Two additional policies independently confirm all 84 namespace-size and
 four project-size findings. Their verifier rejects alterations to each diagnostic
 field, missing and duplicated occurrences, and forged source hashes.
 
+Round 31 resolves PHPDoc class names through their own preceding class imports
+and namespace. Complete balanced type expressions may span comment lines;
+prose, defaults, shape keys, template variables and unresolved PHPDoc aliases
+cannot become class consumers. This removes 12 findings in LSP, MCP, Vet and
+Cloud CLI. Genuine unused interfaces remain checked.
+
+Doctor's two catches define error results and immediately return them inside
+native outcome objects. A sole catch assignment can now supply that unchanged
+local to the immediately following return. Only eager local, literal and native
+array arguments qualify; writes, deferred reads, calls, nested allocations,
+colliding array keys and enclosing finally blocks leave the path unproved.
+`round31-resolved.jsonl` records all 14 exact removals with pinned source evidence.
+The tests belong to the two corresponding rule classes.
+
+`round31-reviewed.jsonl` adds eight native empty-block syntax findings and four
+unambiguously bound native function calls. These verify the documented syntax
+policies, without inferring runtime defects or resolving other namespace fallback
+calls. All 36 existing policy proofs retain their exact diagnostic multisets.
+
 ## Source-grounded policy review
 
 `verified-policies.json` records 53,374 findings across 36 policies checked against the pinned source:
@@ -215,9 +234,9 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 4,448 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 4,460 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 53 revised retained findings in `round18-reviewed.jsonl`,
-`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,554 retained
+`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,528 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 

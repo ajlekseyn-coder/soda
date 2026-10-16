@@ -24,6 +24,105 @@ trait RepresentationValueSyntax
     private const NATIVE_NULL = 'null';
 
     /**
+     * Discriminants shared by the bounded value reducer and return transport proof.
+     */
+    private const VALUE_LITERAL = 'literal';
+
+    /**
+     * Native array construction shared by the reducer and return transport proof.
+     */
+    private const VALUE_ARRAY = 'array';
+
+    /**
+     * A returned allocation may eagerly consume pure arguments; nested allocations remain effects.
+     */
+    private static function returnedVariables(array $value): ?array
+    {
+        if (($value['op'] ?? null) !== 'new') {
+            return self::pureReturnVariables($value);
+        }
+        if ($value['class'] === null || in_array($value['class'], ['self', 'static', 'parent'], true)) {
+            return null;
+        }
+        $variables = [];
+        foreach ($value['args'] as $argument) {
+            if ($argument['name'] !== null || $argument['unpack'] || $argument['byRef']) {
+                return null;
+            }
+            $reads = self::pureReturnVariables($argument['value']);
+            if ($reads === null) {
+                return null;
+            }
+            $variables += $reads;
+        }
+
+        return $variables;
+    }
+
+    /**
+     * Only local values, native literals and array values are read without intervening dispatch.
+     */
+    private static function pureReturnVariables(array $value): ?array
+    {
+        return match ($value['op'] ?? null) {
+            'variable'          => [$value['name'] => true],
+            self::VALUE_LITERAL => [],
+            self::VALUE_ARRAY   => self::arrayReturnVariables($value['items']),
+            default             => null,
+        };
+    }
+
+    /**
+     * Literal keys cannot mutate a later value binding or introduce a deferred scope.
+     */
+    private static function arrayReturnVariables(array $items): ?array
+    {
+        if (! self::hasDistinctReturnKeys($items)) {
+            return null;
+        }
+        $variables = [];
+        foreach ($items as $item) {
+            $reads = self::pureReturnVariables($item['value']);
+            if ($reads === null) {
+                return null;
+            }
+            $variables += $reads;
+        }
+
+        return $variables;
+    }
+
+    /**
+     * Native key coercion and append indexing must not erase an earlier payload value.
+     */
+    private static function hasDistinctReturnKeys(array $items): bool
+    {
+        $keys = [];
+        foreach ($items as $item) {
+            $key = $item['key'];
+            if ($key === null) {
+                if (array_key_exists(PHP_INT_MAX, $keys)) {
+                    return false;
+                }
+                $keys[] = true;
+
+                continue;
+            }
+            if (($key['op'] ?? null) !== self::VALUE_LITERAL) {
+                return false;
+            }
+            $value = $key['value'];
+            $value = is_bool($value) || is_float($value) ? (int) $value : ($value ?? '');
+            if ($value === PHP_INT_MAX || array_key_exists($value, $keys)) {
+                return false;
+            }
+            $keys[$value] = true;
+        }
+
+        return true;
+    }
+
+    /**
      * Normalize native contracts after name resolution; leave late static binding unknown.
      */
     private static function nativeType(Node|string|null $type, ?string $class): ?string
@@ -74,7 +173,7 @@ trait RepresentationValueSyntax
             'Scalar_String' => 'string', 'Scalar_Int' => 'int', default => 'float'
         };
 
-        return ['op' => 'literal', 'value' => $node->value, 'type' => $type, 'line' => $node->getStartLine()];
+        return ['op' => self::VALUE_LITERAL, 'value' => $node->value, 'type' => $type, 'line' => $node->getStartLine()];
     }
 
     /**
@@ -97,7 +196,7 @@ trait RepresentationValueSyntax
             return self::unknown($node->getType(), $node->getStartLine());
         }
 
-        return ['op' => 'literal', 'value' => $name === self::NATIVE_NULL ? null : $name === 'true', 'type' => $name === self::NATIVE_NULL ? self::NATIVE_NULL : 'bool', 'line' => $node->getStartLine()];
+        return ['op' => self::VALUE_LITERAL, 'value' => $name === self::NATIVE_NULL ? null : $name === 'true', 'type' => $name === self::NATIVE_NULL ? self::NATIVE_NULL : 'bool', 'line' => $node->getStartLine()];
     }
 
     /**
@@ -169,7 +268,7 @@ trait RepresentationValueSyntax
             }
         }
 
-        return ['op' => 'array', 'items' => $items, 'line' => $node->getStartLine()];
+        return ['op' => self::VALUE_ARRAY, 'items' => $items, 'line' => $node->getStartLine()];
     }
 
     /**

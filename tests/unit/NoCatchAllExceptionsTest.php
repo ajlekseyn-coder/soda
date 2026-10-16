@@ -214,6 +214,72 @@ final class NoCatchAllExceptionsTest extends TestCase
         yield 'native exit after a possible normal return is insufficient' => ['class Terminator { public static function stop($error) { if (recoverable($error)) { return; } exit(1); } }', 'Terminator::stop($error);', 1];
     }
 
+    #[DataProvider('returnedCatchBindings')]
+    public function testAnImmediateReturnPreservesOnlyTheCatchDefinedBinding(string $source, int $expected): void
+    {
+        $root = sys_get_temp_dir().'/soda-returned-catch-'.bin2hex(random_bytes(6));
+        self::assertTrue(mkdir($root));
+        $declaration = $root.'/Declarations.php';
+        $caller = $root.'/Caller.php';
+        self::assertNotFalse(file_put_contents($declaration, '<?php namespace App; class Outcome { public function __construct(public mixed $result, public mixed $other = null) {} } class Mutator { public function __construct(&$value) { $value = "success"; } }'));
+        self::assertNotFalse(file_put_contents($caller, '<?php namespace App;'."\n".$source."\n".'function genuinelyContinues() { try { work(); } catch (\\Throwable $error) { report($error); } }'));
+
+        try {
+            foreach ([[new NoCatchAllExceptions], RuleCatalog::standard()] as $checks) {
+                foreach ([[$declaration, $caller], [$caller, $declaration]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_catch_all_exceptions')->values();
+                    $genuine = $findings->filter(static fn ($row): bool => $row->line === 3)->values();
+                    self::assertCount(1, $genuine);
+                    self::assertSame([
+                        'rule'    => 'no_catch_all_exceptions', 'file' => $caller, 'method' => null, 'class' => null,
+                        'line'    => 3, 'value' => 1, 'threshold' => 0,
+                        'message' => 'A broad catch continues without returning a value or throwing. Make the failure outcome explicit.',
+                    ], $genuine[0]->toArray());
+                    $targets = $findings->filter(static fn ($row): bool => $row->line === 2)->values();
+                    self::assertCount($expected, $targets);
+                    self::assertCount($expected + 1, $findings);
+                    if ($expected !== 0) {
+                        self::assertSame([...$genuine[0]->toArray(), 'line' => 2], $targets[0]->toArray());
+                    }
+                }
+            }
+        } finally {
+            unlink($declaration);
+            unlink($caller);
+            rmdir($root);
+        }
+    }
+
+    public static function returnedCatchBindings(): iterable
+    {
+        $try = 'try { $result = work(); } catch (\\Throwable $error) { $result = fallback($error); }';
+
+        yield 'direct local fallback' => ['function target() { '.$try.' return $result; }', 0];
+        yield 'class caller carries fallback in explicit allocation' => ['class Consumer { public function target() { '.$try.' return new Outcome($result); } }', 0];
+        yield 'native array value carries fallback' => ['function target() { '.$try.' return ["error" => $result, "other" => null]; }', 0];
+        yield 'nested callable separates enclosing finally' => ['function target() { try { return function () { '.$try.' return $result; }; } finally { return; } }', 0];
+        yield 'discarded fallback' => ['function target() { try { work(); } catch (\\Throwable $error) { $discarded = fallback($error); } return new Outcome("success"); }', 1];
+        yield 'overwritten fallback' => ['function target() { '.$try.' $result = "success"; return $result; }', 1];
+        yield 'conditional assignment does not define every path' => ['function target() { try { work(); } catch (\\Throwable $error) { if (recoverable($error)) { $result = fallback($error); } } return $result; }', 1];
+        yield 'bare return remains a silent path' => ['function target() { try { work(); } catch (\\Throwable $error) { if (recoverable($error)) { return; } $result = fallback($error); } return $result; }', 1];
+        yield 'jump bypasses assignment' => ['function target() { try { work(); } catch (\\Throwable $error) { goto skipped; $result = fallback($error); } return $result; skipped: return "success"; }', 1];
+        yield 'own finally can replace binding' => ['function target() { '.$try.' finally { $result = "success"; } return $result; }', 1];
+        yield 'enclosing finally can replace outcome' => ['function target() { try { '.$try.' return $result; } finally { return "success"; } }', 1];
+        yield 'deferred assignment does not define fallback' => ['function target() { $result = "success"; try { work(); } catch (\\Throwable $error) { $set = function () use (&$result) { $result = fallback(); }; } return $result; }', 1];
+        yield 'earlier argument call can rebind fallback' => ['function target() { '.$try.' return new Outcome(rebind($result), $result); }', 1];
+        yield 'earlier nested allocation can rebind fallback' => ['function target() { '.$try.' return new Outcome(new Mutator($result), $result); }', 1];
+        yield 'returned closure defers value use' => ['function target() { '.$try.' return fn () => $result; }', 1];
+        yield 'array reference is unsupported' => ['function target() { '.$try.' return [&$result]; }', 1];
+        yield 'duplicate string key erases fallback' => ['function target() { '.$try.' return ["result" => $result, "result" => null]; }', 1];
+        yield 'numeric string key collides with integer' => ['function target() { '.$try.' return [1 => $result, "1" => null]; }', 1];
+        yield 'boolean key collides with integer' => ['function target() { '.$try.' return [1 => $result, true => null]; }', 1];
+        yield 'null key collides with empty string' => ['function target() { '.$try.' return ["" => $result, null => null]; }', 1];
+        yield 'explicit key replaces implicit value' => ['function target() { '.$try.' return [$result, 0 => null]; }', 1];
+        yield 'duplicate nested array key erases wrapper payload' => ['function target() { '.$try.' return new Outcome(["result" => $result, "result" => null]); }', 1];
+    }
+
     public function testStandardRunnerAcceptsACompleteNestedFallback(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'soda-catch-fallback-');

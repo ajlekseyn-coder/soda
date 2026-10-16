@@ -90,7 +90,8 @@ trait RepresentationCallSyntax
     {
         $args = [];
         foreach ($arguments as $argument) {
-            $args[] = ['name' => $argument->name?->toString(), 'value' => self::expression($argument->value, $class, $remaining), 'unpack' => $argument->unpack];
+            $args[] = ['name' => $argument->name?->toString(), 'value' => self::expression($argument->value, $class, $remaining),
+                'unpack'      => $argument->unpack, 'byRef' => $argument->byRef];
             if ($remaining < 0) {
                 break;
             }

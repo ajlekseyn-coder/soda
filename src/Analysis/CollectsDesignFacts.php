@@ -129,7 +129,7 @@ trait CollectsDesignFacts
                 'required'               => $required, 'maximum' => count($callable['parameters'])];
         }
 
-        return ['types' => $types, 'callables' => $callables, 'catches' => $facts['catchCalls']];
+        return ['types' => $types, 'callables' => $callables, 'catches' => $facts['catchCalls'], 'returnedCatches' => $facts['returnedCatches']];
     }
 
     /**

@@ -11,7 +11,6 @@ use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 
 final class NoCatchAllExceptions extends Check
@@ -35,9 +34,11 @@ final class NoCatchAllExceptions extends Check
         $nodes = $this->catches($file->nodes);
         $outcomes = $file->metrics['terminalOutcomes'] ?? [];
         $deferred = $outcomes['catches'] ?? [];
+        $returned = $outcomes['returnedCatches'] ?? [];
 
         foreach ($nodes as $node) {
-            if (! $this->isCatchAll($node) || $this->hasExplicitOutcome($node->stmts) || isset($deferred[$node->getStartFilePos()])) {
+            $hasReturnedFallback = isset($returned[$node->getStartFilePos()]) && ! $this->hasEnclosingFinally($node);
+            if (! $this->isCatchAll($node) || $this->hasExplicitOutcome($node->stmts) || $hasReturnedFallback || isset($deferred[$node->getStartFilePos()])) {
                 continue;
             }
             $identity = CallableIdentity::enclosingMethod($node);
@@ -48,6 +49,22 @@ final class NoCatchAllExceptions extends Check
 
             yield $this->violation($file->path, $node->getStartLine());
         }
+    }
+
+    /**
+     * An enclosing finally may replace the sibling return, but an outer callable cannot do so.
+     */
+    private function hasEnclosingFinally(Node $node): bool
+    {
+        $parent = $node->getAttribute('parent');
+        while ($parent instanceof Node && ! $parent instanceof Node\FunctionLike) {
+            if ($parent instanceof Stmt\TryCatch && $parent->finally !== null) {
+                return true;
+            }
+            $parent = $parent->getAttribute('parent');
+        }
+
+        return false;
     }
 
     /**
@@ -200,7 +217,7 @@ final class NoCatchAllExceptions extends Check
             return false;
         }
 
-        if ($node instanceof Stmt\Return_ && ! $node->expr instanceof Expr) {
+        if ($node instanceof Stmt\Return_ && $node->expr === null) {
             return true;
         }
 

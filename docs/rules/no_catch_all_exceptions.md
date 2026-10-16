@@ -20,6 +20,15 @@ one exact public static method whose body cannot return normally. A native `neve
 contract or an unconditional native exit or throw supplies that proof. PHPDoc
 alone, generator bodies, dynamic dispatch and ambiguous declarations do not.
 
+A catch may also define its fallback in one ordinary local assignment and use
+that unchanged local in the immediately following return. The return may carry
+the local directly, in a native array value, or in an explicitly named new
+object's arguments. Other arguments must be local values, literals or native
+arrays. Intervening statements, conditional definitions, calls or nested
+allocations in the return expression, references, colliding array keys and an
+enclosing `finally` leave this path unproved. A fallback that is then discarded
+does not supply an outcome.
+
 ## Examples
 
 ```php
