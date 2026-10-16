@@ -44,6 +44,19 @@ final class NoTemporaryReturnVariableTest extends TestCase
             'function run() { $result = load(); return function () use ($result) { return $result; }; }',
             'function run() { $result = $result + 1; return $result; }',
             'function run() { $result = load(); return $other; }',
+            <<<'PHP'
+function config(string $content): array
+{
+    try {
+        /** @var array<string, mixed> $config */
+        $config = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        return $config;
+    } catch (JsonException $exception) {
+        throw new RuntimeException('Invalid JSON config', 0, $exception);
+    }
+}
+PHP,
         ] as $source) {
             self::assertSame([], $this->violations($source), $source);
         }

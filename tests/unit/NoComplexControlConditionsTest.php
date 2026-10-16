@@ -64,6 +64,19 @@ final class NoComplexControlConditionsTest extends TestCase
         ] as $expression) {
             yield $expression => [$expression, null];
         }
+
+        yield 'unloaded or absent actor without lazy loading' => [
+            '! $record->relationLoaded("actor") || $record->actor === null', null,
+        ];
+        yield 'personal contact or explicitly unsupported primary type' => [
+            '$isPersonal || PerimeterContactType::tryFrom($contactType)?->canBePrimary() === false', null,
+        ];
+        yield 'null photo or non-PostgreSQL connection' => [
+            '$value === null || $this->getConnection()->getDriverName() !== "pgsql"', null,
+        ];
+        yield 'regular expression with output captures' => [
+            'preg_match("/(?:^|Response code: |Consul returned HTTP )([1-5]\\d{2})(?::|;|$)/", $message, $matches) === 1', null,
+        ];
     }
 
     public function testVisitsAllConditionsAndKeepsCallableScopesSeparate(): void

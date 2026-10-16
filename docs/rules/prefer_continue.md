@@ -16,6 +16,11 @@ Branches that already exit on all proven paths need no extra guard. Ambiguous
 Keep preceding statements before the new guard. Preserve evaluation order and
 `break`/`continue` levels. An `if` does not introduce a loop or switch level.
 
+A conditional append or `unset()` can stay in a positive branch. Two related
+operations, such as collecting and removing a driver, are also flat work; the
+author may use a guard without requiring the same form for every loop. A search
+that returns its first match already exits and does not need an inverted guard.
+
 ## Examples
 
 ```php

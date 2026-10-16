@@ -50,7 +50,16 @@ if ($user->hasRole(config('auth.admin_role'))) {
 while (Person::query()->where('samaccountname', $name)->exists()) {
     $name = nextName();
 }
+
+// ✅ keep identical exits together without loading an absent relation
+if (! $record->relationLoaded('actor') || $record->actor === null) {
+    return null;
+}
 ```
+
+The rule accepts both combined and separate guards. In the last example, `||`
+preserves the short circuit: the actor is read only after the relation is loaded.
+Replacing it with `&&` would change behavior, regardless of formatting.
 
 ## Configuration
 

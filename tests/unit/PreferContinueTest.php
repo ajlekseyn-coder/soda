@@ -34,6 +34,10 @@ final class PreferContinueTest extends TestCase
         yield 'if with else keeps both paths' => ['function save(array $items): void { foreach ($items as $item) { if ($item->active) { store($item); } else { mark($item); } } }', 0];
         yield 'if is not the last statement' => ['function save(array $items): void { foreach ($items as $item) { if ($item->active) { store($item); } mark($item); } }', 0];
         yield 'nested if inside the guarded branch' => ['function save(array $items): void { foreach ($items as $item) { mark($item); if ($item->active) { if ($item->fresh) { store($item); } } } }', 1];
+        yield 'append an unvisited child' => ['function visit($children, $visited, $stack) { foreach ($children as $child) { if (! isset($visited[$child->group_id])) { $stack[] = $child->group_id; } } }', 0];
+        yield 'remove a selected lost session' => ['function disconnect($keys) { foreach ($keys as $key) { if ($this->matchesSelection($key, $service, $node, $scope)) { unset($this->lostSessions[$key]); } } }', 0];
+        yield 'collect and remove a selected driver' => ['function disconnect($drivers) { foreach ($drivers as $key => $driver) { if ($this->matchesSelection($key, $service, $node, $scope)) { $selected[] = $driver; unset($this->drivers[$key]); } } }', 0];
+        yield 'return the first matching failure reason' => ['function reason($message, $reasons) { foreach ($reasons as $fragment => $reason) { if (str_contains($message, $fragment)) { return $reason; } } return "invalid response"; }', 0];
     }
 
     public function testReportsTheTrailingConditionWithAdvice(): void
