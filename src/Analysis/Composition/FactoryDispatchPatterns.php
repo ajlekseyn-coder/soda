@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis\Composition;
 
-use Cosmira\Soda\Analysis\Control\LiteralDispatch;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar\InterpolatedString;
@@ -23,74 +22,6 @@ trait FactoryDispatchPatterns
      * PHP method names ignore case and must match through the selector's final byte.
      */
     private const PATTERN_END = '$/iD';
-
-    /**
-     * Keep literal or bounded method names only when dispatched on the declaring receiver.
-     */
-    private static function factoryPatterns(Stmt\ClassLike $class): array
-    {
-        $patterns = self::directPatterns($class);
-        foreach ($class->getMethods() as $method) {
-            $finder = new NodeFinder;
-            $nodes = $method->stmts ?? [];
-            $assignments = $finder->findInstanceOf($nodes, Expr\Assign::class);
-            foreach ($finder->findInstanceOf($nodes, Expr\MethodCall::class) as $call) {
-                if (! self::isOwnDispatch($call, $method)) {
-                    continue;
-                }
-
-                $matches = array_filter($assignments, static fn (Expr\Assign $assignment): bool => $assignment->var instanceof Expr\Variable
-                    && $assignment->var->name === $call->name->name
-                    && $assignment->getStartFilePos() < $call->getStartFilePos() && self::isOwnedBy($assignment, $method));
-                if (count($matches) !== 1) {
-                    continue;
-                }
-
-                $assignment = array_shift($matches);
-                $pattern = self::pattern($assignment->expr);
-                $hasLiteral = str_replace('.*', '', $pattern) !== '';
-                if ($hasLiteral) {
-                    $patterns[] = '/^'.$pattern.self::PATTERN_END;
-                }
-            }
-        }
-
-        return array_values(array_unique($patterns));
-    }
-
-    /**
-     * Literal receiver calls establish exact hooks without a computed selector.
-     */
-    private static function directPatterns(Stmt\ClassLike $class): array
-    {
-        $patterns = [];
-        $finder = new NodeFinder;
-        foreach ($class->getMethods() as $method) {
-            $nodes = $method->stmts ?? [];
-            foreach ($finder->find($nodes, static fn (Node $node): bool => in_array($node->getType(), [
-                'Expr_MethodCall', 'Expr_NullsafeMethodCall', 'Expr_StaticCall',
-            ], true)) as $call) {
-                $name = self::calledHook($call, $class, $method);
-                if ($name !== null) {
-                    $patterns[] = '/^'.preg_quote($name, '/').self::PATTERN_END;
-                }
-            }
-
-        }
-
-        return $patterns;
-    }
-
-    /**
-     * Distinguish this object's dispatch from calls on another collaborator.
-     */
-    private static function isOwnDispatch(Expr\MethodCall $call, Stmt\ClassMethod $method): bool
-    {
-        $isThis = $call->var instanceof Expr\Variable && $call->var->name === 'this';
-        $isNamedVariable = $call->name instanceof Expr\Variable && is_string($call->name->name);
-
-        return $isThis && $isNamedVariable && self::isOwnedBy($call, $method);
-    }
 
     /**
      * Native strings constrain names even when an embedded formatter's behavior is unknown.
@@ -146,9 +77,6 @@ trait FactoryDispatchPatterns
      */
     private static function doesBlockSelectorInput(Node $variable, Stmt\ClassMethod $method, array $seen): bool
     {
-        if ((new LiteralDispatch)->literal($variable) !== null) {
-            return true;
-        }
         if (! $variable instanceof Expr\Variable) {
             return self::doesBlockNativeSelector($variable, $method, $seen);
         }
@@ -224,5 +152,58 @@ trait FactoryDispatchPatterns
         }
 
         return '.*';
+    }
+
+    /**
+     * Only explicit string values establish a finite method list; keys never select targets.
+     */
+    private static function literalTasks(Node $expression): array
+    {
+        if (! $expression instanceof Expr\Array_) {
+            return [];
+        }
+        $names = [];
+        foreach ($expression->items as $item) {
+            if ($item === null) {
+                return [];
+            }
+            if ($item->key !== null || $item->unpack || $item->byRef || ! $item->value instanceof String_) {
+                return [];
+            }
+            $names[] = strtolower($item->value->value);
+        }
+
+        return count(array_unique($names)) > 1 ? $names : [];
+    }
+
+    /**
+     * An indexed storage access inherits writes and reference escapes from the complete array target.
+     */
+    private static function storageReference(Node $property): Node
+    {
+        $reference = $property;
+        $parent = $reference->getAttribute(self::PARENT_ATTRIBUTE);
+        while ($parent instanceof Expr\ArrayDimFetch && $parent->var === $reference) {
+            $reference = $parent;
+            $parent = $reference->getAttribute(self::PARENT_ATTRIBUTE);
+        }
+
+        return $reference;
+    }
+
+    /**
+     * Native terminal operands cannot establish a later observed dispatch; deferred bodies are separate.
+     */
+    private static function hasEagerTaskExit(Node $expression, Stmt\ClassMethod $method): bool
+    {
+        $finder = new NodeFinder;
+        $exits = [...$finder->findInstanceOf($expression, Expr\Exit_::class), ...$finder->findInstanceOf($expression, Expr\Throw_::class)];
+        foreach ($exits as $exit) {
+            if (self::isOwnedBy($exit, $method)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

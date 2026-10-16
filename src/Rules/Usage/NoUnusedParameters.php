@@ -73,7 +73,11 @@ final class NoUnusedParameters extends Check
         $middleware = [];
         $functions = [];
         foreach ($project->files as $path => $facts) {
-            $types += $this->fileContracts($path, $facts['parameterContracts'] ?? []);
+            $declared = $this->fileContracts($path, $facts['parameterContracts'] ?? []);
+            foreach (array_intersect_key($types, $declared) as $name => $duplicate) {
+                $types[$name] = array_replace($duplicate, ['ambiguous' => true]);
+            }
+            $types += $declared;
             $middleware += $facts['registeredMiddleware'] ?? [];
             $functions += array_change_key_case($facts['methods']);
         }
@@ -154,11 +158,148 @@ final class NoUnusedParameters extends Check
             }
         }
 
-        foreach ($this->dispatchedSignatures($types, $surfaces, $functions) as $origin => $arity) {
+        $dispatches = $this->dispatchedSignatures($types, $surfaces, $functions);
+        foreach ($this->taskSignatures($types, $surfaces) as $origin => $arity) {
+            $dispatches[$origin] = max($dispatches[$origin] ?? 0, $arity);
+        }
+        foreach ($dispatches as $origin => $arity) {
             $signatures[$origin] = max($signatures[$origin] ?? 0, $arity);
         }
 
         return array_replace($signatures, $this->unresolvedSignatures($types, $surfaces));
+    }
+
+    /**
+     * A finite shared loop preserves only read prefixes on its selected task implementations.
+     */
+    private function taskSignatures(array $types, array $surfaces): array
+    {
+        $signatures = [];
+        foreach ($this->taskCalls($types) as $call) {
+            foreach ($surfaces as $surface) {
+                $targets = $this->sharedTasks($call, $surface, $types, $surfaces);
+                foreach ($this->taskReadSignatures($targets, $call['arity']) as $origin => $arity) {
+                    $signatures[$origin] = max($signatures[$origin] ?? 0, $arity);
+                }
+            }
+        }
+
+        return $signatures;
+    }
+
+    /**
+     * Ambiguous source owners cannot establish a finite dispatch registration.
+     */
+    private function taskCalls(array $types): iterable
+    {
+        foreach ($types as $type) {
+            if ($type['ambiguous'] ?? false) {
+                continue;
+            }
+            foreach ($type['taskDispatch'] ?? [] as $call) {
+                yield $call + ['lists' => $type['taskLists'] ?? []];
+            }
+        }
+    }
+
+    /**
+     * Every protected prefix slot must be read somewhere in this shared positional protocol.
+     */
+    private function taskReadSignatures(array $targets, int $supplied): array
+    {
+        $reads = array_merge([], ...array_column($targets, 'reads'));
+        $signatures = [];
+        foreach ($targets as $origin => $target) {
+            $arity = max([-1, ...$target['reads']]) + 1;
+            $prefix = $arity === 0 ? [] : range(0, $arity - 1);
+            if ($arity <= $supplied && array_diff($prefix, $reads) === []) {
+                $signatures[$origin] = $arity;
+            }
+        }
+
+        return $signatures;
+    }
+
+    /**
+     * A selected caller and the same unmodified property slot bind the literal task names.
+     */
+    private function sharedTasks(array $call, array $surface, array $types, array $surfaces): array
+    {
+        if ($surface['unknown'] !== []) {
+            return [];
+        }
+        $callers = array_filter($surface['methods'], static fn (array $method): bool => $method['origin'] === $call['caller']);
+        $caller = array_shift($callers);
+        if ($caller === null || $caller['scope'] === null) {
+            return [];
+        }
+        $names = $call['names'];
+        $field = $call['property'];
+        if ($field !== null) {
+            if (! $this->isKnownField($field, $surface, $caller) || ! $this->isUnwrittenTaskField($field, $surface, $types)) {
+                return [];
+            }
+            $origins = $surface['propertyOrigins'] ?? [];
+            $lists = $call['lists'];
+            $names = ($origins[$field] ?? null) === $caller['scope'] ? ($lists[$field] ?? []) : [];
+        }
+
+        $targets = $this->selectedTasks($names, $surface, $types, $caller, $surfaces[$caller['scope']] ?? []);
+
+        return array_filter($targets, static fn (array $target): bool => $target['required'] > $call['arity']) === [] ? $targets : [];
+    }
+
+    /**
+     * Every listed body must have an accessible, unambiguous positional source signature.
+     */
+    private function selectedTasks(array $names, array $surface, array $types, array $caller, array $lexical): array
+    {
+        $targets = [];
+        $methods = $surface['methods'];
+        $bound = $lexical['methods'] ?? [];
+        foreach ($names as $name) {
+            $method = $methods[$name] ?? [];
+            if (! $this->isAccessibleTask($method, $bound[$name] ?? [], $caller)) {
+                return [];
+            }
+            [$owner, $original] = explode('::', $method['origin'], 2);
+            $type = $types[$owner] ?? [];
+            $signature = ($type['methods'] ?? [])[$original] ?? [];
+            if (($type['ambiguous'] ?? false) || ! ($signature['positional'] ?? false) || ($signature['abstract'] ?? false)) {
+                return [];
+            }
+            $targets[$method['origin']] = $signature;
+        }
+
+        return count($targets) > 1 ? $targets : [];
+    }
+
+    /**
+     * An inherited caller's private method remains lexical even when a child reuses its name.
+     */
+    private function isAccessibleTask(array $method, array $bound, array $caller): bool
+    {
+        if ($method === [] || ($method['visibility'] === self::PRIVATE_VISIBILITY && $method['scope'] !== $caller['scope'])) {
+            return false;
+        }
+
+        return ($bound['visibility'] ?? '') !== self::PRIVATE_VISIBILITY || $bound['origin'] === $method['origin'];
+    }
+
+    /**
+     * Writes or reference escapes anywhere on the composed receiver invalidate a default list.
+     */
+    private function isUnwrittenTaskField(string $field, array $surface, array $types): bool
+    {
+        foreach ($surface['methods'] as $method) {
+            $flow = $this->methodFlow($method, $types);
+            $effects = ($flow['blocked'] ?? []) + ($flow['writes'] ?? []);
+            if (($flow['receiverEscapes'] ?? false) || isset($effects[$field]) || isset($effects['*'])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

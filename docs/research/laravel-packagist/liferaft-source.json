@@ -1,0 +1,168 @@
+{
+  "package": "laravel/liferaft",
+  "version": "v1.0.0",
+  "reference": "45a3306464f44a37d36252dcedefe250e81a4a92",
+  "original_dist": "https://api.github.com/repos/laravel/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92",
+  "original_download_error": "HTTP Error 404: Not Found",
+  "original_archive_checked": "2026-10-16",
+  "dist": "https://api.github.com/repos/danharper/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92",
+  "archive_sha256": "fd0d093cd4c29de5523bc469022e9e14e590f57f72944f11549d15b65a04bafb",
+  "archive_bytes": 18477,
+  "git_commit_object": "tree 0aae0302d23a789b225c3471d6feb77de1d85b09\nparent 225b88c4fec906f36305d756bbd4c549f73af59e\nauthor Taylor Otwell <taylorotwell@gmail.com> 1410455567 -0500\ncommitter Taylor Otwell <taylorotwell@gmail.com> 1410455567 -0500\n\nadd branch alias.\n",
+  "git_commit_sha1": "45a3306464f44a37d36252dcedefe250e81a4a92",
+  "git_tree_sha1": "0aae0302d23a789b225c3471d6feb77de1d85b09",
+  "regular_files": 21,
+  "directories_including_root": 6,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 32,
+      "git_mode": "100644",
+      "git_blob_sha1": "4719553686cef880b3fc0b3fcd78a7edc6e0e734",
+      "sha256": "ca464438ceec3dc00173640175638e0b726fe5951dea14f38469264ca9561e72"
+    },
+    {
+      "path": "composer.json",
+      "bytes": 725,
+      "git_mode": "100644",
+      "git_blob_sha1": "810f7e601962f75c5b8227684b20bead51e7c989",
+      "sha256": "efd9b102984b4abb69871284b70f1d09c11c0c3d19a028640ccf854b722d0617"
+    },
+    {
+      "path": "composer.lock",
+      "bytes": 19011,
+      "git_mode": "100644",
+      "git_blob_sha1": "aa0ea3b39c2ed6c9309b0a77ccc372a7f9d2ffad",
+      "sha256": "0e7dabd783952141120764f6317a06be1596d5c787f5bd046c758c8aa4a41f96"
+    },
+    {
+      "path": "license.txt",
+      "bytes": 1077,
+      "git_mode": "100644",
+      "git_blob_sha1": "1ce59636fb8bbafa0163897b7452256c8ce65075",
+      "sha256": "9f4e06a6696d4a34ba49c9a596ea16332bf276b39450b2e50e820e82fa9ef249"
+    },
+    {
+      "path": "liferaft",
+      "bytes": 2156,
+      "git_mode": "100644",
+      "git_blob_sha1": "ff41b0810b2ab67a2a5113224d5604cca14371f5",
+      "sha256": "26fa6a33b7387eca4e9a363fbd036c9d3c8d054e1edaca41a670f7480e01ebf0"
+    },
+    {
+      "path": "readme.md",
+      "bytes": 647,
+      "git_mode": "100644",
+      "git_blob_sha1": "d5b033aec0c820da7c0a85b879b02054463e2a53",
+      "sha256": "98bcd6c2f102092eceb555cf57559c35d67105f438b8a0bba9e81cdc4d9fdd4c"
+    },
+    {
+      "path": "src/Actions/ActionTrait.php",
+      "bytes": 2101,
+      "git_mode": "100644",
+      "git_blob_sha1": "429ef67aeeee932b3a225dd26e3e1969a319ac95",
+      "sha256": "c74895037949a5b8fbe845a4143ac3caf0118c6b6468c6fbf9dad2c2a3075778"
+    },
+    {
+      "path": "src/Actions/CreateLiferaft.php",
+      "bytes": 4316,
+      "git_mode": "100644",
+      "git_blob_sha1": "806fbf5c073c3d18fe442aa0d5b91cf5f059f783",
+      "sha256": "17d7a468355360683451ffe3d38472cbe914b4e991fa28a3cce1da1b514dcfd4"
+    },
+    {
+      "path": "src/Actions/DestroyLiferaft.php",
+      "bytes": 1041,
+      "git_mode": "100644",
+      "git_blob_sha1": "7064c1caf68e73205ee0e68d0bd8045d1bfe4437",
+      "sha256": "0c1a85830f25e8323ae1ab3b366a5d483aa48c7864702d475d8185a2ac99506b"
+    },
+    {
+      "path": "src/Actions/GrabLiferaft.php",
+      "bytes": 3113,
+      "git_mode": "100644",
+      "git_blob_sha1": "634dc6fb069c588a54e1ad55998cabb94324be56",
+      "sha256": "c91519a36c0a6b85e519e12f22d3b79ca0b832f5c6ec320ad4351ceb0db086c4"
+    },
+    {
+      "path": "src/Actions/ThrowLiferaft.php",
+      "bytes": 2102,
+      "git_mode": "100644",
+      "git_blob_sha1": "7e5f9239325f83627a23c011fc06520600f0cd84",
+      "sha256": "224b45caf35c02700226e80a7d0b9df5662e6c1f5ba8506a628d37f9066c6061"
+    },
+    {
+      "path": "src/Actions/stubs/liferaft.md",
+      "bytes": 351,
+      "git_mode": "100644",
+      "git_blob_sha1": "2e0e2de9fcbd2d33756df89112db2e7a991d5e25",
+      "sha256": "f0778335935b24e011331667670aeead53ded02ada729ffe0a3432dd7557581a"
+    },
+    {
+      "path": "src/AuthCommand.php",
+      "bytes": 1146,
+      "git_mode": "100644",
+      "git_blob_sha1": "92ac6a16f4c45c515112f98cb7b9060b3fc70e4f",
+      "sha256": "4879bfbad9cbc62ad99480aa5057896aafdc2712e6ad26e7175c6c43278fc61b"
+    },
+    {
+      "path": "src/Contracts/Action.php",
+      "bytes": 65,
+      "git_mode": "100644",
+      "git_blob_sha1": "11895030521f04baeb1af91bb75ffe89253d5d38",
+      "sha256": "68c7c9f383f415cd511b7ff25c86d0e428e7ef830866bf4ff7897d3e1a7496ab"
+    },
+    {
+      "path": "src/Contracts/Github.php",
+      "bytes": 1232,
+      "git_mode": "100644",
+      "git_blob_sha1": "024f8a84d858200c6c18935d4235d9784c657652",
+      "sha256": "fee031dffd54c81577e6d004b11d74bc05f781c4acf3bf33e6b73de3e0ade53e"
+    },
+    {
+      "path": "src/DestroyCommand.php",
+      "bytes": 1250,
+      "git_mode": "100644",
+      "git_blob_sha1": "b280fab139e07b779559414556e2b06f58a319b6",
+      "sha256": "bf087044f9dc2295dad9f1f6c5767641550bcf88c6b8dd61651be27970e2e31f"
+    },
+    {
+      "path": "src/Git.php",
+      "bytes": 1533,
+      "git_mode": "100644",
+      "git_blob_sha1": "e48f2f4d02a76130eb0f6f9990a3407d4d5bdcc6",
+      "sha256": "0c36c32372ebb9e15c0a851f28a4706920cedd0965a9b93e962cb276acbc57f7"
+    },
+    {
+      "path": "src/GrabCommand.php",
+      "bytes": 1374,
+      "git_mode": "100644",
+      "git_blob_sha1": "eb9cc6d5df2bc8cfedea2fa487a439031a407574",
+      "sha256": "d0ab028e3993e9aee4d5f85c305d7a5a67684f7c1c48cbfd8db20a968f4fb93f"
+    },
+    {
+      "path": "src/NewCommand.php",
+      "bytes": 1577,
+      "git_mode": "100644",
+      "git_blob_sha1": "67fac4b4f8ba6d8c037409977b4e9aaa1fd69700",
+      "sha256": "594691189097c61c69a43153663420343e5691fb8d938a757eaeee6554d6c9bc"
+    },
+    {
+      "path": "src/Services/KnpGithub.php",
+      "bytes": 3065,
+      "git_mode": "100644",
+      "git_blob_sha1": "1a487a987260eead76c2114867b66e2fcfefbf2d",
+      "sha256": "eca44fade45cd9450b135e4920e744ccd6767d35f9744080dcb2fd4680d13e71"
+    },
+    {
+      "path": "src/ThrowCommand.php",
+      "bytes": 1461,
+      "git_mode": "100644",
+      "git_blob_sha1": "bdb126b2f404ea94823f9494a6821d5494952c79",
+      "sha256": "3d85edbb94143b164ffc7ff4aa4b1562b61d1a14a42f0970c81748dd529adcc1"
+    }
+  ],
+  "verification": "The Git commit object hashes to the pinned reference. Rebuilding all tree objects from the ordered paths, modes and blob hashes produces the commit tree. Every ZIP file has the matching Git blob SHA-1 and SHA-256; the member inventory is exact, without duplicates, symlinks or gitlinks.",
+  "package_code_or_autoloaders_executed": false,
+  "package_dependency_installation": false
+}

@@ -24,6 +24,135 @@ trait FactoryParameterDispatch
     private const THIS_VARIABLE = 'this';
 
     /**
+     * Keep literal or bounded method names only when dispatched on the declaring receiver.
+     */
+    private static function factoryPatterns(Stmt\ClassLike $class): array
+    {
+        $patterns = self::directPatterns($class);
+        foreach ($class->getMethods() as $method) {
+            $finder = new NodeFinder;
+            $nodes = $method->stmts ?? [];
+            $assignments = $finder->findInstanceOf($nodes, Expr\Assign::class);
+            foreach ($finder->findInstanceOf($nodes, Expr\MethodCall::class) as $call) {
+                if (! self::isOwnDispatch($call, $method)) {
+                    continue;
+                }
+
+                $matches = array_filter($assignments, static fn (Expr\Assign $assignment): bool => $assignment->var instanceof Expr\Variable
+                    && $assignment->var->name === $call->name->name
+                    && $assignment->getStartFilePos() < $call->getStartFilePos() && self::isOwnedBy($assignment, $method));
+                if (count($matches) !== 1) {
+                    continue;
+                }
+
+                $assignment = array_shift($matches);
+                $pattern = self::pattern($assignment->expr);
+                $hasLiteral = str_replace('.*', '', $pattern) !== '';
+                if ($hasLiteral) {
+                    $patterns[] = '/^'.$pattern.self::PATTERN_END;
+                }
+            }
+        }
+
+        return array_values(array_unique($patterns));
+    }
+
+    /**
+     * Literal receiver calls establish exact hooks without a computed selector.
+     */
+    private static function directPatterns(Stmt\ClassLike $class): array
+    {
+        $patterns = [];
+        $finder = new NodeFinder;
+        foreach ($class->getMethods() as $method) {
+            $nodes = $method->stmts ?? [];
+            foreach ($finder->find($nodes, static fn (Node $node): bool => in_array($node->getType(), [
+                'Expr_MethodCall', 'Expr_NullsafeMethodCall', 'Expr_StaticCall',
+            ], true)) as $call) {
+                $name = self::calledHook($call, $class, $method);
+                if ($name !== null) {
+                    $patterns[] = '/^'.preg_quote($name, '/').self::PATTERN_END;
+                }
+            }
+
+        }
+
+        return $patterns;
+    }
+
+    /**
+     * Distinguish this object's dispatch from calls on another collaborator.
+     */
+    private static function isOwnDispatch(Expr\MethodCall $call, Stmt\ClassMethod $method): bool
+    {
+        $isThis = $call->var instanceof Expr\Variable && $call->var->name === 'this';
+        $isNamedVariable = $call->name instanceof Expr\Variable && is_string($call->name->name);
+
+        return $isThis && $isNamedVariable && self::isOwnedBy($call, $method);
+    }
+
+    /**
+     * Each finite loop retains its declaring caller so composition can select the actual body.
+     */
+    private static function taskDispatch(Stmt\ClassLike $class): array
+    {
+        if ($class->name === null) {
+            return [];
+        }
+        $owner = strtolower($class->namespacedName?->toString() ?? $class->name->toString());
+        $calls = [];
+        foreach ($class->getMethods() as $method) {
+            foreach (self::sharedTaskCalls($method) as $call) {
+                $calls[] = $call + ['caller' => $owner.'::'.$method->name->toLowerString()];
+            }
+        }
+
+        return $calls;
+    }
+
+    /**
+     * A declared instance default can supply an observed task loop before any field writes.
+     */
+    private static function taskLists(Stmt\ClassLike $class): array
+    {
+        $lists = [];
+        foreach ($class->getProperties() as $property) {
+            if ($property->isStatic() || $property->isPublic() || $property->hooks !== []) {
+                continue;
+            }
+            foreach ($property->props as $item) {
+                if ($item->default !== null && self::isStableTaskList($item->name->toString(), $class)) {
+                    $lists[$item->name->toString()] = self::literalTasks($item->default);
+                }
+            }
+        }
+
+        return $lists;
+    }
+
+    /**
+     * Element mutation and receiver aliases can invalidate a literal default without replacing the field.
+     */
+    private static function isStableTaskList(string $field, Stmt\ClassLike $class): bool
+    {
+        foreach ($class->getMethods() as $method) {
+            if (self::doesEscapeTaskReceiver($method)) {
+                return false;
+            }
+            foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\PropertyFetch::class) as $reference) {
+                if (self::ownProperty($reference) !== $field || ! self::isSameClassScope($reference, $method)) {
+                    continue;
+                }
+                if (self::variableGuard(self::storageReference($reference), null) === null) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * A top-level factory binding dominates later calls, including calls in conditional branches.
      */
     private static function parameterDispatch(Stmt\ClassLike $class, array $nodes): array
@@ -248,6 +377,28 @@ trait FactoryParameterDispatch
     }
 
     /**
+     * Unknown consumers and local aliases can write this instance's protected task list.
+     */
+    private static function doesEscapeTaskReceiver(Stmt\ClassMethod $method): bool
+    {
+        if (self::hasTaskScopeSnapshot($method)) {
+            return true;
+        }
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\Variable::class) as $variable) {
+            if ($variable->name !== self::THIS_VARIABLE || ! self::isSameClassScope($variable, $method)) {
+                continue;
+            }
+            $parent = $variable->getAttribute(self::PARENT_ATTRIBUTE);
+            $isReceiver = ($parent instanceof Expr\MethodCall || $parent instanceof Expr\PropertyFetch) && $parent->var === $variable;
+            if (! $isReceiver) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Field writers and pure getters remain scalar source facts until composition selects their bodies.
      */
     private static function fieldFlows(Stmt\ClassLike $class): array
@@ -255,7 +406,7 @@ trait FactoryParameterDispatch
         $flows = [];
         foreach ($class->getMethods() as $method) {
             $statements = $method->stmts ?? [];
-            $flow = ['return' => self::returnedField($method), 'writes' => [], 'blocked' => self::hasOpaqueBindings($method) ? ['*' => true] : [], 'guards' => []];
+            $flow = ['return' => self::returnedField($method), 'writes' => [], 'blocked' => self::hasOpaqueBindings($method) ? ['*' => true] : [], 'guards' => [], 'receiverEscapes' => self::doesEscapeTaskReceiver($method)];
             foreach ((new NodeFinder)->findInstanceOf($statements, Expr\PropertyFetch::class) as $property) {
                 self::fieldReference($property, $method, $flow);
             }
@@ -313,7 +464,7 @@ trait FactoryParameterDispatch
 
             return;
         }
-        $guard = self::variableGuard($property, null);
+        $guard = self::variableGuard(self::storageReference($property), null);
         if ($guard === null) {
             $flow['blocked'] += [$field => true];
         } elseif ($guard !== '') {

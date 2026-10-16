@@ -38,7 +38,7 @@ final readonly class InheritedParameterContracts
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\ClassLike::class) as $class) {
             $name = $class->name === null ? CallableIdentity::type($class) : ($class->namespacedName?->toString() ?? $class->name->toString());
             $name = strtolower($name);
-            $types[$name] = self::declaration($class, $nodes);
+            $types[$name] = self::declaration($class, $nodes) + ['ambiguous' => isset($types[$name])];
         }
 
         return $types;
@@ -70,6 +70,8 @@ final readonly class InheritedParameterContracts
             'factoryDispatch'   => self::factoryPatterns($class),
             'parameterDispatch' => self::parameterDispatch($class, $nodes),
             'fieldFlows'        => self::fieldFlows($class),
+            'taskLists'         => self::taskLists($class),
+            'taskDispatch'      => self::taskDispatch($class),
         ];
     }
 
@@ -131,10 +133,12 @@ final readonly class InheritedParameterContracts
     {
         return [
             'arity'               => count($method->params),
+            'required'            => count(array_filter($method->params, static fn (Node\Param $input): bool => $input->default === null && ! $input->variadic)),
             'private'             => $method->isPrivate(),
             'abstract'            => $method->isAbstract(),
             'constructorContract' => $class instanceof Stmt\Interface_ || $method->isAbstract(),
             'forwardsParent'      => self::doesForwardConstructor($method),
+            'positional'          => ! $method->isStatic() && array_filter($method->params, static fn (Node\Param $input): bool => $input->byRef || $input->variadic) === [],
             'reads'               => array_keys(array_filter($method->params, static fn (Node\Param $input): bool => (new ParameterUseAnalysis($input))->isUsed($method))),
         ];
     }

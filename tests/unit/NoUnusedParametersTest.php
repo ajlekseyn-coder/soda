@@ -20,6 +20,105 @@ final class NoUnusedParametersTest extends TestCase
 {
     use ParsesPhpSnippets;
 
+    #[DataProvider('sharedTaskCases')]
+    public function testSharedTaskListsPreserveOnlyReadPositions(string $source, array $expected): void
+    {
+        $root = sys_get_temp_dir().'/soda-task-inputs-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $task = $root.'/Tasks.php';
+        $control = $root.'/Control.php';
+        file_put_contents($task, '<?php namespace TaskProtocol; '.$source);
+        file_put_contents($control, '<?php namespace TaskProtocol; class Genuine { private function trailing($kept, $unused) { return $kept; } public function run($value) { return $this->trailing($value, 1); } }');
+
+        try {
+            foreach ([[new NoUnusedParameters], RuleCatalog::standard()] as $checks) {
+                foreach ([[$task, $control], [$control, $task]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($violation): bool => $violation->rule === 'parse_error')->all());
+                    $found = [];
+                    $genuine = [];
+                    foreach ($result->violations as $violation) {
+                        if ($violation->rule !== 'no_unused_parameters') {
+                            continue;
+                        }
+                        if ($violation->class === 'TaskProtocol\\Genuine') {
+                            $genuine[] = $violation->toArray();
+                        }
+                        if (in_array($violation->method, ['install', 'write', 'tail'], true)) {
+                            self::assertSame('TaskProtocol\\Tasks', $violation->class);
+                            self::assertSame(1, $violation->value);
+                            self::assertSame(0, $violation->threshold);
+                            preg_match('/\$(\w+)/', $violation->message, $match);
+                            $found[] = $violation->method.'::'.$match[1];
+                        }
+                    }
+                    sort($found);
+                    self::assertSame($expected, $found);
+                    self::assertCount(1, $genuine);
+                    self::assertSame('trailing', $genuine[0]['method']);
+                    self::assertSame('Parameter $unused is never used by TaskProtocol\\Genuine::trailing. Remove it if the signature is owned here; preserve required contract or positional callback parameters.', $genuine[0]['message']);
+                }
+            }
+        } finally {
+            unlink($task);
+            unlink($control);
+            rmdir($root);
+        }
+    }
+
+    public static function sharedTaskCases(): iterable
+    {
+        $methods = 'protected function identify($username, $name) { return $username.$name; } protected function install($username, $name, $trailing = null) { return $name; } protected function write($username, $name) { return $name; }';
+        $list = '["identify", "install", "write"]';
+        $call = '$this->{$task}($username, $name);';
+        $property = 'protected $tasks = '.$list.';';
+        $loop = 'foreach ($this->tasks as $task) { '.$call.' }';
+        $owned = ['install::trailing', 'install::username', 'write::username'];
+        yield 'literal property task list' => ['class Tasks { '.$property.' public function run($username, $name) { '.$loop.' } '.$methods.' }', ['install::trailing']];
+        yield 'inline task list' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as $task) { '.$call.' } } '.$methods.' }', ['install::trailing']];
+        yield 'trailing slot remains owned' => ['class Tasks { public function run($username, $name) { foreach (["identify", "tail"] as $task) { '.$call.' } } '.$methods.' protected function tail($username, $unused) { return $username; } }', ['install::trailing', 'install::username', 'tail::unused', 'write::username']];
+        yield 'direct fixed calls' => ['class Tasks { public function run($username, $name) { $this->install($username, $name); $this->write($username, $name); } '.$methods.' }', $owned];
+        yield 'mutated property list' => ['class Tasks { '.$property.' public function run($username, $name) { $this->tasks = ["identify"]; '.$loop.' } '.$methods.' }', $owned];
+        yield 'escaped property list' => ['class Tasks { '.$property.' public function run($username, $name) { change($this->tasks); '.$loop.' } '.$methods.' }', $owned];
+        yield 'reference iteration' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as &$task) { '.$call.' } } '.$methods.' }', $owned];
+        yield 'nested callable loop' => ['class Tasks { '.$property.' public function run($username, $name) { return function () use ($username, $name) { '.$loop.' }; } '.$methods.' }', $owned];
+        yield 'unknown iterable' => ['class Tasks { public function run($username, $name, $tasks) { foreach ($tasks as $task) { '.$call.' } } '.$methods.' }', $owned];
+        yield 'insufficient supplied slots' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as $task) { $this->{$task}($username); } } '.$methods.' }', $owned];
+        yield 'unpacked arguments' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as $task) { $this->{$task}(...[$username, $name]); } } '.$methods.' }', $owned];
+        yield 'named arguments' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as $task) { $this->{$task}(username: $username, name: $name); } } '.$methods.' }', $owned];
+        yield 'first class task reference' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as $task) { $this->{$task}(...); } } '.$methods.' }', $owned];
+        yield 'array element mutation' => ['class Tasks { '.$property.' public function run($username, $name) { $this->tasks[0] = "write"; '.$loop.' } '.$methods.' }', $owned];
+        yield 'receiver alias mutation' => ['class Tasks { '.$property.' public function run($username, $name) { $alias = $this; $alias->tasks = ["identify"]; '.$loop.' } '.$methods.' }', $owned];
+        yield 'reference escaped receiver' => ['class Tasks { '.$property.' public function run($username, $name) { change($this); '.$loop.' } '.$methods.' }', $owned];
+        yield 'trait caller with selected property' => ['trait Dispatch { '.$property.' public function run($username, $name) { '.$loop.' } } class Tasks { use Dispatch; '.$methods.' }', ['install::trailing']];
+        yield 'inherited caller with selected property' => ['class Dispatch { '.$property.' public function run($username, $name) { '.$loop.' } } class Tasks extends Dispatch { '.$methods.' }', ['install::trailing']];
+        yield 'inherited property shadow' => ['class Dispatch { '.$property.' public function run($username, $name) { '.$loop.' } } class Tasks extends Dispatch { protected $tasks = ["identify"]; '.$methods.' }', $owned];
+        yield 'private lexical target is not a child method' => ['class Dispatch { public function run($username, $name) { foreach (["identify", "install"] as $task) { '.$call.' } } protected function identify($username, $name) { return $username.$name; } private function install($username, $name) { return $username.$name; } } class Tasks extends Dispatch { public function install($username, $name) { return $name; } }', ['install::username']];
+        yield 'duplicate conditional owner' => ['if (condition()) { class Tasks { '.$property.' public function run($username, $name) { '.$loop.' } '.$methods.' } } else { class Tasks { protected $tasks = ["identify"]; public function run($username, $name) { '.$loop.' } '.$methods.' } }', ['install::trailing', 'install::trailing', 'install::username', 'install::username', 'write::username', 'write::username']];
+        yield 'unread gap is not a protected prefix' => ['class Tasks { public function run($dead, $username, $name) { foreach (["identify", "install"] as $task) { $this->$task($dead, $username, $name); } } protected function identify($dead, $username, $name) { return $username.$name; } protected function install($dead, $unused, $name) { return $name; } }', ['install::dead', 'install::unused']];
+        yield 'duplicate argument values' => ['class Tasks { public function run($value) { foreach (["identify", "install"] as $task) { $this->$task($value, $value); } } protected function identify($username, $name) { return $username.$name; } protected function install($username, $name) { return $name; } }', ['install::username']];
+        yield 'known argument alias' => ['class Tasks { public function run($username) { $name = $username; foreach (["identify", "install"] as $task) { '.$call.' } } protected function identify($username, $name) { return $username.$name; } protected function install($username, $name) { return $name; } }', ['install::username']];
+        yield 'duplicate literal keys' => ['class Tasks { public function run($username, $name) { foreach (["same" => "identify", "same" => "install", "write"] as $task) { '.$call.' } } '.$methods.' }', $owned];
+        yield 'missing required target argument' => ['class Tasks { public function run($username, $name) { foreach ('.$list.' as $task) { '.$call.' } } '.str_replace('$trailing = null', '$trailing', $methods).' }', $owned];
+        yield 'unreachable loop after return' => ['class Tasks { public function run($username, $name) { return; foreach ('.$list.' as $task) { '.$call.' } } '.$methods.' }', $owned];
+        yield 'unreachable loop after throw' => ['class Tasks { public function run($username, $name) { throw new \\RuntimeException; foreach ('.$list.' as $task) { '.$call.' } } '.$methods.' }', $owned];
+        yield 'unreachable loop after exit' => ['class Tasks { public function run($username, $name) { exit; foreach ('.$list.' as $task) { '.$call.' } } '.$methods.' }', $owned];
+        yield 'constant false branch' => ['class Tasks { public function run($username, $name) { if (false) { foreach ('.$list.' as $task) { '.$call.' } } } '.$methods.' }', $owned];
+        yield 'constant false loop' => ['class Tasks { public function run($username, $name) { while (false) { foreach ('.$list.' as $task) { '.$call.' } } } '.$methods.' }', $owned];
+        foreach (['consume(exit(1));', 'consume(throw new \\RuntimeException);', '(exit(1))->notify();', '(throw new \\RuntimeException)->notify();', 'if (condition(exit(1))) {}', 'if (condition(throw new \\RuntimeException)) {}', '(function () { exit; })();', '(fn () => exit)();'] as $prefix) {
+            yield 'eager terminal prefix '.$prefix => ['class Tasks { public function run($username, $name) { '.$prefix.' foreach ('.$list.' as $task) { '.$call.' } } '.$methods.' }', $owned];
+        }
+        foreach (['function () { exit; }', 'fn () => exit'] as $deferred) {
+            yield 'deferred terminal argument '.$deferred => ['function consume($callback) { return $callback; } class Tasks { public function run($username, $name) { consume('.$deferred.'); foreach ('.$list.' as $task) { '.$call.' } } '.$methods.' }', ['install::trailing']];
+        }
+        yield 'variable table exposes receiver' => ['class Tasks { '.$property.' public function rewrite() { $scope = compact("this"); $scope["this"]->tasks = ["identify"]; } public function run($username, $name) { $this->rewrite(); '.$loop.' } '.$methods.' }', $owned];
+        yield 'closure receiver alias mutation' => ['class Tasks { '.$property.' public function rewrite() { $callback = function () { $owner = $this; $owner->tasks = ["identify"]; }; $callback(); } public function run($username, $name) { $this->rewrite(); '.$loop.' } '.$methods.' }', $owned];
+        yield 'foreign anonymous receiver alias' => ['class Tasks { '.$property.' public function unrelated() { return new class { public function rewrite() { $owner = $this; $owner->tasks = []; } }; } public function run($username, $name) { $this->unrelated(); '.$loop.' } '.$methods.' }', ['install::trailing']];
+        yield 'returned receiver mutation' => ['class Tasks { '.$property.' public function identity() { return $this; } public function rewrite() { $this->identity()->tasks = ["identify"]; } public function run($username, $name) { $this->rewrite(); '.$loop.' } '.$methods.' }', $owned];
+        yield 'reference iterable mutation' => ['class Tasks { '.$property.' public function rewrite() { foreach ($this->tasks as &$task) { $task = "identify"; } } public function run($username, $name) { $this->rewrite(); '.$loop.' } '.$methods.' }', $owned];
+
+    }
+
     #[DataProvider('cases')]
     public function testLexicalUsage(string $body, int $expected): void
     {
@@ -872,6 +971,9 @@ PHP);
         yield 'direct nested invocation' => ["return function () use (\$kind, \$input) { return \$this->{'render'.format(\$kind)}(\$input); };", 2];
         yield 'closed concatenation' => ["return \$this->{'render'.'Other'}(\$input);", 2];
         yield 'closed numeric concatenation' => ["return \$this->{'render'. 1}(\$input);", 2];
+        yield 'closed named constant input' => ['$kind = FIXED_KIND; return $this->{"render".$kind}($input);', 2];
+        yield 'closed class constant input' => ['$kind = Options::FIXED_KIND; return $this->{"render".$kind}($input);', 2];
+
         yield 'closed concatenation input' => ["\$kind = 'Other'; return \$this->{'render'.\$kind}(\$input);", 2];
         yield 'closed concatenation alias' => ["\$suffix = 'Other'; \$kind = \$suffix; return \$this->{'render'.\$kind}(\$input);", 2];
         yield 'closed cast suffix' => ["return \$this->{'render'.(string)'Other'}(\$input);", 2];

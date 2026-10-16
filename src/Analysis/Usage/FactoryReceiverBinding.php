@@ -100,8 +100,12 @@ trait FactoryReceiverBinding
             return $parent instanceof Expr\AssignRef || $parent->var === $variable;
         }
 
+        if ($parent instanceof Stmt\Foreach_) {
+            return self::isIterationWrite($variable, $parent);
+        }
+
         return match ($parent?->getType()) {
-            'Stmt_Foreach', 'Stmt_Catch', 'Stmt_Unset', 'Stmt_Global', 'StaticVar',
+            'Stmt_Catch', 'Stmt_Unset', 'Stmt_Global', 'StaticVar',
             'Expr_PreInc', 'Expr_PostInc', 'Expr_PreDec', 'Expr_PostDec', 'ArrayItem' => true,
             'ClosureUse', 'Arg'                                                       => $parent->byRef,
             default                                                                   => false,
@@ -169,5 +173,91 @@ trait FactoryReceiverBinding
         }
 
         return false;
+    }
+
+    /**
+     * A by-value foreach with one direct invocation shares the same positional arguments.
+     */
+    private static function sharedTaskCalls(Stmt\ClassMethod $method): array
+    {
+        if ($method->isStatic() || self::hasOpaqueBindings($method)) {
+            return [];
+        }
+        $calls = [];
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Stmt\Foreach_::class) as $loop) {
+            $call = self::sharedTaskCall($loop, $method);
+            if ($call === null) {
+                continue;
+            }
+            $names = self::literalTasks($loop->expr);
+            $property = self::ownProperty($loop->expr);
+            if ($names !== [] || $property !== null) {
+                $calls[] = ['names' => $names, 'property' => $property, 'arity' => count($call->args)];
+            }
+        }
+
+        return $calls;
+    }
+
+    /**
+     * Selector writes, keys, nested callables and argument transformations are outside this protocol.
+     */
+    private static function sharedTaskCall(Stmt\Foreach_ $loop, Stmt\ClassMethod $method): ?Expr\MethodCall
+    {
+        $selector = self::taskIterationName($loop, $method);
+        if ($selector === null) {
+            return null;
+        }
+        $body = $loop->stmts;
+        $statement = count($body) === 1 ? reset($body) : null;
+        $call = $statement instanceof Stmt\Expression ? $statement->expr : null;
+        if (! $call instanceof Expr\MethodCall || ! $call->name instanceof Expr\Variable || ! self::isOwnDispatch($call, $method) || $call->isFirstClassCallable()) {
+            return null;
+        }
+        $arguments = array_map(self::argument(...), $call->getArgs());
+
+        return $call->name->name === $selector && self::hasDistinctTaskArguments($arguments, $method) ? $call : null;
+    }
+
+    /**
+     * Only a lexical value binding represents each literal task name.
+     */
+    private static function taskIterationName(Stmt\Foreach_ $loop, Stmt\ClassMethod $method): ?string
+    {
+        if ($loop->byRef || $loop->keyVar !== null || ! $loop->valueVar instanceof Expr\Variable || ! self::doesTaskPrefixReach($loop, $method)) {
+            return null;
+        }
+
+        return is_string($loop->valueVar->name) ? $loop->valueVar->name : null;
+    }
+
+    /**
+     * Duplicate values or local reference/value aliases do not prove distinct required argument slots.
+     */
+    private static function hasDistinctTaskArguments(array $arguments, Stmt\ClassMethod $method): bool
+    {
+        if (in_array(null, $arguments, true) || count(array_unique($arguments)) !== count($arguments)) {
+            return false;
+        }
+        $finder = new NodeFinder;
+        $aliases = [...$finder->findInstanceOf($method->stmts ?? [], Expr\Assign::class), ...$finder->findInstanceOf($method->stmts ?? [], Expr\AssignRef::class)];
+        foreach ($aliases as $alias) {
+            if (! self::isOwnedBy($alias, $method) || ! $alias->var instanceof Expr\Variable || ! $alias->expr instanceof Expr\Variable) {
+                continue;
+            }
+            if (in_array($alias->var->name, $arguments, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Reference iteration exposes the source elements even when its expression is only read.
+     */
+    private static function isIterationWrite(Node $reference, Stmt\Foreach_ $loop): bool
+    {
+        return in_array($reference, [$loop->keyVar, $loop->valueVar], true) || ($loop->byRef && $loop->expr === $reference);
     }
 }

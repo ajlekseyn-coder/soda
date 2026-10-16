@@ -172,7 +172,7 @@ trait NativeBindingGuards
     {
         $isVariable = $argument->value instanceof Expr\Variable && is_string($argument->value->name);
 
-        return ! $argument->name instanceof Node\Identifier && ! $argument->unpack && ! $argument->byRef && $isVariable
+        return $argument->name === null && ! $argument->unpack && ! $argument->byRef && $isVariable
             ? $argument->value->name : null;
     }
 
@@ -183,6 +183,79 @@ trait NativeBindingGuards
     {
         foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Stmt\Goto_::class) as $jump) {
             if (self::isOwnedBy($jump, $method)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A finite registration must occur directly after a supported normally continuing prefix.
+     */
+    private static function doesTaskPrefixReach(Node $loop, Stmt\ClassMethod $method): bool
+    {
+        foreach ($method->stmts ?? [] as $statement) {
+            if ($statement === $loop) {
+                return true;
+            }
+            if (! self::isPlainTaskPrefix($statement, $method)) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Calls may return normally; native exits, constant branches and other control flow stay unsupported.
+     */
+    private static function isPlainTaskPrefix(Node $statement, Stmt\ClassMethod $method): bool
+    {
+        if ($statement instanceof Stmt\If_) {
+            return $statement->else === null && $statement->elseifs === [] && $statement->cond instanceof Expr\FuncCall && self::hasNormalTaskOperands($statement->cond, $method);
+        }
+        if (! $statement instanceof Stmt\Expression) {
+            return false;
+        }
+        $expression = $statement->expr;
+        if ($expression instanceof Expr\Assign && $expression->var instanceof Expr\Variable) {
+            $expression = $expression->expr;
+        }
+
+        return self::hasNormalTaskOperands($expression, $method);
+    }
+
+    /**
+     * Immediate terminal operands and indirect callable invocation invalidate normal continuation.
+     */
+    private static function hasNormalTaskOperands(Node $expression, Stmt\ClassMethod $method): bool
+    {
+        if (! $expression instanceof Expr\Variable && ! $expression instanceof Expr\MethodCall && ! $expression instanceof Expr\FuncCall) {
+            return false;
+        }
+        if (self::hasEagerTaskExit($expression, $method)) {
+            return false;
+        }
+        foreach ((new NodeFinder)->findInstanceOf($expression, Expr\FuncCall::class) as $call) {
+            if (self::isOwnedBy($call, $method) && ! $call->name instanceof Name) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * A variable-table snapshot can expose this receiver without a direct variable argument.
+     */
+    private static function hasTaskScopeSnapshot(Stmt\ClassMethod $method): bool
+    {
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\FuncCall::class) as $call) {
+            if (! $call->name instanceof Name || $call->isFirstClassCallable() || ! self::isSameClassScope($call, $method)) {
+                continue;
+            }
+            if (strtolower($call->name->getLast()) === 'compact') {
                 return true;
             }
         }

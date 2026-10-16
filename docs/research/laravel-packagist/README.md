@@ -5,16 +5,21 @@ including abandoned packages and aliases. Selection uses the newest stable
 release in Packagist's p2 ordering, or a development reference when no stable
 release exists. Package versions and commit references are immutable audit inputs.
 
-The source archive for `laravel/liferaft` still returns HTTP 404 on 2026-10-16. The other 81 packages
-were scanned separately with the standard rule catalog. Pint and Vet omit their
+The original `laravel/liferaft` archive returned HTTP 404 on 2026-10-16. Its pinned
+`v1.0.0` commit, `45a3306464f44a37d36252dcedefe250e81a4a92`, was recovered from a
+[public mirror](https://api.github.com/repos/danharper/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92).
+The Git commit and tree objects and all 21 file blobs match that reference;
+[liferaft-source.json](liferaft-source.json) preserves the original 404, archive
+digest and file hashes. No package code, autoloader or Composer scripts were
+executed, and no package dependencies were installed. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,402 after
-thirty-two review rounds: 1,270 resolved and 54 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,324 removals and
-54 additions: the Cloud CLI dispatch group now names three methods instead of four,
-42 proven-empty interfaces have a more precise message, seven commented-code
+The 5,890 selected PHP files produced 62,793 baseline diagnostics and 61,516 after
+thirty-three review rounds: 1,277 resolved and 55 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,332 removals and
+55 additions: the Cloud CLI dispatch group now names three methods instead of four,
+43 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
 indexed receiver. All other retained diagnostics match field-for-field with their
 original multiplicity.
@@ -22,17 +27,17 @@ original multiplicity.
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
 | `max_ask_then_tell_patterns` | 234 | 214 | 20 |
-| `no_dynamic_invocation` | 506 | 505 | 1 |
+| `no_dynamic_invocation` | 508 | 507 | 1 |
 | `max_commented_out_code_lines` | 183 | 91 | 92 |
-| `no_unused_parameters` | 950 | 250 | 700 |
+| `no_unused_parameters` | 958 | 251 | 707 |
 | `no_assignment_in_return` | 203 | 197 | 6 |
 | `no_mode_parameters` | 53 | 50 | 3 |
-| `no_reassigned_parameters` | 2,357 | 2,353 | 4 |
-| `no_empty_local_interfaces` | 82 | 42 | 40 |
+| `no_reassigned_parameters` | 2,358 | 2,354 | 4 |
+| `no_empty_local_interfaces` | 83 | 43 | 40 |
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
-| `no_catch_all_exceptions` | 221 | 202 | 19 |
+| `no_catch_all_exceptions` | 226 | 207 | 19 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
@@ -40,12 +45,12 @@ original multiplicity.
 | `no_trivial_factories` | 127 | 77 | 50 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 | `avoid_redundant_naming` | 101 | 15 | 86 |
-| `no_redundant_local_interfaces` | 42 | 27 | 15 |
+| `no_redundant_local_interfaces` | 43 | 28 | 15 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-3,023 tests and three existing external-corpus skips; soda's self-check, PHPStan
+3,071 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -184,27 +189,50 @@ owned private `echoSpan` method never reads its last input. These confirm the
 respective source policies without claiming general API deletion safety. The
 remaining findings are not classified by these proofs.
 
+Round 33 preserves the required positional prefix of a finite shared task loop.
+Liferaft invokes several selected methods with the same distinct positional
+arguments; later reads require two otherwise-unused leading parameters. Removing
+those parameters shifts the protocol. Only literal task lists, unchanged receiver
+bindings and selected accessible implementations establish this contract. Genuine
+trailing unused parameters remain reported. `round33-resolved.jsonl` records the
+two exact removals; regression and rejection cases belong to
+`NoUnusedParametersTest`.
+
+Recovering Liferaft adds 15 source files to the audit. Its original baseline has
+121 diagnostics and the round-33 entry has 116: five historical conservative
+suppressions concern unavailable ancestor contracts, and one existing empty
+interface has a revised message. `round33-scope-resolved.jsonl` and
+`round33-scope-revised.jsonl` keep these pre-existing effects separate from the two
+new source corrections. Rounds 1–32 retain their original 81-package scope;
+`results.json` records the explicit scope bridge. Liferaft ends with 114 findings.
+
+`round33-reviewed.jsonl` adds eleven unchanged source-grounded findings, including
+one independently reconstructed dependency cycle. The revised empty-interface
+finding is reviewed in `round33-reviewed-revised.jsonl`. Independent policy checks
+cover 93 additional findings from the recovered package. None of these reviews
+classifies the other remaining findings.
+
 ## Source-grounded policy review
 
-`verified-policies.json` records 53,374 findings across 36 policies checked against the pinned source:
+`verified-policies.json` records 53,467 findings across 36 policies checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
-| `max_line_length` | 10,130 | Physical byte length exceeds the standard 100-byte limit. |
-| `no_untyped_parameters` | 20,389 | The parameter declaration has no native type. |
+| `max_line_length` | 10,138 | Physical byte length exceeds the standard 100-byte limit. |
+| `no_untyped_parameters` | 20,460 | The parameter declaration has no native type. |
 | `no_reflection` | 227 | Construction resolves to a native reflection class or a source-proved subclass. |
 | `no_dynamic_properties` | 1 | The attribute resolves to PHP's global `AllowDynamicProperties`. |
-| `only_list_arrays` | 1,359 | Nested array indexing outside the default request/resource path exclusions. |
-| `no_assignment_in_condition` | 1,068 | A direct or compound assignment belongs to a control-flow condition within its callable scope. |
-| `variable_name_length` | 5,506 | Literal variable identifier outside the inclusive 2–16 byte bounds, preserving each occurrence. |
+| `only_list_arrays` | 1,362 | Nested array indexing outside the default request/resource path exclusions. |
+| `no_assignment_in_condition` | 1,070 | A direct or compound assignment belongs to a control-flow condition within its callable scope. |
+| `variable_name_length` | 5,512 | Literal variable identifier outside the inclusive 2–16 byte bounds, preserving each occurrence. |
 | `method_name_length` | 252 | Method identifier outside the inclusive 1–32 byte bounds. |
 | `class_name_length` | 126 | Named class-like identifier outside the inclusive 3–32 byte bounds. |
 | `namespace_name_length` | 526 | Namespace segment outside the inclusive 3–32 byte bounds. |
 | `multiline_method_phpdoc` | 6,110 | Declared method lacks a multiline PHPDoc description before its tags. |
 | `multiline_property_phpdoc` | 4,636 | Declared or promoted property lacks its own description or an exact constructor parameter tag under a valid description. |
 | `multiline_constant_phpdoc` | 276 | Declared constant lacks a multiline PHPDoc description before its tags. |
-| `no_error_suppression` | 134 | Native error-suppression expression. |
-| `no_runtime_includes` | 99 | Runtime include or require expression. |
+| `no_error_suppression` | 135 | Native error-suppression expression. |
+| `no_runtime_includes` | 101 | Runtime include or require expression. |
 | `no_runtime_code_evaluation` | 1 | Native eval expression. |
 | `no_global_state` | 1 | A global declaration or direct global-symbol-table access. |
 | `no_chained_assignments` | 82 | Outermost assignment in a chain, preserving expression identity. |
@@ -227,7 +255,7 @@ remaining findings are not classified by these proofs.
 | `max_classes_per_namespace` | 84 | Native named class and trait declarations in the namespace exceed 15, preserving the first contributing file. |
 | `max_classes_per_project` | 4 | Native named class and trait declarations in the selected project exceed 300. |
 
-The verifier reads all 5,875 selected files, checks every source hash, recomputes
+The verifier reads all 5,890 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
 point multiplicities. Reflection subclasses require a declared, unambiguous path
 to a native reflection type. SHA-256 digests cover the verifier, pinned manifest,
@@ -255,9 +283,10 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 4,462 individually reviewed findings in `reviewed-unchanged.jsonl`
-and 53 revised retained findings in `round18-reviewed.jsonl`,
-`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,513 retained
+Together with the 4,473 individually reviewed findings in `reviewed-unchanged.jsonl`
+and 54 revised retained findings in `round18-reviewed.jsonl`,
+`round22-reviewed-revised.jsonl`, `round26-revised.jsonl` and
+`round33-reviewed-revised.jsonl`, this leaves 3,522 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
@@ -298,12 +327,11 @@ without application autoloading.
 Each package report contains the exact source paths and SHA-256 hashes, the full
 diagnostic list, time and peak memory. `summary.json` records completed and failed
 packages. The command exits nonzero when a package cannot be obtained or analyzed;
-quality findings themselves are expected and do not stop the corpus run. Liferaft's
-missing archive therefore currently causes a nonzero aggregate exit.
+quality findings themselves are expected and do not stop the corpus run.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,243 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,277 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -466,9 +494,9 @@ the 16 schema modifiers receive two slots through inherited `addModifiers`.
 including five closure factories whose own `get_defined_vars()` calls cannot observe
 the uncaptured outer temporary. Returning the closure directly preserves its body,
 PHPDoc and reference captures.
-`revised.jsonl` retains both versions of the Cloud CLI finding, the 42 interface messages
+`revised.jsonl` retains both versions of the Cloud CLI finding, the 43 interface messages
 and seven commented-code ordinals;
-`reviewed-unchanged.jsonl` records 4,448 retained findings: 29 string-policy findings,
+`reviewed-unchanged.jsonl` records 4,473 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
 singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
 recommendations. Round 21 adds 197 return-assignment and 40 literal-concatenation
@@ -477,7 +505,8 @@ accesses, plus 1,285 repeated-string policies, 266 computed targets and 12 nativ
 indirect-call helpers. Round 22 adds 74 unchanged commented-code fragments;
 round 23 adds three captured-parameter rebindings, round 27 adds 1,369 native
 parameter-binding writes, round 29 adds 72 structural measurements, and round 30 adds 131 structural
-measurements and 29 dependency cycles. Changes are compared as diagnostic multisets, including message, location and multiplicity.
+measurements and 29 dependency cycles. Rounds 31–33 add 25 unchanged findings.
+Changes are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
 

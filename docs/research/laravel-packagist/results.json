@@ -5,20 +5,20 @@
   "baseline_source_sha256": "cfaf709897157178e55be8d3574fda59fd2917fd15c067c4da3edcf4856e93c5",
   "php": "8.5.11",
   "requested_packages": 82,
-  "analyzed_packages": 81,
-  "files": 5875,
-  "before": 62672,
-  "remaining_review": "Thirty-six standard policies have 53,374 source-grounded findings; 4462 unchanged and 53 revised retained findings were reviewed individually. The remaining 3,513 findings are not yet classified.",
-  "final_source_sha256": "441c8d4c0cdb3fc439872192b02e5369da59bed1921d39fa343376d461d1ae9e",
-  "after": 61402,
-  "removed": 1324,
-  "added": 54,
-  "resolved": 1270,
-  "revised": 54,
+  "analyzed_packages": 82,
+  "files": 5890,
+  "before": 62793,
+  "remaining_review": "Thirty-six standard policies have 53,467 source-grounded findings; 4473 unchanged and 54 revised retained findings were reviewed individually. The remaining 3,522 findings are not yet classified.",
+  "final_source_sha256": "cd5e5cab6af685e17a75a7fe0499370446f15bbcf5fdd6862813d635c5b4317c",
+  "after": 61516,
+  "removed": 1332,
+  "added": 55,
+  "resolved": 1277,
+  "revised": 55,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1324,
-    "added": 54
+    "removed": 1332,
+    "added": 55
   },
   "changed_rules": {
     "avoid_redundant_naming": {
@@ -47,8 +47,8 @@
       "net_removed": 6
     },
     "no_catch_all_exceptions": {
-      "before": 221,
-      "after": 202,
+      "before": 226,
+      "after": 207,
       "net_removed": 19
     },
     "no_consecutive_block_comments": {
@@ -62,13 +62,13 @@
       "net_removed": 132
     },
     "no_dynamic_invocation": {
-      "before": 506,
-      "after": 505,
+      "before": 508,
+      "after": 507,
       "net_removed": 1
     },
     "no_empty_local_interfaces": {
-      "before": 82,
-      "after": 42,
+      "before": 83,
+      "after": 43,
       "net_removed": 40
     },
     "no_mode_parameters": {
@@ -77,13 +77,13 @@
       "net_removed": 3
     },
     "no_reassigned_parameters": {
-      "before": 2357,
-      "after": 2353,
+      "before": 2358,
+      "after": 2354,
       "net_removed": 4
     },
     "no_redundant_local_interfaces": {
-      "before": 42,
-      "after": 27,
+      "before": 43,
+      "after": 28,
       "net_removed": 15
     },
     "no_repeated_type_dispatch": {
@@ -102,9 +102,9 @@
       "net_removed": 50
     },
     "no_unused_parameters": {
-      "before": 950,
-      "after": 250,
-      "net_removed": 700
+      "before": 958,
+      "after": 251,
+      "net_removed": 707
     },
     "no_unused_private_state": {
       "before": 2,
@@ -355,6 +355,19 @@
       "revised": 0,
       "reviewed_unchanged": 2,
       "reviewed_policy_findings": 0
+    },
+    {
+      "round": 33,
+      "before": 61518,
+      "after": 61516,
+      "resolved": 2,
+      "revised": 0,
+      "reviewed_unchanged": 11,
+      "reviewed_revised": 1,
+      "reviewed_policy_findings": 0,
+      "scope_additions": [
+        "laravel/liferaft"
+      ]
     }
   ],
   "packages": [
@@ -700,8 +713,15 @@
     },
     {
       "name": "laravel/liferaft",
-      "status": "unavailable",
-      "error": "HTTP Error 404: Not Found"
+      "status": "analyzed",
+      "files": 15,
+      "source_sha256": "a2cd7af23aef4aa3967f82269a4e98a3de447bc7f1c6447140727b4d32827bfb",
+      "before": 121,
+      "after": 114,
+      "removed": 8,
+      "added": 1,
+      "scope_added_round": 33,
+      "historical_entry_after": 116
     },
     {
       "name": "laravel/livewire-starter-kit",
@@ -1175,10 +1195,37 @@
     }
   ],
   "review_coverage": {
-    "source_grounded_policy_findings": 53374,
-    "individually_reviewed_retained": 4462,
-    "remaining_unclassified": 3513,
+    "source_grounded_policy_findings": 53467,
+    "individually_reviewed_retained": 4473,
+    "remaining_unclassified": 3522,
     "policy_proof": "verified-policies.json",
-    "individually_reviewed_revised": 53
-  }
+    "individually_reviewed_revised": 54
+  },
+  "scope_additions": [
+    {
+      "round": 33,
+      "package": "laravel/liferaft",
+      "version": "v1.0.0",
+      "reference": "45a3306464f44a37d36252dcedefe250e81a4a92",
+      "files": 15,
+      "source_sha256": "a2cd7af23aef4aa3967f82269a4e98a3de447bc7f1c6447140727b4d32827bfb",
+      "baseline_before": 121,
+      "entry_after": 116,
+      "historical_changes": {
+        "resolved": 5,
+        "revised": 1,
+        "new": 0,
+        "removed": 6,
+        "added": 1
+      },
+      "historical_resolved_ledger": "round33-scope-resolved.jsonl",
+      "historical_revised_ledger": "round33-scope-revised.jsonl",
+      "baseline_report_sha256": "d6624c3286700b1054bd329eb2d165b0e7ac4db2ec46463e976bc1a0bf33d69e",
+      "entry_report_sha256": "13c2b126f60c251f1ba4efaa0477099c140adf76bf000357de2a64dce20b95c2",
+      "recovery_provenance_sha256": "a06519af156e0c2765f38f700c62b065d17038b1a41d3f59d3284c0203fbef52",
+      "source_grounded_policy_findings_added": 93,
+      "baseline_source_sha256": "cfaf709897157178e55be8d3574fda59fd2917fd15c067c4da3edcf4856e93c5",
+      "reason": "Recovered the exact previously requested immutable public source; these historical differences predate round33 product-source changes."
+    }
+  ]
 }

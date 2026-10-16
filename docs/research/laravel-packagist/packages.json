@@ -211,8 +211,9 @@
       "name": "laravel/liferaft",
       "version": "v1.0.0",
       "reference": "45a3306464f44a37d36252dcedefe250e81a4a92",
-      "dist": "https://api.github.com/repos/laravel/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92",
-      "download_error": "HTTP Error 404: Not Found"
+      "dist": "https://api.github.com/repos/danharper/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92",
+      "original_dist": "https://api.github.com/repos/laravel/liferaft/zipball/45a3306464f44a37d36252dcedefe250e81a4a92",
+      "original_download_error": "HTTP Error 404: Not Found"
     },
     {
       "name": "laravel/livewire-starter-kit",
