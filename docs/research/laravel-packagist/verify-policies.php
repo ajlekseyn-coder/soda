@@ -18,6 +18,7 @@ $parser = (new ParserFactory)->createForNewestSupportedVersion();
 $finder = new NodeFinder;
 $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynamic_properties', 'only_list_arrays', 'no_assignment_in_condition'];
 $nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
+$projectBounds = ['max_classes_per_namespace' => 15, 'max_classes_per_project' => 300];
 $docKinds = ['multiline_method_phpdoc' => 'method', 'multiline_property_phpdoc' => 'property', 'multiline_constant_phpdoc' => 'constant'];
 $complexityBounds = ['max_cyclomatic_complexity' => 8, 'max_cognitive_complexity' => 15, 'max_statements_per_callable' => 20, 'max_control_nesting' => 3];
 $metricBounds = ['max_namespace_depth' => 4, 'max_file_loc' => 700, 'max_class_length' => 500, 'max_method_length' => 100, 'max_classes_per_file' => 1, 'max_dependencies' => 8, 'max_efferent_coupling' => 15, ...$complexityBounds];
@@ -33,7 +34,7 @@ $syntaxMessages = [
     'no_behavior_magic_methods'  => 'Behavioral magic methods hide the public API. Declare explicit methods and contracts.',
     'no_anonymous_classes'       => 'Anonymous classes hide responsibilities and project size. Give the behavior a named type.',
 ];
-$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), ...array_keys($metricBounds), 'no_else_branches', 'max_layer_dominance_percentage']));
+$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), ...array_keys($metricBounds), ...array_keys($projectBounds), 'no_else_branches', 'max_layer_dominance_percentage']));
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -143,9 +144,14 @@ foreach ($manifest['packages'] as $spec) {
     $byFile = [];
     $directories = [];
     $layerActual = [];
+    $projectActual = [];
+    $projectClasses = 0;
+    $namespaceClasses = [];
     foreach ($data['violations'] as $row) {
         if (in_array($row['rule'], $rules, true)) {
-            if ($row['rule'] === 'max_layer_dominance_percentage') {
+            if (isset($projectBounds[$row['rule']])) {
+                $projectActual[] = $encode(['package' => $spec['name'], 'diagnostic' => $row]);
+            } elseif ($row['rule'] === 'max_layer_dominance_percentage') {
                 if (! isset($data['files'][$row['file']])) {
                     throw new RuntimeException('Directory diagnostic outside source manifest: '.$spec['name']);
                 }
@@ -207,11 +213,18 @@ foreach ($manifest['packages'] as $spec) {
             }
             $classCount++;
             $name = $class->namespacedName->toString();
+            $separator = strrpos($name, '\\');
+            if ($separator !== false) {
+                $namespace = substr($name, 0, $separator);
+                $namespaceClasses[$namespace] ??= ['file' => $relative, 'count' => 0];
+                $namespaceClasses[$namespace]['count']++;
+            }
             $metric('max_namespace_depth', substr_count($name, '\\'), $name);
             $metric('max_class_length', $measure($class), $name);
             $metric('max_dependencies', count($class->getMethod('__construct')?->params ?? []), $name);
             $metric('max_efferent_coupling', auditExternalTypeCount($class), $name);
         }
+        $projectClasses += $classCount;
         $metric('max_classes_per_file', $classCount);
         foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Stmt\ClassMethod || $node instanceof Node\Stmt\Function_) as $callable) {
             if ($callable instanceof Node\Stmt\Function_) {
@@ -474,6 +487,27 @@ foreach ($manifest['packages'] as $spec) {
     if (array_diff(array_keys($byFile), array_keys($data['files'])) !== []) {
         throw new RuntimeException('Diagnostic outside the source manifest: '.$spec['name']);
     }
+    $projectExpected = [];
+    foreach ($namespaceClasses as $namespace => $entry) {
+        if ($entry['count'] > $projectBounds['max_classes_per_namespace']) {
+            $projectExpected[] = $encode(['package' => $spec['name'], 'diagnostic' => [
+                'rule'   => 'max_classes_per_namespace', 'file' => $entry['file'], 'class' => $namespace,
+                'method' => null, 'line' => null, 'message' => null,
+                'value'  => $entry['count'], 'threshold' => $projectBounds['max_classes_per_namespace'],
+            ]]);
+        }
+    }
+    if ($projectClasses > $projectBounds['max_classes_per_project']) {
+        $projectExpected[] = $encode(['package' => $spec['name'], 'diagnostic' => [
+            'rule'   => 'max_classes_per_project', 'file' => array_key_first($data['files']), 'class' => null,
+            'method' => null, 'line' => null, 'message' => null,
+            'value'  => $projectClasses, 'threshold' => $projectBounds['max_classes_per_project'],
+        ]]);
+    }
+    if ($counts($projectExpected) !== $counts($projectActual)) {
+        throw new RuntimeException('Project declaration inventory differs: '.$spec['name']);
+    }
+
     $layerExpected = array_map(static fn (array $row): string => $encode(['package' => $spec['name'], 'diagnostic' => $row]), auditLayerDiagnostics($directories));
     if ($counts($layerExpected) !== $counts($layerActual)) {
         throw new RuntimeException('Directory naming evidence differs: '.$spec['name']);

@@ -8,23 +8,23 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-four standard policies have 53,286 source-grounded findings; 4288 unchanged and 53 revised retained findings were reviewed individually. The remaining 3,806 findings are not yet classified.",
-  "final_source_sha256": "04377737e011a97f29a6d0fb01a4b606139fd5b83b8fa3289adc23f06af81137",
-  "after": 61433,
-  "removed": 1293,
+  "remaining_review": "Thirty-six standard policies have 53,374 source-grounded findings; 4448 unchanged and 53 revised retained findings were reviewed individually. The remaining 3,554 findings are not yet classified.",
+  "final_source_sha256": "4a432d7c2173fac1f854b02f650d1cd51a5d5b87df554c4ba3231d4a9d28612b",
+  "after": 61429,
+  "removed": 1297,
   "added": 54,
-  "resolved": 1239,
+  "resolved": 1243,
   "revised": 54,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1293,
+    "removed": 1297,
     "added": 54
   },
   "changed_rules": {
     "avoid_redundant_naming": {
       "before": 101,
-      "after": 18,
-      "net_removed": 83
+      "after": 15,
+      "net_removed": 86
     },
     "max_ask_then_tell_patterns": {
       "before": 234,
@@ -83,8 +83,8 @@
     },
     "no_redundant_local_interfaces": {
       "before": 42,
-      "after": 41,
-      "net_removed": 1
+      "after": 40,
+      "net_removed": 2
     },
     "no_repeated_type_dispatch": {
       "before": 40,
@@ -328,6 +328,15 @@
       "revised": 0,
       "reviewed_unchanged": 72,
       "reviewed_policy_findings": 315
+    },
+    {
+      "round": 30,
+      "before": 61433,
+      "after": 61429,
+      "resolved": 4,
+      "revised": 0,
+      "reviewed_unchanged": 160,
+      "reviewed_policy_findings": 88
     }
   ],
   "packages": [
@@ -752,8 +761,8 @@
       "files": 97,
       "source_sha256": "b03f413c74872d386eefd86bd9c22f13297ab92f8e54da505aaaea5ea6b81270",
       "before": 1319,
-      "after": 1317,
-      "removed": 2,
+      "after": 1316,
+      "removed": 3,
       "added": 0
     },
     {
@@ -842,8 +851,8 @@
       "files": 34,
       "source_sha256": "582e1ad2fef379dffd8ff1a2e699e983f41f541a2ab3580ae0d0d488ccde04c6",
       "before": 373,
-      "after": 364,
-      "removed": 9,
+      "after": 363,
+      "removed": 10,
       "added": 0
     },
     {
@@ -1002,8 +1011,8 @@
       "files": 315,
       "source_sha256": "ffc34ed2d0d9f14b1e5a753089f98de175e0d2188e6696d37254eafd10dfc7bf",
       "before": 2015,
-      "after": 1892,
-      "removed": 125,
+      "after": 1890,
+      "removed": 127,
       "added": 2
     },
     {
@@ -1148,9 +1157,9 @@
     }
   ],
   "review_coverage": {
-    "source_grounded_policy_findings": 53286,
-    "individually_reviewed_retained": 4288,
-    "remaining_unclassified": 3806,
+    "source_grounded_policy_findings": 53374,
+    "individually_reviewed_retained": 4448,
+    "remaining_unclassified": 3554,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 53
   }

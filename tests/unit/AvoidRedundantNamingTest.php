@@ -100,6 +100,13 @@ final class AvoidRedundantNamingTest extends TestCase
         yield 'standalone native iterable marker remains reported' => ['', 'class Settings { public function listContents(): iterable { return []; } }', 1];
         yield 'anonymous method and following method keep their direct owner' => ['interface Required { public function clearPost(): void; }', 'class PostCollection implements Required { public function clearPost(): void {} public function nested() { return new class { public function clearPost(): void {} }; } public function removePost(): void {} }', 1, ['removePost']];
         yield 'abstract inherited destination remains available to an implementation' => ['interface Required { public function clear($input): void; }', 'abstract class PostCollection implements Required { public function clearPost(): void {} }', 1, ['clearPost']];
+        yield 'route type does not make the middleware action redundant' => ['class Route {}', 'class State { public function attachMiddlewareToRoute(Route $route): void {} }', 0];
+        yield 'type input does not make the scope return role redundant' => ['class Type {}', 'class Scope { public function addReturnType(Type $returnType, int $lineNumber): void {} }', 0];
+        yield 'resolved type alias does not make the method return role redundant' => ['class Type {}', 'use App\\Type as TypeContract; class MethodResult { public function addReturnType(TypeContract $type, int $lineNumber): void {} }', 0];
+        yield 'complete method prefix of a concrete input type remains redundant' => ['class MethodResult {}', 'class Result { public function addMethod(MethodResult $method): void {} }', 1, ['addMethod']];
+        yield 'complete user prefix of a concrete input type remains redundant' => ['class UserProfileData {}', 'class State { public function addUser(UserProfileData $user): void {} }', 1, ['addUser']];
+        yield 'complete union member prefix remains redundant' => ['class PaymentMethod {}', 'class Customer { public function addPaymentMethod(PaymentMethod|string $paymentMethod): void {} }', 1, ['addPaymentMethod']];
+        yield 'full parameter suffix and class context remain redundant' => ['class Post {}', 'class PostCollection { public function addPost(Post $post): void {} }', 1, ['addPost']];
         yield 'native override attribute remains respected' => ['class Base { public function clearPost() {} }', 'class PostCollection extends Base { #[\Override] public function clearPost() {} }', 0];
     }
 

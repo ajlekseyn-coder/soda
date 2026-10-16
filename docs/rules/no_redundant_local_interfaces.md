@@ -10,6 +10,11 @@ An `implements` clause alone does not constitute a consumer of a local abstracti
 
 A qualified `@mixin` on a class or trait also declares a type consumer through
 [documented delegation](https://phpstan.org/writing-php-code/phpdocs-basics#mixins).
+Qualified return and parameter types in a class or trait's
+[`@method` signature](https://phpstan.org/writing-php-code/phpdocs-basics#magic-methods)
+also consume the declared contract. Descriptions after the signature and parameter
+default values do not declare types. Imported and relative PHPDoc names remain
+outside this analysis.
 Prose and tags on unrelated declaration kinds do not count. References owned by an
 interface remain dependencies; a self-reference alone does not consume it.
 

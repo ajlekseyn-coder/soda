@@ -103,9 +103,15 @@ final readonly class MethodRedundancyChecker
             return $similarity;
         }
 
-        $redundant = $this->findRedundant($words, $paramShortName, 1);
+        $typeFirst = $this->splitCamelCase($paramShortName)[0] ?? '';
+        $nameFirst = $words[1] ?? '';
+        $prefixSimilarity = $this->similarity($nameFirst, $typeFirst);
+        $isCompletePrefix = str_starts_with($paramShortName, $nameAfterPrefix)
+            && strlen($nameFirst) >= $this->minWordLength
+            && strlen($typeFirst) >= $this->minWordLength
+            && $prefixSimilarity >= $this->similarityThreshold;
 
-        return $redundant !== null ? $redundant['similarity'] : null;
+        return $isCompletePrefix ? $prefixSimilarity : null;
     }
 
     /**
@@ -318,15 +324,6 @@ final readonly class MethodRedundancyChecker
     }
 
     /**
-     * Determine whether word similar applies to the supplied input.
-     */
-    private function isWordSimilar(string $a, string $b): bool
-    {
-        return $a === $b
-            || (strlen($a) >= $this->minWordLength && strlen($b) >= $this->minWordLength && $this->similarity($a, $b) >= $this->similarityThreshold);
-    }
-
-    /**
      * Measure normalized identifier overlap for the naming policy.
      */
     private function similarity(string $a, string $b): float
@@ -334,33 +331,5 @@ final readonly class MethodRedundancyChecker
         similar_text($a, $b, $percent);
 
         return $percent;
-    }
-
-    /**
-     * Find the first identifier word matching the referenced type above the similarity threshold.
-     *
-     * @param list<string> $words
-     *
-     * @return array{word: string, similarity: float}|null
-     */
-    private function findRedundant(array $words, string $typeShortName, int $startIndex): ?array
-    {
-        $typeFirst = collect($this->splitCamelCase($typeShortName))->first() ?? '';
-        $isShortType = strlen($typeFirst) < $this->minWordLength;
-
-        if ($isShortType) {
-            return null;
-        }
-
-        $counter = count($words);
-        for ($i = $startIndex; $i < $counter; $i++) {
-            $w = $words[$i];
-            $isSimilarWord = strlen($w) >= $this->minWordLength && ($this->isWordSimilar($w, $typeFirst) || $this->isWordSimilar($w, $typeShortName));
-            if ($isSimilarWord) {
-                return ['word' => $w, 'similarity' => $this->similarity($w, $typeFirst)];
-            }
-        }
-
-        return null;
     }
 }

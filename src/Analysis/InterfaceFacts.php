@@ -8,6 +8,7 @@ use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
+use PhpToken;
 
 /**
  * Collects interface contracts and consumer edges without retaining ASTs.
@@ -151,7 +152,7 @@ final class InterfaceFacts
             return [];
         }
 
-        preg_match_all('/^\s*(?:\/\*\*|\*)\s*@(param|return|var|mixin|template(?:-covariant|-contravariant)?)\s+([^\r\n]+)/m', $comment->getText(), $annotations, PREG_SET_ORDER);
+        preg_match_all('/^\s*(?:\/\*\*|\*)\s*@(param|return|var|mixin|method|template(?:-covariant|-contravariant)?)\s+([^\r\n]+)/m', $comment->getText(), $annotations, PREG_SET_ORDER);
         $references = [];
         foreach ($annotations as $annotation) {
             array_shift($annotation);
@@ -176,6 +177,9 @@ final class InterfaceFacts
      */
     private static function typeExpression(string $tag, string $text): string
     {
+        if ($tag === 'method') {
+            return self::methodTypes(trim($text));
+        }
         $normalized = trim($text);
         $tokens = preg_split('/\s+/', $normalized);
         if ($tokens === false) {
@@ -197,6 +201,51 @@ final class InterfaceFacts
     }
 
     /**
+     * Method descriptions follow the closing parameter list, outside the declared signature.
+     */
+    private static function methodTypes(string $text): string
+    {
+        if (preg_match('/^(?:static\s+)?(?:(\S+)\s+)?[A-Za-z_][A-Za-z0-9_]*\s*\(/', $text, $signature) !== 1) {
+            return '';
+        }
+
+        return self::methodParameterTypes(substr($text, strlen($signature[0])), $signature[1] ?? '');
+    }
+
+    /**
+     * Parameter names end their type region; defaults can contain nested calls and quoted delimiters.
+     */
+    private static function methodParameterTypes(string $text, string $returnType): string
+    {
+        $types = $returnType;
+        [$parameter, $readingType] = ['', true];
+        $depth = 0;
+        $nesting = [ord('(') => 1, ord('[') => 1, ord('{') => 1, ord(')') => -1, ord(']') => -1, ord('}') => -1, T_CURLY_OPEN => 1, T_DOLLAR_OPEN_CURLY_BRACES => 1];
+        foreach (array_slice(PhpToken::tokenize('<?php '.$text), 1) as $token) {
+            $boundary = $depth === 0 ? $token->id : null;
+            if ($boundary === ord(')')) {
+                return $types.' '.$parameter;
+            }
+            if ($boundary === ord(',')) {
+                $types .= ' '.$parameter;
+                [$parameter, $readingType] = ['', true];
+
+                continue;
+            }
+            if ($depth === 0 && $token->id === T_VARIABLE) {
+                $readingType = false;
+            }
+            if ($readingType && $token->id === ord('=')) {
+                return '';
+            }
+            $parameter .= $readingType ? $token->text : '';
+            $depth += $nesting[$token->id] ?? 0;
+        }
+
+        return '';
+    }
+
+    /**
      * Match annotation roles to declarations rather than accepting arbitrary comment text.
      */
     private static function isDeclarationTag(Node $node, string $tag): bool
@@ -204,7 +253,7 @@ final class InterfaceFacts
         return match ($tag) {
             'var'                                                      => $node instanceof Stmt\Property,
             'param', 'return'                                          => $node instanceof Node\FunctionLike,
-            'mixin'                                                    => $node instanceof Stmt\ClassLike,
+            'mixin', 'method'                                          => $node instanceof Stmt\ClassLike,
             'template', 'template-covariant', 'template-contravariant' => $node instanceof Stmt\ClassLike || $node instanceof Node\FunctionLike,
             default                                                    => false,
         };

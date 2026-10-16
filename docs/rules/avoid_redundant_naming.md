@@ -13,6 +13,13 @@ declaration does not establish that a public method name is free to change. A
 suggested name must not collide with another owned method, a concrete visible
 inherited method, or an existing type in the same namespace.
 
+Parameter-type shortcuts compare the complete method suffix. A matching word
+inside a longer suffix does not make its other words redundant. A prefix such as
+`addMethod(MethodResult $method)` may repeat the input type, while
+`addReturnType(Type $type)` keeps `Return`: the type does not supply that role.
+Likewise, a `Route` input does not make `Middleware` redundant in
+`attachMiddlewareToRoute`.
+
 Collection shortcuts require a complete `All` or `List` word and a native array
 or iterable return type. An unspecified return type does not prove a collection,
 and substrings in `Fallback`, `Callback` or `Listeners` do not supply that word.

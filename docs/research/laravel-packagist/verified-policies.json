@@ -2,9 +2,9 @@
     "packages": 81,
     "files": 5875,
     "manifest_sha256": "29ae5c78c75378ff9974ec17b9dbeb02b4d7e5115f1978f3b59c19ab88ae8375",
-    "verifier_sha256": "e7aa9f0663b725b25cabc358b8776f6f6b2e08df5894207e731be23e0a75910f",
+    "verifier_sha256": "fd615aab5df60d13476ff531204c79bccc85be4e74b5c64259b9f102042bd4e3",
     "source_set_sha256": "64a7695e4986ae3df5283d3ffcde69c0dc217fe01762a683eb0b43cc311d8281",
-    "scope": "Exact source measurements and AST declarations for 34 standard policies; no claim about other rules.",
+    "scope": "Exact source measurements and AST declarations for 36 standard policies; no claim about other rules.",
     "rules": {
         "max_line_length": {
             "findings": 10130,
@@ -149,6 +149,14 @@
         "max_control_nesting": {
             "findings": 97,
             "diagnostic_multiset_sha256": "bc5ced636dc041b6dc032e1cec7d88323315569ac3bd3ad9cfed377922f66c99"
+        },
+        "max_classes_per_namespace": {
+            "findings": 84,
+            "diagnostic_multiset_sha256": "535c1bd75bb9d77fbda8cffbfccee204630c7af51cc0f581da673926f5d235f9"
+        },
+        "max_classes_per_project": {
+            "findings": 4,
+            "diagnostic_multiset_sha256": "981ad7d63b2fedfb578a46081dffdd9b0ba29067e30dba3502e67583e6a57e62"
         },
         "no_else_branches": {
             "findings": 229,

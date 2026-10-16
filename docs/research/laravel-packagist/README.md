@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,433 after
-twenty-nine review rounds: 1,239 resolved and 54 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,293 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,429 after
+thirty review rounds: 1,243 resolved and 54 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,297 removals and
 54 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
@@ -39,13 +39,13 @@ original multiplicity.
 | `multiline_property_phpdoc` | 4,637 | 4,636 | 1 |
 | `no_trivial_factories` | 127 | 77 | 50 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
-| `avoid_redundant_naming` | 101 | 18 | 83 |
-| `no_redundant_local_interfaces` | 42 | 41 | 1 |
+| `avoid_redundant_naming` | 101 | 15 | 86 |
+| `no_redundant_local_interfaces` | 42 | 40 | 2 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,894 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,920 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -124,9 +124,29 @@ independent policies verify 315 coupling, constructor-slot and directory-layer
 measurements; 31 forged-input checks reject altered fields, source hashes and
 missing or duplicated diagnostic occurrences.
 
+Round 30 preserves method-role words that a first parameter type does not supply.
+A `Route` input does not make `Middleware` redundant, and a general `Type` input
+does not supply the `Return` role in `addReturnType`. Complete type-prefix
+shortcuts remain checked. The rule removes three false positives; its other 15
+findings remain unclassified. A class-level qualified `@method` return signature
+also establishes Pennant's existing Driver consumer. Only signature types count:
+prose, default expressions and interpolated string punctuation cannot create a
+type consumer. Both default interpolation and a following real parameter have
+regression controls. `round30-resolved.jsonl` records the four exact removals.
+
+`round30-reviewed.jsonl` confirms 131 further structural measurements using
+complete native parent and plain-trait composition, plus 29 namespace dependency
+cycles. Unresolved, adapted or conflicting compositions remain outside that proof.
+For cycles, the native graph matches the full reported strongly connected
+component and every displayed edge; the other 19 cycle findings remain
+unclassified. These are static dependency policies, not runtime construction
+claims. Two additional policies independently confirm all 84 namespace-size and
+four project-size findings. Their verifier rejects alterations to each diagnostic
+field, missing and duplicated occurrences, and forged source hashes.
+
 ## Source-grounded policy review
 
-`verified-policies.json` records 53,286 findings across 34 policies checked against the pinned source:
+`verified-policies.json` records 53,374 findings across 36 policies checked against the pinned source:
 
 | Policy | Findings | Evidence |
 | --- | ---: | --- |
@@ -164,6 +184,8 @@ missing or duplicated diagnostic occurrences.
 | `max_efferent_coupling` | 258 | Independent native type-reference inventory exceeds the catalog limit. |
 | `max_dependencies` | 55 | Own constructor parameter slots, including scalar and defaulted slots, exceed the catalog limit. |
 | `max_layer_dominance_percentage` | 2 | The catalog directory-suffix share exceeds its limit; this is a naming policy, not an architectural inference. |
+| `max_classes_per_namespace` | 84 | Native named class and trait declarations in the namespace exceed 15, preserving the first contributing file. |
+| `max_classes_per_project` | 4 | Native named class and trait declarations in the selected project exceed 300. |
 
 The verifier reads all 5,875 selected files, checks every source hash, recomputes
 measurements and AST declarations without invoking Soda rules, and compares exact
@@ -193,9 +215,9 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 4,288 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 4,448 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 53 revised retained findings in `round18-reviewed.jsonl`,
-`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,806 retained
+`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,554 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
@@ -241,7 +263,7 @@ missing archive therefore currently causes a nonzero aggregate exit.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,239 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,243 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -406,7 +428,7 @@ the uncaptured outer temporary. Returning the closure directly preserves its bod
 PHPDoc and reference captures.
 `revised.jsonl` retains both versions of the Cloud CLI finding, the 42 interface messages
 and seven commented-code ordinals;
-`reviewed-unchanged.jsonl` records 4,288 retained findings: 29 string-policy findings,
+`reviewed-unchanged.jsonl` records 4,448 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
 singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
 recommendations. Round 21 adds 197 return-assignment and 40 literal-concatenation
@@ -414,7 +436,8 @@ policies, 148 structural measurements and 345 explicit environment/native argume
 accesses, plus 1,285 repeated-string policies, 266 computed targets and 12 native
 indirect-call helpers. Round 22 adds 74 unchanged commented-code fragments;
 round 23 adds three captured-parameter rebindings, round 27 adds 1,369 native
-parameter-binding writes, and round 29 adds 72 structural measurements. Changes are compared as diagnostic multisets, including message, location and multiplicity.
+parameter-binding writes, round 29 adds 72 structural measurements, and round 30 adds 131 structural
+measurements and 29 dependency cycles. Changes are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
 
