@@ -20,7 +20,7 @@ $rules = ['max_line_length', 'no_untyped_parameters', 'no_reflection', 'no_dynam
 $nameBounds = ['variable_name_length' => [2, 16], 'method_name_length' => [1, 32], 'class_name_length' => [3, 32], 'namespace_name_length' => [3, 32]];
 $docKinds = ['multiline_method_phpdoc' => 'method', 'multiline_property_phpdoc' => 'property', 'multiline_constant_phpdoc' => 'constant'];
 $complexityBounds = ['max_cyclomatic_complexity' => 8, 'max_cognitive_complexity' => 15, 'max_statements_per_callable' => 20, 'max_control_nesting' => 3];
-$metricBounds = ['max_namespace_depth' => 4, 'max_file_loc' => 700, 'max_class_length' => 500, 'max_method_length' => 100, 'max_classes_per_file' => 1, ...$complexityBounds];
+$metricBounds = ['max_namespace_depth' => 4, 'max_file_loc' => 700, 'max_class_length' => 500, 'max_method_length' => 100, 'max_classes_per_file' => 1, 'max_dependencies' => 8, 'max_efferent_coupling' => 15, ...$complexityBounds];
 $syntaxMessages = [
     'only_list_arrays'           => 'This policy forbids nested array indexing. Review the data shape: repeated domain meaning or invariants can justify a value object; introducing a temporary alone does not improve the model.',
     'no_assignment_in_condition' => 'Assignment inside condition is forbidden. Assign first, then test the value.',
@@ -33,7 +33,7 @@ $syntaxMessages = [
     'no_behavior_magic_methods'  => 'Behavioral magic methods hide the public API. Declare explicit methods and contracts.',
     'no_anonymous_classes'       => 'Anonymous classes hide responsibilities and project size. Give the behavior a named type.',
 ];
-$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), ...array_keys($metricBounds), 'no_else_branches']));
+$rules = array_values(array_unique([...$rules, ...array_keys($nameBounds), ...array_keys($docKinds), ...array_keys($syntaxMessages), ...array_keys($metricBounds), 'no_else_branches', 'max_layer_dominance_percentage']));
 $verified = array_fill_keys($rules, []);
 $parents = [];
 $declarations = [];
@@ -141,9 +141,18 @@ foreach ($manifest['packages'] as $spec) {
     $git = dirname($sources).'/git/'.$name;
     $root = isset($spec['source_supplement']) && is_dir($git) ? $git : $sources.'/'.$name;
     $byFile = [];
+    $directories = [];
+    $layerActual = [];
     foreach ($data['violations'] as $row) {
         if (in_array($row['rule'], $rules, true)) {
-            $byFile[$row['file']][] = $row;
+            if ($row['rule'] === 'max_layer_dominance_percentage') {
+                if (! isset($data['files'][$row['file']])) {
+                    throw new RuntimeException('Directory diagnostic outside source manifest: '.$spec['name']);
+                }
+                $layerActual[] = $encode(['package' => $spec['name'], 'diagnostic' => $row]);
+            } else {
+                $byFile[$row['file']][] = $row;
+            }
             $verified[$row['rule']][] = $encode(['package' => $spec['name'], 'diagnostic' => $row]);
         }
     }
@@ -157,6 +166,11 @@ foreach ($manifest['packages'] as $spec) {
         $sourceHashes[] = $spec['name']."\0".$relative."\0".$sha;
         $source = file_get_contents($path);
         $nodes = (new NodeTraverser(new NameResolver, new ParentConnectingVisitor))->traverse($parser->parse($source) ?? []);
+        $directory = dirname(realpath($path));
+        $directories[$directory] ??= ['file' => $relative, 'files' => 0, 'roles' => []];
+        $directories[$directory]['files']++;
+        $role = auditFileRole($nodes, $finder);
+        $directories[$directory]['roles'][$role] = ($directories[$directory]['roles'][$role] ?? 0) + 1;
         foreach ($finder->findInstanceOf($nodes, Node\Stmt\Class_::class) as $class) {
             if ($class->name !== null && $class->extends !== null) {
                 $key = strtolower($class->namespacedName->toString());
@@ -195,6 +209,8 @@ foreach ($manifest['packages'] as $spec) {
             $name = $class->namespacedName->toString();
             $metric('max_namespace_depth', substr_count($name, '\\'), $name);
             $metric('max_class_length', $measure($class), $name);
+            $metric('max_dependencies', count($class->getMethod('__construct')?->params ?? []), $name);
+            $metric('max_efferent_coupling', auditExternalTypeCount($class), $name);
         }
         $metric('max_classes_per_file', $classCount);
         foreach ($finder->find($nodes, static fn ($node): bool => $node instanceof Node\Stmt\ClassMethod || $node instanceof Node\Stmt\Function_) as $callable) {
@@ -458,6 +474,10 @@ foreach ($manifest['packages'] as $spec) {
     if (array_diff(array_keys($byFile), array_keys($data['files'])) !== []) {
         throw new RuntimeException('Diagnostic outside the source manifest: '.$spec['name']);
     }
+    $layerExpected = array_map(static fn (array $row): string => $encode(['package' => $spec['name'], 'diagnostic' => $row]), auditLayerDiagnostics($directories));
+    if ($counts($layerExpected) !== $counts($layerActual)) {
+        throw new RuntimeException('Directory naming evidence differs: '.$spec['name']);
+    }
 
     $packages++;
 }
@@ -495,8 +515,139 @@ foreach ($verified as $rule => $rows) {
         $summary['rules'][$rule]['byte_bounds'] = $nameBounds[$rule];
     }
 }
-
 echo json_encode($summary, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n";
+
+function auditExternalTypeCount(Node\Stmt\Class_|Node\Stmt\Trait_ $class): int
+{
+    $owner = $class->namespacedName->toLowerString();
+    $parent = $class instanceof Node\Stmt\Class_ ? $class->extends?->toString() : null;
+    $references = [];
+    $record = static function (?Node $type) use ($owner, $parent, &$references): void {
+        if (! $type instanceof Node\Name) {
+            return;
+        }
+        $name = $type->toLowerString();
+        if ($name === 'parent') {
+            $name = $parent === null ? null : strtolower($parent);
+        }
+        if ($name !== null && ! in_array($name, ['self', 'static', $owner], true)) {
+            $references[$name] = true;
+        }
+    };
+    $type = static function (?Node $node) use (&$type, $record): void {
+        if ($node instanceof Node\NullableType) {
+            $type($node->type);
+        } elseif ($node instanceof Node\UnionType || $node instanceof Node\IntersectionType) {
+            foreach ($node->types as $part) {
+                $type($part);
+            }
+        } else {
+            $record($node);
+        }
+    };
+    $supertypes = static function (Node\Stmt\ClassLike $node) use ($record): void {
+        if ($node instanceof Node\Stmt\Class_) {
+            $record($node->extends);
+            foreach ($node->implements as $interface) {
+                $record($interface);
+            }
+        }
+        foreach ($node->getTraitUses() as $use) {
+            foreach ($use->traits as $trait) {
+                $record($trait);
+            }
+        }
+    };
+    $scan = static function (Node $node) use (&$scan, $class, $record, $type, $supertypes): void {
+        if ($node !== $class && $node instanceof Node\Stmt\ClassLike) {
+            if ($node instanceof Node\Stmt\Class_ && $node->name === null) {
+                $supertypes($node);
+            }
+
+            return;
+        }
+        if ($node instanceof Node\Stmt\Function_) {
+            return;
+        }
+        if ($node instanceof Node\FunctionLike) {
+            foreach ($node->params as $parameter) {
+                $type($parameter->type);
+            }
+            $type($node->getReturnType());
+        }
+        if ($node instanceof Node\Stmt\Property) {
+            $type($node->type);
+        }
+        if ($node instanceof Node\Attribute) {
+            $record($node->name);
+        }
+        if ($node instanceof Node\Stmt\Catch_) {
+            foreach ($node->types as $caught) {
+                $record($caught);
+            }
+        }
+        if ($node instanceof Node\Expr\New_ || $node instanceof Node\Expr\StaticCall
+            || $node instanceof Node\Expr\StaticPropertyFetch || $node instanceof Node\Expr\ClassConstFetch || $node instanceof Node\Expr\Instanceof_) {
+            $record($node->class);
+        }
+        foreach ($node->getSubNodeNames() as $field) {
+            foreach (is_array($node->$field) ? $node->$field : [$node->$field] as $child) {
+                if ($child instanceof Node) {
+                    $scan($child);
+                }
+            }
+        }
+    };
+    $supertypes($class);
+    $scan($class);
+
+    return count($references);
+}
+
+function auditFileRole(array $nodes, NodeFinder $finder): string
+{
+    $roles = [];
+    foreach ($finder->findInstanceOf($nodes, Node\Stmt\Class_::class) as $class) {
+        if ($class->name === null) {
+            continue;
+        }
+        foreach (['Controller', 'Service', 'Repository', 'Model', 'Job', 'Command', 'Event', 'Listener', 'Policy', 'Middleware', 'Resource', 'Request'] as $role) {
+            if (str_ends_with($class->name->toString(), $role)) {
+                $roles[$role] = true;
+                break;
+            }
+        }
+    }
+
+    return $roles === [] ? 'Plain' : (count($roles) === 1 ? array_key_first($roles) : 'Mixed');
+}
+
+function auditLayerDiagnostics(array $directories): array
+{
+    $result = [];
+    foreach ($directories as $directory => $summary) {
+        $roles = $summary['roles'];
+        $recognized = array_diff_key($roles, ['Plain' => true]);
+        arsort($roles);
+        $dominant = array_key_first($roles);
+        $share = $roles[$dominant] / $summary['files'] * 100;
+        if ($summary['files'] < 4 || count($recognized) <= 1 || $dominant === 'Plain' || $share < 50
+            || str_contains(strtolower(basename($directory)), strtolower($dominant))) {
+            continue;
+        }
+        unset($roles[$dominant]);
+        $others = [];
+        foreach ($roles as $role => $count) {
+            $others[] = $role.'='.$count;
+        }
+        $result[] = ['rule' => 'max_layer_dominance_percentage', 'file' => $summary['file'], 'method' => null,
+            'class'         => $directory, 'line' => null, 'value' => (int) round($share), 'threshold' => 50,
+            'message'       => sprintf('Directory naming convention: %s suffix appears in %.1f%% of %d PHP files in %s; other roles: %s. This does not measure dependency direction.',
+                $dominant, $share, $summary['files'], $directory, implode(', ', $others))];
+    }
+
+    return $result;
+}
 
 // Independent AST measurements: owned-node inventories, ancestor body edges and
 // source-order boolean runs implement the documented PHP metric boundaries.

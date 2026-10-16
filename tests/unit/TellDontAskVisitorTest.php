@@ -749,4 +749,26 @@ PHP;
 
         $this->assertSame([], $this->parseAndCollect($code));
     }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('max_ask_then_tell_patterns', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Pail and Sail: consumed ternary reads a value' => [
+            'function name($user) { return $user->hasName() ? $user->name() : null; }',
+            'function notify($user) { if ($user->isActive()) { $user->notify(); } }',
+        ];
+        yield 'Pail: object owns its state decision' => [
+            'class LogFile { function log() { if ($this->isStale()) { $this->destroy(); } } }',
+            'class LogFile { function log() { if ($this->file->isStale()) { $this->file->destroy(); } } }',
+        ];
+        yield 'Scout: prepared settings are guarded and forwarded' => [
+            'function sync($engine, array $settings) { $settings = $engine->configureSoftDeleteFilter($settings); if ($settings) { $engine->updateIndexSettings("products", $settings); } }',
+            'function sync($engine) { $ready = $engine->isReady(); if ($ready) { $engine->updateIndexSettings("products", []); } }',
+        ];
+    }
 }

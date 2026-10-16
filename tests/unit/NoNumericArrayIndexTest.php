@@ -67,4 +67,18 @@ final class NoNumericArrayIndexTest extends TestCase
         yield 'unset' => [$doc.'function render(array $row) { unset($row[0]); return $row[0].$row[1]; }', 0];
         yield 'increment' => [$doc.'function render(array $row) { $row[1]++; return $row[0].$row[1]; }', 0];
     }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_numeric_array_index', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Sandbox: ordinary list indices need no wrapper' => [
+            'function first(array $keys) { return $keys[0]; }',
+            '/** @param array{string, int} $row */ function label(array $row): string { return $row[0].$row[1]; }',
+        ];
+    }
 }

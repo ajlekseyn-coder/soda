@@ -9,12 +9,15 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\LogicalLineMap;
 use Cosmira\Soda\Rules\Complexity\MaxBooleanConditions;
 use Cosmira\Soda\Rules\Complexity\NoComplexControlConditions;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NoComplexControlConditionsTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     #[DataProvider('conditions')]
     public function testReadableConditionsAndExplanations(string $condition, ?string $reason): void
     {
@@ -93,5 +96,23 @@ PHP);
         self::assertSame($all['complexControlConditions'], $metrics['complexControlConditions']);
 
         return new FileFacts('conditions.php', $source, $nodes, $metrics);
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_complex_control_conditions', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Pail: a single query with null fallback is a simple condition' => [
+            'function testing() { if (Env::get("TESTS") ?? false) { runTests(); } }',
+            'function testing() { if ($ready && $testing || $forced) { runTests(); } }',
+        ];
+        yield 'Prompts and Pail: a single query may be tested with instanceof' => [
+            'function render() { if (output() instanceof BufferedOutput) { flushOutput(); } }',
+            'function render() { if ($ready || $buffered && $forced) { flushOutput(); } }',
+        ];
     }
 }

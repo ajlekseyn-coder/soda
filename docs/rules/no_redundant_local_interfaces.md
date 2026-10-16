@@ -8,6 +8,11 @@
 
 An `implements` clause alone does not constitute a consumer of a local abstraction: a class can implement an interface no other code ever references as a type, leaving a decorative contract that must be kept in sync with its implementations. The rule scans the whole project for interface declarations and reports those with no reachable type consumer — a parameter type, return type, property, registration call, or PHPDoc type reference. Interfaces consumed by code outside the analyzed source can be listed via the `contracts` constructor argument instead of being deleted, so an exported package contract is not flagged just because its consumers live elsewhere.
 
+A qualified `@mixin` on a class or trait also declares a type consumer through
+[documented delegation](https://phpstan.org/writing-php-code/phpdocs-basics#mixins).
+Prose and tags on unrelated declaration kinds do not count. References owned by an
+interface remain dependencies; a self-reference alone does not consume it.
+
 ## Examples
 
 ```php

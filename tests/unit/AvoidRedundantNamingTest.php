@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda;
 
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
+use Cosmira\Soda\Rules\Naming\AvoidRedundantNaming;
 use Cosmira\Soda\Tests\CheckFixture;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AvoidRedundantNamingTest extends TestCase
@@ -27,6 +31,76 @@ final class AvoidRedundantNamingTest extends TestCase
         $violations = CheckFixture::forRule(null, $this->context([]));
 
         $this->assertTrue($violations->isEmpty());
+    }
+
+    #[DataProvider('namingBoundaries')]
+    public function testNamesKeepNativeContractsAndDistinctDeclaredTargets(string $declarations, string $target, int $expected, ?array $methods = null): void
+    {
+        $root = sys_get_temp_dir().'/soda-naming-boundaries-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $declaration = $root.'/Declarations.php';
+        $subject = $root.'/Subject.php';
+        $control = $root.'/Control.php';
+        file_put_contents($declaration, '<?php namespace App; '.$declarations);
+        file_put_contents($subject, '<?php namespace App; '.$target);
+        file_put_contents($control, '<?php namespace App; class GenuinePostCollection { public function clearGenuinePost() {} }');
+
+        try {
+            foreach ([[new AvoidRedundantNaming], RuleCatalog::standard()] as $checks) {
+                foreach ([[$declaration, $subject, $control], [$control, $subject, $declaration]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'avoid_redundant_naming')->values();
+                    $genuine = $findings->filter(static fn ($row): bool => $row->file === $control)->values();
+                    self::assertCount(1, $genuine);
+                    self::assertSame('App\GenuinePostCollection', $genuine[0]->class);
+                    self::assertSame('clearGenuinePost', $genuine[0]->method);
+                    self::assertSame(1, $genuine[0]->line);
+                    self::assertSame(100, $genuine[0]->value);
+                    self::assertSame(80, $genuine[0]->threshold);
+                    self::assertSame('Redundant naming: clearGenuinePost → clear (100%)', $genuine[0]->message);
+                    $subjectFindings = $findings->filter(static fn ($row): bool => $row->file === $subject)->values();
+                    self::assertCount($expected, $subjectFindings);
+                    if ($methods !== null) {
+                        self::assertSame($methods, $subjectFindings->map(static fn ($row): ?string => $row->method)->all());
+                    }
+                    self::assertCount($expected + 1, $findings);
+                }
+            }
+        } finally {
+            unlink($declaration);
+            unlink($subject);
+            unlink($control);
+            rmdir($root);
+        }
+    }
+
+    public static function namingBoundaries(): iterable
+    {
+        yield 'implemented interface fixes the name' => ['interface Required { public function clearPost(); }', 'class PostCollection implements Required { public function clearPost() {} }', 0];
+        yield 'source parent fixes override name' => ['class Base { public function clearPost() {} }', 'class PostCollection extends Base { public function clearPost() {} }', 0];
+        yield 'abstract trait requirement fixes implementing name' => ['trait Required { abstract public function clearPost(); }', 'class PostCollection { use Required; public function clearPost() {} }', 0];
+        yield 'existing public destination cannot be redeclared' => ['', 'class PostCollection { public function clear() {} public function clearPost() {} }', 0];
+        yield 'destination names are case insensitive' => ['', 'class PostCollection { public function CLEAR() {} public function clearPost() {} }', 0];
+        yield 'private destination still occupies its method name' => ['', 'class PostCollection { private function clear() {} public function clearPost() {} }', 0];
+        yield 'existing class destination cannot be redeclared' => ['class PostCollection {}', 'class PostItemCollection {}', 0];
+        yield 'fallback does not supply an all collection marker' => ['', 'class Settings { public function getFallbackLocale() { return "en"; } }', 0];
+        yield 'callback does not supply an all collection marker' => ['', 'class Settings { public function getCallback() { return fn () => null; } }', 0];
+        yield 'untyped fluent return is not a collection contract' => ['', 'class Settings { public function allOnQueue() { return $this; } }', 0];
+        yield 'untyped predicate is not a collection contract' => ['', 'class Settings { public function allAreActive() { return true; } }', 0];
+        yield 'whole listener token is not list collection marker' => ['', 'class Settings { public function getListeners(): array { return []; } }', 0];
+        yield 'native scalar return is not a collection contract' => ['', 'class Settings { public function allString(): string { return \'records\'; } }', 0];
+        yield 'visible inherited destination is already occupied' => ['class Base { public function clear($input) {} }', 'class PostCollection extends Base { public function clearPost() {} }', 0];
+        yield 'private parent destination does not occupy child scope' => ['class Base { private function clear($input) {} }', 'class PostCollection extends Base { public function clearPost() {} }', 1];
+        yield 'owned repeated class context remains reported' => ['', 'class PostCollection { public function clearPost() {} }', 1];
+        yield 'explicit collection marker remains reported' => ['', 'class Settings { public function getAllRecords(): array { return []; } }', 1];
+        yield 'unrelated complete contract does not fix another name' => ['interface Required { public function touch(); }', 'class PostCollection implements Required { public function touch() {} public function clearPost() {} }', 1];
+        yield 'unresolved native interface cannot prove a free iterable rename' => ['', 'class Settings implements UnknownContract { public function listContents(): iterable { return []; } }', 0];
+        yield 'known interface fixes the iterable method name' => ['interface Required { public function listContents(): iterable; }', 'class Settings implements Required { public function listContents(): iterable { return []; } }', 0];
+        yield 'standalone native iterable marker remains reported' => ['', 'class Settings { public function listContents(): iterable { return []; } }', 1];
+        yield 'anonymous method and following method keep their direct owner' => ['interface Required { public function clearPost(): void; }', 'class PostCollection implements Required { public function clearPost(): void {} public function nested() { return new class { public function clearPost(): void {} }; } public function removePost(): void {} }', 1, ['removePost']];
+        yield 'abstract inherited destination remains available to an implementation' => ['interface Required { public function clear($input): void; }', 'abstract class PostCollection implements Required { public function clearPost(): void {} }', 1, ['clearPost']];
+        yield 'native override attribute remains respected' => ['class Base { public function clearPost() {} }', 'class PostCollection extends Base { #[\Override] public function clearPost() {} }', 0];
     }
 
     /**

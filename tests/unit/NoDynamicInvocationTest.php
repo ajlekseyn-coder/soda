@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Architecture\NoDynamicInvocation;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitor\ParentConnectingVisitor;
@@ -17,6 +18,8 @@ use PHPUnit\Framework\TestCase;
 
 final class NoDynamicInvocationTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     #[DataProvider('calls')]
     public function testExplicitTargetsAndComputedTargets(string $source, int $expected): void
     {
@@ -104,5 +107,19 @@ PHP);
         } finally {
             unlink($path);
         }
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_dynamic_invocation', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Prompts: immediately invoked closure has an explicit target' => [
+            'function resetState() { return (function () { clearState(); return 1; })(); }',
+            'function resetState($callback) { return call_user_func($callback); }',
+        ];
     }
 }

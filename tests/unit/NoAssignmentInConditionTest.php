@@ -6,10 +6,14 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Rules\Complexity\NoAssignmentInCondition;
 use Cosmira\Soda\Tests\CheckFixture;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NoAssignmentInConditionTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     public function testCallableBodiesDoNotBelongToTheOuterCondition(): void
     {
         foreach ([
@@ -226,5 +230,19 @@ PHP);
         file_put_contents($path, $contents);
 
         return $path;
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_assignment_in_condition', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Prompts: callback body is outside the surrounding condition' => [
+            'function currentLine(array $lines): int { $total = 0; return search($lines, function ($line) use (&$total) { $total += strlen($line); return $total > 10; }) ?: 0; }',
+            'function currentLine(array $lines): int { return ($total = count($lines)) ? $total : 0; }',
+        ];
     }
 }

@@ -32,11 +32,13 @@ use PhpParser\Node;
  * @phpstan-type NamingMethod array{
  *   name: string, methodName: string, class: string|null,
  *   firstParamType: string|null, returnType: string|null, line: int,
- *   isPublic: bool, hasOverrideAttribute: bool
+ *   isPublic: bool, hasOverrideAttribute: bool, declarationStart?: int
  * }
  * @phpstan-type NamingType array{
  *   name: string, kind: 'class'|'trait'|'interface', line: int,
- *   inherits: list<string>, methods: list<string>
+ *   inherits: list<string>, methods: list<string>,
+ *   methodDeclarations?: array<string,array{name:string,start:int,private:bool,abstract:bool}>,
+ *   unconditional?: bool, ambiguous?: bool, traits?: list<string>, traitsResolved?: bool
  * }
  * @phpstan-type NamingFacts array{
  *   classes: list<array{class: string, line: int}>,

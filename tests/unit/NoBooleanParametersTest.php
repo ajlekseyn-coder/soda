@@ -7,11 +7,14 @@ namespace Cosmira\Soda;
 use Cosmira\Soda\Reporting\Violation;
 use Cosmira\Soda\Rules\Architecture\NoBooleanParameters;
 use Cosmira\Soda\Tests\CheckFixture;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NoBooleanParametersTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     public function testAllowsPromotedBooleanStateInReadonlyValueObject(): void
     {
         self::assertSame([], $this->violations(<<<'PHP'
@@ -169,5 +172,39 @@ PHP));
         } finally {
             unlink($file);
         }
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_boolean_parameters', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Prompts: numeric data guard is not a boolean parameter' => [
+            'function eraseLines(int $count): void { if ($count) { writeLines($count); } }',
+            'function eraseLines(bool $enabled): void { if ($enabled) { writeLines(1); } }',
+        ];
+        yield 'Scout: pagination defaults are data, not flags' => [
+            'function paginate($page = null) { return $page ?: 1; }',
+            'function paginate($simple = false) { return $simple ? simplePage() : fullPage(); }',
+        ];
+        yield 'Prompts: validating mixed data does not declare a flag' => [
+            'function invalid(mixed $value): bool { return $value === "" || $value === [] || $value === false || $value === null; }',
+            'function invalid(bool|string $required): bool { return $required === false; }',
+        ];
+        yield 'Sanctum: nullable model guard is not a flag' => [
+            'function supportsTokens($tokenable = null) { return $tokenable && hasTokens($tokenable); }',
+            'function supportsTokens($enabled = false) { return $enabled && hasTokens(currentToken()); }',
+        ];
+        yield 'Scout: formatting a boolean value does not declare a flag' => [
+            'function formatValue($value) { if (is_bool($value)) { return $value ? "true" : "false"; } return (string) $value; }',
+            'function formatValue($quoted = false) { return $quoted ? quoteValue() : rawValue(); }',
+        ];
+        yield 'Serializable Closure: optional secret is data' => [
+            'function signer($secret) { return $secret ? new Hmac($secret) : null; }',
+            'function signer(bool $signed) { return $signed ? new Hmac(secret()) : null; }',
+        ];
     }
 }

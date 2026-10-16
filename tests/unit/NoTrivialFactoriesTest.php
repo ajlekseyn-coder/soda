@@ -12,6 +12,8 @@ use PHPUnit\Framework\TestCase;
 
 final class NoTrivialFactoriesTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     #[DataProvider('creationHooks')]
     public function testObservedVirtualCreationHook(string $declaration, int $count): void
     {
@@ -316,5 +318,19 @@ PHP;
         } finally {
             unlink($path);
         }
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_trivial_factories', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Scout: construction method is a dispatched factory hook' => [
+            'class Manager { function driver($driver) { $method = "create".ucfirst($driver)."Driver"; return $this->$method(); } } class Engines extends Manager { protected function createNullDriver() { return new Product(); } }',
+            'class Manager { function driver($driver) { return $driver; } } class Engines extends Manager { protected function createNullDriver() { return new Product(); } }',
+        ];
     }
 }

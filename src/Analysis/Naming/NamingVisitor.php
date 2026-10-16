@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis\Naming;
 
-use function array_key_last;
-use function array_pop;
 use function array_values;
 
 use Cosmira\Soda\Analysis\FactVisitor;
@@ -31,6 +29,11 @@ use PhpParser\Node\Stmt\Trait_;
 final class NamingVisitor extends FactVisitor
 {
     /**
+     * Parent edges distinguish direct declarations from conditional control bodies.
+     */
+    private const PARENT_ATTRIBUTE = 'parent';
+
+    /**
      * Magic methods whose names are fixed by the engine, never by taste.
      */
     private const MAGIC_METHODS = [
@@ -38,13 +41,6 @@ final class NamingVisitor extends FactVisitor
         '__isset', '__unset', '__sleep', '__wakeup', '__serialize', '__unserialize',
         '__toString', '__invoke', '__set_state', '__clone', '__debugInfo',
     ];
-
-    /**
-     * Nested class contexts used to associate methods with their owner.
-     *
-     * @psalm-var list<non-empty-string>
-     */
-    private array $classStack = [];
 
     /**
      * Naming facts accumulated while traversing class and callable declarations.
@@ -94,9 +90,8 @@ final class NamingVisitor extends FactVisitor
     #[\Override]
     protected function doLeaveNode(Node $node): void
     {
-        $shouldLeaveType = ($node instanceof Class_ || $node instanceof Trait_ || $node instanceof Interface_) && $this->classStack !== [];
-        if ($shouldLeaveType) {
-            array_pop($this->classStack);
+        if ($node instanceof Class_ || $node instanceof Trait_ || $node instanceof Interface_) {
+            $this->leaveType($node);
         }
     }
 
@@ -111,14 +106,18 @@ final class NamingVisitor extends FactVisitor
             return;
         }
 
-        $this->classStack[] = $name;
-
+        $methods = $this->methodDeclarations($node);
         $this->types[$name] = [
-            'name'     => $name,
-            'kind'     => $this->kindOf($node),
-            'line'     => $node->getStartLine(),
-            'inherits' => $this->inheritsOf($node),
-            'methods'  => [],
+            'name'               => $name,
+            'kind'               => $this->kindOf($node),
+            'line'               => $node->getStartLine(),
+            'inherits'           => $this->inheritsOf($node),
+            'methods'            => array_column($methods, 'name'),
+            'methodDeclarations' => $methods,
+            'unconditional'      => $node->getAttribute(self::PARENT_ATTRIBUTE) === null || $node->getAttribute(self::PARENT_ATTRIBUTE) instanceof Node\Stmt\Namespace_,
+            'ambiguous'          => isset($this->types[$name]),
+            'traits'             => [],
+            'traitsResolved'     => true,
         ];
         $isInterface = $node instanceof Interface_;
 
@@ -133,6 +132,44 @@ final class NamingVisitor extends FactVisitor
     }
 
     /**
+     * Direct declarations supply method ownership even when a nested anonymous scope is being visited.
+     */
+    private function methodDeclarations(Class_|Trait_|Interface_ $node): array
+    {
+        $methods = [];
+        foreach ($node->getMethods() as $method) {
+            $name = $method->name->toString();
+            if (! in_array($name, self::MAGIC_METHODS, true)) {
+                $methods[strtolower($name)] = ['name' => $name, 'start' => $method->getStartFilePos(),
+                    'private'                         => $method->isPrivate(), 'abstract' => $method->stmts === null];
+            }
+        }
+
+        return $methods;
+    }
+
+    /**
+     * Trait imports have resolved names after their children were traversed; adaptations remain unknown.
+     */
+    private function leaveType(Class_|Trait_|Interface_ $node): void
+    {
+        $name = $node->namespacedName?->toString();
+        if ($name === null || ! isset($this->types[$name])) {
+            return;
+        }
+        $traits = [];
+        $resolved = true;
+        foreach ($node->getTraitUses() as $use) {
+            array_push($traits, ...array_map(static fn (Node\Name $trait): string => $trait->toString(), $use->traits));
+            $resolved = $resolved && $use->adaptations === [];
+        }
+        $type = $this->types[$name];
+        $type['traits'] = $traits;
+        $type['traitsResolved'] = $resolved;
+        $this->types[$name] = $type;
+    }
+
+    /**
      * Enter method using the current analysis state.
      */
     private function enterMethod(ClassMethod $node): void
@@ -142,24 +179,16 @@ final class NamingVisitor extends FactVisitor
             return;
         }
 
-        $class = $this->currentClassName();
-        $hasRecordedType = $class !== null && isset($this->types[$class]);
-        if ($hasRecordedType) {
-            $typeRow = $this->types[$class];
-            $methods = $typeRow['methods'];
-            $methods[] = $methodName;
-            $typeRow['methods'] = $methods;
-            $this->types[$class] = $typeRow;
-        }
-
-        $isInterfaceMember = $node->getAttribute('parent') instanceof Interface_;
-
-        if ($isInterfaceMember) {
+        $owner = $node->getAttribute(self::PARENT_ATTRIBUTE);
+        if ($owner instanceof Interface_) {
             return;
         }
+        $class = $owner instanceof Class_ || $owner instanceof Trait_ ? $owner->namespacedName?->toString() : null;
 
         $methods = $this->result['methods'];
-        $methods[] = NamingMethodFacts::fromClassMethod($node, $class);
+        $method = NamingMethodFacts::fromClassMethod($node, $class);
+        $method['declarationStart'] = $node->getStartFilePos();
+        $methods[] = $method;
         $this->result['methods'] = $methods;
     }
 
@@ -189,14 +218,6 @@ final class NamingVisitor extends FactVisitor
         $this->result['types'] = array_values($this->types);
 
         return $this->result;
-    }
-
-    /**
-     * Return current class name for the supplied analysis context.
-     */
-    private function currentClassName(): ?string
-    {
-        return $this->classStack !== [] ? $this->classStack[array_key_last($this->classStack)] : null;
     }
 
     /**

@@ -55,7 +55,7 @@ final readonly class MethodRedundancyChecker
      */
     public function check(array $methodData): ?array
     {
-        $isOverride = ($methodData['hasOverrideAttribute'] ?? false) === true;
+        $isOverride = ($methodData['hasOverrideAttribute'] ?? false) === true || ($methodData['hasNativeNameContract'] ?? false) === true || ($methodData['hasUnresolvedNameContract'] ?? false) === true;
         if ($isOverride) {
             return null;
         }
@@ -65,11 +65,23 @@ final readonly class MethodRedundancyChecker
         $words = $this->splitCamelCase($methodData['methodName']);
         $isInterfaceType = $paramShortName !== null && str_ends_with($paramShortName, 'Interface');
 
-        return ($isInterfaceType)
+        $finding = ($isInterfaceType)
             ? null
             : ($this->checkAddLike($words, $paramShortName, $methodData)
                 ?? $this->checkFromClassContext($words, $methodData)
                 ?? $this->checkGetAllLike($words, $returnShortName, $methodData));
+
+        return $finding !== null && ! $this->hasOccupiedDestination($finding, $methodData) ? $finding : null;
+    }
+
+    /**
+     * A shorter name cannot identify a different method already present on the same public surface.
+     */
+    private function hasOccupiedDestination(array $finding, array $methodData): bool
+    {
+        $name = strstr($finding['suggested'], '(', true);
+
+        return $name !== false && in_array(strtolower($name), $methodData['occupiedMethods'] ?? [], true);
     }
 
     /**
@@ -165,13 +177,7 @@ final readonly class MethodRedundancyChecker
             return null;
         }
 
-        if ($this->isGenericReturn($returnShortName)) {
-            return 100.0;
-        }
-
-        $similarity = $this->similarity($nameAfterPrefix, $returnShortName);
-
-        return $similarity < $this->similarityThreshold ? null : $similarity;
+        return in_array($returnShortName, ['array', 'iterable'], true) ? 100.0 : null;
     }
 
     /**
@@ -185,13 +191,13 @@ final readonly class MethodRedundancyChecker
     /**
      * Determine whether get all like applies to the supplied input.
      */
-    private function isGetAllLike(string $firstWord, string $fullName): bool
+    private function isGetAllLike(array $words): bool
     {
-        $lower = strtolower($firstWord);
-        $fullLower = strtolower($fullName);
+        $lower = array_map(strtolower(...), $words);
+        $first = $lower[0] ?? '';
 
-        return in_array($lower, self::METHOD_PREFIX_GET, true)
-            && (str_contains($fullLower, self::COLLECTION_MARKER) || str_contains($fullLower, 'list') || $lower === self::COLLECTION_MARKER);
+        return in_array($first, self::METHOD_PREFIX_GET, true)
+            && array_intersect($lower, [self::COLLECTION_MARKER, 'list']) !== [];
     }
 
     /**
@@ -288,7 +294,7 @@ final readonly class MethodRedundancyChecker
         $firstWord = collect($words)->first() ?? '';
         $nameAfterPrefix = implode('', array_slice($words, 1));
         $similarity = $this->getAllSimilarity($nameAfterPrefix, $returnShortName);
-        $cannotCheckCollection = ! $this->isGetAllLike($firstWord, $methodName) || $similarity === null;
+        $cannotCheckCollection = ! $this->isGetAllLike($words) || $similarity === null;
 
         if ($cannotCheckCollection) {
             return null;
@@ -296,13 +302,12 @@ final readonly class MethodRedundancyChecker
 
         $hasAll = in_array('All', $words, true) || in_array(self::COLLECTION_MARKER, $words, true);
         $suggested = $hasAll ? self::COLLECTION_MARKER : $firstWord;
-        $returnDisplay = $this->isGenericReturn($returnShortName) ? 'array' : $returnShortName.'[]';
         $hasReturnType = ! $this->isGenericReturn($returnShortName);
 
         return [
             'type'       => self::FINDING_TYPE_METHOD,
-            'current'    => $methodName.'(): '.$returnDisplay,
-            'suggested'  => $suggested.'(): '.$returnDisplay,
+            'current'    => $methodName.'(): '.$returnShortName,
+            'suggested'  => $suggested.'(): '.$returnShortName,
             'reason'     => $hasReturnType
                 ? '"'.$returnShortName.'" already conveyed by return type'
                 : 'Entity name redundant in getter',

@@ -7,6 +7,7 @@ namespace Cosmira\Soda\Tests;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Usage\UselessVariableAnalyzer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class UselessVariableRuleTest extends TestCase
@@ -256,5 +257,19 @@ PHP);
         $this->assertFalse($this->hasViolation(
             'function test($b) { $a = $b; }',
         ));
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('useless_variable', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Sandbox: independent array copy survives unset' => [
+            'function restore(array $attributes): array { $values = $attributes; unset($values["id"]); return $values; }',
+            'function restore(array $attributes): array { $values = $attributes; return $values; }',
+        ];
     }
 }

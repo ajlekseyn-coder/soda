@@ -142,7 +142,7 @@ final class InterfaceFacts
     }
 
     /**
-     * Preserve explicit class types in parameter, result and property annotations.
+     * Preserve explicit class types in signatures, properties and delegation annotations.
      */
     private static function documentedTypes(Node $node): array
     {
@@ -151,7 +151,7 @@ final class InterfaceFacts
             return [];
         }
 
-        preg_match_all('/^\s*(?:\/\*\*|\*)\s*@(param|return|var|template(?:-covariant|-contravariant)?)\s+([^\r\n]+)/m', $comment->getText(), $annotations, PREG_SET_ORDER);
+        preg_match_all('/^\s*(?:\/\*\*|\*)\s*@(param|return|var|mixin|template(?:-covariant|-contravariant)?)\s+([^\r\n]+)/m', $comment->getText(), $annotations, PREG_SET_ORDER);
         $references = [];
         foreach ($annotations as $annotation) {
             array_shift($annotation);
@@ -161,7 +161,8 @@ final class InterfaceFacts
                 continue;
             }
 
-            preg_match_all('/\\\\[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*/', $type, $classes);
+            $type = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/s', '', $type);
+            preg_match_all('/(?<![A-Za-z0-9_\\\\])\\\\[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*/', $type, $classes);
             foreach ($classes[0] as $class) {
                 $references[strtolower(ltrim($class, '\\'))] = true;
             }
@@ -203,6 +204,7 @@ final class InterfaceFacts
         return match ($tag) {
             'var'                                                      => $node instanceof Stmt\Property,
             'param', 'return'                                          => $node instanceof Node\FunctionLike,
+            'mixin'                                                    => $node instanceof Stmt\ClassLike,
             'template', 'template-covariant', 'template-contravariant' => $node instanceof Stmt\ClassLike || $node instanceof Node\FunctionLike,
             default                                                    => false,
         };

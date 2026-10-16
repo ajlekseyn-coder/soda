@@ -6,7 +6,16 @@
 
 ## Why
 
-When a method lives inside `PostCollection`, a name like `addPost` repeats context the reader already has. The same applies to class names that slot a redundant middle word before a generic suffix, such as `PostItemCollection` (the `Item` adds nothing to `PostCollection`). This redundancy inflates identifiers, makes call sites noisy, and hides the actual action behind repeated words. The rule compares each public method name with its owning class and parameter-type context, and checks class names for a redundant middle word before a generic suffix (`Collection`, `Repository`, `Service`, `Manager`, `Factory`, `Handler`, `Provider`); when the name is largely reproducible from that context, it reports the shorter form (`addPost` → `add`, `PostItemCollection` → `PostCollection`). Methods marked with `#[\Override]` and methods inherited from a parent or interface are left alone, because their names are fixed by an external contract.
+When a method lives inside `PostCollection`, a name like `addPost` repeats context the reader already has. The same applies to class names that slot a redundant middle word before a generic suffix, such as `PostItemCollection` (the `Item` adds nothing to `PostCollection`). This redundancy inflates identifiers, makes call sites noisy, and hides the actual action behind repeated words. The rule compares each public method name with its owning class and parameter-type context, and checks class names for a redundant middle word before a generic suffix (`Collection`, `Repository`, `Service`, `Manager`, `Factory`, `Handler`, `Provider`); when the name is largely reproducible from that context, it reports the shorter form (`addPost` → `add`, `PostItemCollection` → `PostCollection`). Methods marked with `#[\Override]` and methods implementing a parent, interface or abstract trait contract are left alone, because their names are fixed by that contract.
+
+Method suggestions also preserve unresolved ancestor contracts: an unavailable
+declaration does not establish that a public method name is free to change. A
+suggested name must not collide with another owned method, a concrete visible
+inherited method, or an existing type in the same namespace.
+
+Collection shortcuts require a complete `All` or `List` word and a native array
+or iterable return type. An unspecified return type does not prove a collection,
+and substrings in `Fallback`, `Callback` or `Listeners` do not supply that word.
 
 ## Examples
 

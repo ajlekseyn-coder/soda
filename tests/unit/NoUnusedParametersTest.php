@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Usage\NoUnusedParameters;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitor\ParentConnectingVisitor;
@@ -17,6 +18,8 @@ use PHPUnit\Framework\TestCase;
 
 final class NoUnusedParametersTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     #[DataProvider('cases')]
     public function testLexicalUsage(string $body, int $expected): void
     {
@@ -923,5 +926,31 @@ PHP);
         $nodes = (new NodeTraverser(new NameResolver, new ParentConnectingVisitor))->traverse($nodes);
 
         return iterator_to_array((new NoUnusedParameters($contracts))->checkFile(new FileFacts('/project/input.php', $source, $nodes, [])));
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_unused_parameters', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Prompts: parameters forwarded by variable snapshot' => [
+            'function prompt(string $label, string $hint): array { return get_defined_vars(); }',
+            'function prompt(string $label, string $hint): array { return []; }',
+        ];
+        yield 'Sanctum: third positional callback argument' => [
+            'register(function ($app, $name, array $config) { return $config; });',
+            'register(function ($app, $name, array $config, $unused) { return $config; });',
+        ];
+        yield 'Pail and Sail: second positional callback argument' => [
+            'run(fn (string $type, string $buffer) => trim($buffer));',
+            'run(fn (string $type, string $buffer, string $unused) => trim($buffer));',
+        ];
+        yield 'Serializable Closure: native stream registration' => [
+            'class Stream { public function stream_open($path, $mode, $options, &$opened) {} public static function register() { stream_wrapper_register("test", __CLASS__); } }',
+            'class Stream { public function stream_open($path, $mode, $options, &$opened) {} }',
+        ];
     }
 }

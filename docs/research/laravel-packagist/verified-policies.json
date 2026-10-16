@@ -2,9 +2,9 @@
     "packages": 81,
     "files": 5875,
     "manifest_sha256": "29ae5c78c75378ff9974ec17b9dbeb02b4d7e5115f1978f3b59c19ab88ae8375",
-    "verifier_sha256": "eb47e5650dab22216cc02fffbacf7c4fe202a9d4e0b4d1e5343617a01f6f9ea9",
+    "verifier_sha256": "e7aa9f0663b725b25cabc358b8776f6f6b2e08df5894207e731be23e0a75910f",
     "source_set_sha256": "64a7695e4986ae3df5283d3ffcde69c0dc217fe01762a683eb0b43cc311d8281",
-    "scope": "Exact source measurements and AST declarations for 31 standard policies; no claim about other rules.",
+    "scope": "Exact source measurements and AST declarations for 34 standard policies; no claim about other rules.",
     "rules": {
         "max_line_length": {
             "findings": 10130,
@@ -126,6 +126,14 @@
             "findings": 2,
             "diagnostic_multiset_sha256": "ba94a511601f395297aaca99bc8916684faed57fac1925e775a52f8e19e507af"
         },
+        "max_dependencies": {
+            "findings": 55,
+            "diagnostic_multiset_sha256": "6a4452caba6db45f779b3a7e5a7571553f65a6a6e3baa28b5a0ce89393585bea"
+        },
+        "max_efferent_coupling": {
+            "findings": 258,
+            "diagnostic_multiset_sha256": "1d6bcd34fae7e19a3be9cbe2f4c5b12a455797ded5e29b0791b99bcdc73ce3fb"
+        },
         "max_cyclomatic_complexity": {
             "findings": 573,
             "diagnostic_multiset_sha256": "ef70d95bb4ca8890a6cb0704f089c5f0fe3db3ac3ac57fcf0d67a8f2f9695575"
@@ -145,6 +153,10 @@
         "no_else_branches": {
             "findings": 229,
             "diagnostic_multiset_sha256": "8e8d3725c039649a45bfe8a6aa36d0e9d89fd04bbfcf44b7ca74de519f889435"
+        },
+        "max_layer_dominance_percentage": {
+            "findings": 2,
+            "diagnostic_multiset_sha256": "fafb8c92a0d835b5568579c2748ca6f17b5f8ce4e403464bfe6e9d941705ca9c"
         }
     },
     "reflection_ancestors": {

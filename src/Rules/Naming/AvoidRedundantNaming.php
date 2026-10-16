@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Rules\Naming;
 
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 
@@ -42,21 +43,171 @@ final class AvoidRedundantNaming extends Check
      */
     public function checkFile(FileFacts $file): iterable
     {
+        $naming = $file->metrics['naming'] ?? [];
+        if (! array_key_exists('types', $naming)) {
+            yield from $this->violations($file->path, $naming);
+        }
+    }
+
+    /**
+     * Source-defined names and inheritance contracts are complete only after project collection.
+     */
+    public function checkProject(ProjectFacts $project): iterable
+    {
         if ($this->threshold <= 0) {
             return;
         }
+        $types = $this->typeIndex($project);
+        $contexts = [];
+        foreach ($types as $name => $type) {
+            $inherited = [];
+            foreach ($type['inherits'] ?? [] as $parent) {
+                $inherited += $this->inheritedMethods(strtolower($parent), $types);
+            }
+            $concrete = array_filter($inherited, static fn (array $method): bool => ! $method['abstract']);
+            $contexts[$name] = ['contracts' => $inherited + $this->traitRequirements($name, $types),
+                'occupied'                  => array_keys(($type['methodDeclarations'] ?? []) + $concrete),
+                'resolved'                  => $this->hasCompleteAncestry($name, $types)];
+        }
+        foreach ($project->files as $file => $metrics) {
+            $naming = $metrics['naming'] ?? [];
+            if (array_key_exists('types', $naming)) {
+                yield from $this->violations($file, $this->namingContext($naming, $types, $contexts));
+            }
+        }
+    }
 
-        $threshold = $this->normalisedSimilarityThreshold($this->threshold);
-        $analyzer = new RedundantNamingAnalyzer($threshold);
-        $naming = $file->metrics['naming'] ?? [];
-        $hasNames = isset($naming['classes'], $naming['methods']);
-        if (! $hasNames) {
+    /**
+     * Legacy direct facts retain their local behavior without pretending that project contracts exist.
+     */
+    private function violations(string $file, array $naming): iterable
+    {
+        if ($this->threshold <= 0 || ! isset($naming['classes'], $naming['methods'])) {
             return;
         }
-
+        $threshold = $this->normalisedSimilarityThreshold($this->threshold);
+        $analyzer = new RedundantNamingAnalyzer($threshold);
         foreach ($analyzer->analyze($naming) as $finding) {
-            yield $this->toViolation($file->path, $finding, (int) $threshold);
+            yield $this->toViolation($file, $finding, (int) $threshold);
         }
+    }
+
+    /**
+     * Conditional or duplicated declarations cannot donate native naming contracts to another type.
+     */
+    private function typeIndex(ProjectFacts $project): array
+    {
+        $index = [];
+        foreach ($project->files as $metrics) {
+            $naming = $metrics['naming'] ?? [];
+            foreach ($naming['types'] ?? [] as $type) {
+                $name = strtolower($type['name']);
+                $type['eligible'] = ($type['unconditional'] ?? false) && ! ($type['ambiguous'] ?? false) && ! isset($index[$name]);
+                $index[$name] = $type;
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * A missing or ambiguous ancestor can still require the current public method name.
+     */
+    private function hasCompleteAncestry(string $name, array $types, array $seen = []): bool
+    {
+        $type = $types[$name] ?? [];
+        if (isset($seen[$name]) || ! ($type['eligible'] ?? false) || ! ($type['traitsResolved'] ?? false)) {
+            return false;
+        }
+        $seen[$name] = true;
+        foreach ([...$type['inherits'], ...$type['traits']] as $ancestor) {
+            if (! $this->hasCompleteAncestry(strtolower($ancestor), $types, $seen)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Visible source ancestor declarations constrain names; private parent methods remain separate bindings.
+     */
+    private function inheritedMethods(string $name, array $types, array $seen = []): array
+    {
+        $type = $types[$name] ?? [];
+        if (isset($seen[$name]) || ! ($type['eligible'] ?? false)) {
+            return [];
+        }
+        $seen[$name] = true;
+        $methods = [];
+        foreach ($type['inherits'] ?? [] as $parent) {
+            $methods += $this->inheritedMethods(strtolower($parent), $types, $seen);
+        }
+        foreach ($type['methodDeclarations'] ?? [] as $method => $declaration) {
+            if (! $declaration['private']) {
+                $methods[$method] = $declaration;
+            }
+        }
+
+        return $methods;
+    }
+
+    /**
+     * A concrete intermediate trait discharges its exported abstract name requirement.
+     */
+    private function traitRequirements(string $name, array $types, array $seen = []): array
+    {
+        $type = $types[$name] ?? [];
+        if (isset($seen[$name]) || ! ($type['eligible'] ?? false)) {
+            return [];
+        }
+        $seen[$name] = true;
+        $required = [];
+        foreach ($type['traits'] ?? [] as $trait) {
+            $trait = strtolower($trait);
+            $source = $types[$trait] ?? [];
+            if (($source['kind'] ?? null) === 'trait') {
+                $required += $this->traitRequirements($trait, $types, $seen);
+            }
+        }
+        if ($type['kind'] === 'trait') {
+            foreach ($type['methodDeclarations'] ?? [] as $method => $declaration) {
+                if ($declaration['abstract']) {
+                    $required[$method] = $declaration;
+                } else {
+                    unset($required[$method]);
+                }
+            }
+        }
+
+        return $required;
+    }
+
+    /**
+     * New project proofs apply only to the exact direct declaration at the method's source byte position.
+     */
+    private function namingContext(array $naming, array $types, array $contexts): array
+    {
+        $naming['existingTypes'] = array_keys(array_filter($types, static fn (array $type): bool => $type['eligible']));
+        $methods = [];
+        foreach ($naming['methods'] as $method) {
+            $name = strtolower($method['class'] ?? '');
+            $owner = $types[$name] ?? [];
+            $declarations = $owner['methodDeclarations'] ?? [];
+            $key = strtolower($method['methodName']);
+            $declaration = $declarations[$key] ?? [];
+            $start = $method['declarationStart'] ?? -1;
+            if (($owner['eligible'] ?? false) && $start >= 0 && ($declaration['start'] ?? null) === $start) {
+                $context = $contexts[$name];
+                $method['hasUnresolvedNameContract'] = ! $context['resolved'];
+                $method['hasNativeNameContract'] = array_key_exists($key, $context['contracts']);
+                $method['occupiedMethods'] = $context['occupied'];
+            }
+            $methods[] = $method;
+        }
+        $naming['methods'] = $methods;
+
+        return $naming;
     }
 
     /**

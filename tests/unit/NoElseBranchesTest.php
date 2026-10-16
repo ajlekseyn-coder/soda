@@ -6,10 +6,14 @@ namespace Cosmira\Soda;
 
 use Cosmira\Soda\Rules\Complexity\NoElseBranches;
 use Cosmira\Soda\Tests\CheckFixture;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NoElseBranchesTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     public function testReportsElseifAndElseAtTheirExactLines(): void
     {
         $result = $this->analyze(<<<'PHP'
@@ -101,5 +105,23 @@ PHP);
         }
 
         return ['metrics' => $result['metrics'], 'violations' => $result['violations']];
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('no_else_branches', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Strict policy: exhaustive branches still forbid else' => [
+            'function label(bool $enabled): string { if ($enabled) { return "on"; } return "off"; }',
+            'function label(bool $enabled): string { if ($enabled) { return "on"; } else { return "off"; } }',
+        ];
+        yield 'Strict policy: mutually exclusive cases still forbid elseif' => [
+            'function label(int $status): string { if ($status === 1) { return "on"; } if ($status === 2) { return "off"; } return "unknown"; }',
+            'function label(int $status): string { if ($status === 1) { return "on"; } elseif ($status === 2) { return "off"; } return "unknown"; }',
+        ];
     }
 }

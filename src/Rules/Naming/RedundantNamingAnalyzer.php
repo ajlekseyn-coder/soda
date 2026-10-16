@@ -57,7 +57,11 @@ final readonly class RedundantNamingAnalyzer
     /**
      * Collect redundant naming suggestions across class and method facts.
      *
-     * @param array{classes: list<array{class: string, line: int}>, methods: list<array{name: string, methodName: string, class: string|null, firstParamType: string|null, returnType: string|null, line: int, isPublic: bool}>} $data
+     * @param array{
+     *     existingTypes?: list<string>,
+     *     classes: list<array{class: string, line: int}>,
+     *     methods: list<array{name: string, methodName: string, class: string|null, firstParamType: string|null, returnType: string|null, line: int, isPublic: bool}>
+     * } $data
      *
      * @return list<array{type: 'class'|'method', current: string, suggested: string, reason: string, similarity: float, line: int, className?: string}>
      */
@@ -67,7 +71,7 @@ final readonly class RedundantNamingAnalyzer
         $methodChecker = new MethodRedundancyChecker($this->similarityThreshold, $this->minWordLength);
 
         foreach ($data['classes'] as $classData) {
-            $v = $this->checkClass($classData);
+            $v = $this->checkClass($classData, $data['existingTypes'] ?? []);
             if ($v !== null) {
                 $violations[] = $v;
             }
@@ -90,7 +94,7 @@ final readonly class RedundantNamingAnalyzer
      *
      * @return array{type: 'class', current: string, suggested: string, reason: string, similarity: float, line: int}|null
      */
-    private function checkClass(array $classData): ?array
+    private function checkClass(array $classData, array $existingTypes): ?array
     {
         $shortName = $this->shortClassName($classData['class']);
         if ($this->shouldIgnoreClass($shortName)) {
@@ -108,7 +112,11 @@ final readonly class RedundantNamingAnalyzer
         $prefix = implode('', array_slice($words, 0, -2));
         $suggested = $prefix.$lastWord;
 
-        $ok = strlen($lastWord) >= $this->minWordLength
+        $position = strrpos($classData['class'], '\\');
+        $qualified = $position === false ? $suggested : substr($classData['class'], 0, $position + 1).$suggested;
+        $occupied = in_array(strtolower($qualified), $existingTypes, true);
+
+        $ok = ! $occupied && strlen($lastWord) >= $this->minWordLength
             && in_array($lastWord, self::GENERIC_SUFFIXES, true)
             && in_array($middle, self::REDUNDANT_MIDDLE, true)
             && $prefix !== ''

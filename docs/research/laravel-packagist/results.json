@@ -8,19 +8,24 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 4216 unchanged and 53 revised retained findings were reviewed individually. The remaining 4,277 findings are not yet classified.",
-  "final_source_sha256": "f1edb98d4aaeb261cd8ed4404cacdfe8884e33e24fc93e759e71d583a57da7ef",
-  "after": 61517,
-  "removed": 1209,
+  "remaining_review": "Thirty-four standard policies have 53,286 source-grounded findings; 4288 unchanged and 53 revised retained findings were reviewed individually. The remaining 3,806 findings are not yet classified.",
+  "final_source_sha256": "04377737e011a97f29a6d0fb01a4b606139fd5b83b8fa3289adc23f06af81137",
+  "after": 61433,
+  "removed": 1293,
   "added": 54,
-  "resolved": 1155,
+  "resolved": 1239,
   "revised": 54,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1209,
+    "removed": 1293,
     "added": 54
   },
   "changed_rules": {
+    "avoid_redundant_naming": {
+      "before": 101,
+      "after": 18,
+      "net_removed": 83
+    },
     "max_ask_then_tell_patterns": {
       "before": 234,
       "after": 214,
@@ -75,6 +80,11 @@
       "before": 2357,
       "after": 2353,
       "net_removed": 4
+    },
+    "no_redundant_local_interfaces": {
+      "before": 42,
+      "after": 41,
+      "net_removed": 1
     },
     "no_repeated_type_dispatch": {
       "before": 40,
@@ -309,6 +319,15 @@
       "after": 61517,
       "resolved": 1,
       "revised": 0
+    },
+    {
+      "round": 29,
+      "before": 61517,
+      "after": 61433,
+      "resolved": 84,
+      "revised": 0,
+      "reviewed_unchanged": 72,
+      "reviewed_policy_findings": 315
     }
   ],
   "packages": [
@@ -328,8 +347,8 @@
       "files": 511,
       "source_sha256": "6b1419024731e1e98a6bc9088a54d65cf8755246da6d01ebe748f6dea0358fd5",
       "before": 4455,
-      "after": 4428,
-      "removed": 28,
+      "after": 4427,
+      "removed": 29,
       "added": 1
     },
     {
@@ -418,8 +437,8 @@
       "files": 54,
       "source_sha256": "a1ed08bae386a620d702228460b40c8156659696ecc34be6c0e67f2fafc472e3",
       "before": 557,
-      "after": 550,
-      "removed": 7,
+      "after": 548,
+      "removed": 9,
       "added": 0
     },
     {
@@ -428,8 +447,8 @@
       "files": 8,
       "source_sha256": "19943bf3face44a268a887e74a412508418e94057fb1d45fc41604ab97c80c28",
       "before": 105,
-      "after": 101,
-      "removed": 4,
+      "after": 100,
+      "removed": 5,
       "added": 0
     },
     {
@@ -438,8 +457,8 @@
       "files": 102,
       "source_sha256": "ec737233f07bcb4d47f841180dfd345586ef1274cd8fd46a06d639400a3b6239",
       "before": 584,
-      "after": 579,
-      "removed": 5,
+      "after": 578,
+      "removed": 6,
       "added": 0
     },
     {
@@ -468,8 +487,8 @@
       "files": 357,
       "source_sha256": "3ea5350641b44002d137efb9a8509d2855e92fc428188b510f9dbb40d6d5c734",
       "before": 4064,
-      "after": 4052,
-      "removed": 14,
+      "after": 4046,
+      "removed": 20,
       "added": 2
     },
     {
@@ -508,8 +527,8 @@
       "files": 18,
       "source_sha256": "6383c6b3c5f5250371b0c1cc3e7913a26ea0d5d802d0e51e3d3dcfe81dd3f071",
       "before": 254,
-      "after": 253,
-      "removed": 1,
+      "after": 248,
+      "removed": 6,
       "added": 0
     },
     {
@@ -558,8 +577,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26247,
-      "removed": 635,
+      "after": 26207,
+      "removed": 675,
       "added": 24
     },
     {
@@ -598,8 +617,8 @@
       "files": 141,
       "source_sha256": "7d06366cdca1e1a43a5e7076eef38eb13fe71419e0ceec84103108a0132478a7",
       "before": 804,
-      "after": 795,
-      "removed": 12,
+      "after": 794,
+      "removed": 13,
       "added": 3
     },
     {
@@ -618,8 +637,8 @@
       "files": 68,
       "source_sha256": "caf70c6b3bd3a5f2f3c0c4bfe776d5ffdd8213d066c762b2663459b58ff6ddfe",
       "before": 390,
-      "after": 383,
-      "removed": 14,
+      "after": 376,
+      "removed": 21,
       "added": 7
     },
     {
@@ -673,8 +692,8 @@
       "files": 238,
       "source_sha256": "88599da1251c297cad8134df1ac6b36379bfd93642fa757f5912c8f8c68a58bc",
       "before": 1379,
-      "after": 1356,
-      "removed": 24,
+      "after": 1354,
+      "removed": 26,
       "added": 1
     },
     {
@@ -693,8 +712,8 @@
       "files": 26,
       "source_sha256": "1591e10d72a1902460a3380775157730a8e0f16f2b0aeec4b9ceced1c9c2b89b",
       "before": 590,
-      "after": 579,
-      "removed": 11,
+      "after": 578,
+      "removed": 12,
       "added": 0
     },
     {
@@ -713,8 +732,8 @@
       "files": 174,
       "source_sha256": "93d0a226d80e95ac3745f2139a630a0724691774671dc83107e2cf3afec933e4",
       "before": 1636,
-      "after": 1591,
-      "removed": 46,
+      "after": 1590,
+      "removed": 47,
       "added": 1
     },
     {
@@ -813,8 +832,8 @@
       "files": 84,
       "source_sha256": "20c3552bc4810ee7e1f310c94a950d5fe6894168b5a30d70e94bb4bc7fd497ed",
       "before": 289,
-      "after": 276,
-      "removed": 13,
+      "after": 267,
+      "removed": 22,
       "added": 0
     },
     {
@@ -823,8 +842,8 @@
       "files": 34,
       "source_sha256": "582e1ad2fef379dffd8ff1a2e699e983f41f541a2ab3580ae0d0d488ccde04c6",
       "before": 373,
-      "after": 367,
-      "removed": 6,
+      "after": 364,
+      "removed": 9,
       "added": 0
     },
     {
@@ -923,8 +942,8 @@
       "files": 46,
       "source_sha256": "be4cba66b1f2987b01836efb9b4845d6da41e37b9177f6e29c292af41ada00d0",
       "before": 799,
-      "after": 787,
-      "removed": 13,
+      "after": 786,
+      "removed": 14,
       "added": 1
     },
     {
@@ -1063,8 +1082,8 @@
       "files": 71,
       "source_sha256": "23f1c47204db3fe7fd6ad27b7e85fac10ec6812679ddcb81d970111c4939792c",
       "before": 493,
-      "after": 489,
-      "removed": 4,
+      "after": 486,
+      "removed": 7,
       "added": 0
     },
     {
@@ -1129,9 +1148,9 @@
     }
   ],
   "review_coverage": {
-    "source_grounded_policy_findings": 52971,
-    "individually_reviewed_retained": 4216,
-    "remaining_unclassified": 4277,
+    "source_grounded_policy_findings": 53286,
+    "individually_reviewed_retained": 4288,
+    "remaining_unclassified": 3806,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 53
   }

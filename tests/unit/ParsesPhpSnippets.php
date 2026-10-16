@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Tests;
 
+use Cosmira\Soda\Analysis\Runner;
+use Cosmira\Soda\Config\RuleCatalog;
+use Cosmira\Soda\Config\Soda;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
@@ -90,5 +93,30 @@ trait ParsesPhpSnippets
         $this->assertArrayHasKey(0, $expression->args);
 
         return $expression->args[0];
+    }
+
+    private function assertRulePipeline(string $rule, string $valid, string $invalid): void
+    {
+        self::assertArrayHasKey($rule, RuleCatalog::definitions());
+        foreach ([[$valid, false], [$invalid, true]] as [$source, $expected]) {
+            $path = tempnam(sys_get_temp_dir(), 'soda-rule-pipeline-');
+            file_put_contents($path, '<?php '.$source);
+
+            try {
+                $entry = RuleCatalog::definitions()[$rule];
+                $class = $entry['class'];
+                $checks = [new $class(...$entry['arguments'])];
+                $result = (new Runner)->check([$path], Soda::configure()->with($checks)->checks());
+                $rules = array_map(static fn ($violation) => $violation->rule, $result->violations->all());
+                self::assertNotContains('parse_error', $rules);
+                if ($expected) {
+                    self::assertContains($rule, $rules, 'Real violation stopped being detected: '.$rule);
+                } else {
+                    self::assertNotContains($rule, $rules, 'False positive returned: '.$rule);
+                }
+            } finally {
+                unlink($path);
+            }
+        }
     }
 }

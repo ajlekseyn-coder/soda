@@ -7,10 +7,14 @@ namespace Cosmira\Soda;
 use Cosmira\Soda\Analysis\FactCollector;
 use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Rules\Structure\MaxArguments;
+use Cosmira\Soda\Tests\ParsesPhpSnippets;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class MaxArgumentsContractTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     public function testOnlyExactConfiguredExternalSignaturesAreExempt(): void
     {
         $source = <<<'PHP'
@@ -83,5 +87,19 @@ PHP;
         } finally {
             unlink($path);
         }
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('max_arguments', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Serializable Closure: native stream registration' => [
+            'class Stream { public function stream_open($path, $mode, $options, &$opened) {} public static function register() { stream_wrapper_register("test", __CLASS__); } }',
+            'class Stream { public function stream_open($path, $mode, $options, &$opened) {} }',
+        ];
     }
 }

@@ -11,6 +11,8 @@ use PHPUnit\Framework\TestCase;
 
 final class NoCommentedOutCodeTest extends TestCase
 {
+    use ParsesPhpSnippets;
+
     #[DataProvider('explanations')]
     public function testStandardRunnerKeepsExplanationsAndReportsDisabledCode(string $explanation): void
     {
@@ -113,5 +115,23 @@ PHP);
         } finally {
             unlink($path);
         }
+    }
+
+    #[DataProvider('pipelineRegressions')]
+    public function testPipelinePreservesValidCodeAndDetectsControl(string $valid, string $invalid): void
+    {
+        $this->assertRulePipeline('max_commented_out_code_lines', $valid, $invalid);
+    }
+
+    public static function pipelineRegressions(): iterable
+    {
+        yield 'Serializable Closure: inline example is documentation' => [
+            'function reflect() {
+// Created from a method (e.g. `$obj->method(...)`), attributes are inherited.
+}',
+            'function reflect() {
+// $obj->method();
+}',
+        ];
     }
 }
