@@ -53,6 +53,34 @@ final class NoRedundantLocalInterfacesTest extends TestCase
         $this->assertDocumentedConsumer($consumer, $expected, '@mixin \\Contracts\\Selfish');
     }
 
+    #[DataProvider('propertyConsumers')]
+    public function testPropertyTagsConsumeOnlyTheirDeclaredTypes(string $consumer, int $expected): void
+    {
+        $this->assertDocumentedConsumer($consumer, $expected, '@property \\Contracts\\Selfish $self');
+    }
+
+    public static function propertyConsumers(): iterable
+    {
+        yield 'Cashier order item declares an unnamed property type' => ['namespace App; use Contracts\\Subject as Entry; /** @property Entry orderable */ class Item {}', 0];
+        yield 'explicit property type without a name' => ['namespace App; use Contracts\\Subject as Entry; /** @property Entry */ class Item {}', 0];
+        yield 'named property type' => ['namespace App; use Contracts\\Subject as Entry; /** @property Entry $entry */ class Item {}', 0];
+        yield 'property read generic type' => ['namespace App; use Contracts\\Subject as Entry; /** @property-read array<int, class-string<Entry>> $entries */ class Item {}', 0];
+        yield 'property write on trait' => ['namespace App; use Contracts\\Subject as Entry; /** @property-write Entry $entry */ trait Item {}', 0];
+        yield 'property type does not consume its default' => ['namespace App; use Contracts\\Subject as Entry; /** @property Entry $entry = \\Contracts\\Unused::class */ class Item {}', 0];
+        yield 'property name is not a type' => ['namespace App; use Contracts\\Subject as Entry; /** @property string $Entry */ class Item {}', 1];
+        yield 'property description is not a type' => ['namespace App; use Contracts\\Subject as Entry; /** @property string $entry Entry describes another class. */ class Item {}', 1];
+        yield 'quoted literal is not a property type' => ['namespace App; use Contracts\\Subject as Entry; /** @property "Entry" $entry */ class Item {}', 1];
+        yield 'property shape key is not a type' => ['namespace App; use Contracts\\Subject as Entry; /** @property array{Entry: string} $entry */ class Item {}', 1];
+        yield 'property default is not a type' => ['namespace App; use Contracts\\Subject as Entry; /** @property string $entry = Entry::class */ class Item {}', 1];
+        yield 'template variable shadows the property class alias' => ['namespace App; use Contracts\\Subject as Entry; /**
+            * @template Entry
+            * @property Entry $entry
+            */ class Item {}', 1];
+        yield 'prose does not declare a property tag' => ['namespace App; use Contracts\\Subject as Entry; /** Mentions @property Entry for readers. */ class Item {}', 1];
+        yield 'function cannot declare a magic property' => ['namespace App; use Contracts\\Subject as Entry; /** @property Entry $entry */ function item() {}', 1];
+        yield 'native property cannot declare another magic property' => ['namespace App; use Contracts\\Subject as Entry; class Item { /** @property Entry $entry */ public string $text; }', 1];
+    }
+
     public static function multilineConsumers(): iterable
     {
         yield 'existing fully qualified multiline property' => ['class Registry { /**

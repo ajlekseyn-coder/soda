@@ -8,16 +8,16 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-six standard policies have 53,374 source-grounded findings; 4460 unchanged and 53 revised retained findings were reviewed individually. The remaining 3,528 findings are not yet classified.",
-  "final_source_sha256": "287268ae8b8634417144dba931fb20472514e076f3f6bb3f6d47afcf230db125",
-  "after": 61415,
-  "removed": 1311,
+  "remaining_review": "Thirty-six standard policies have 53,374 source-grounded findings; 4462 unchanged and 53 revised retained findings were reviewed individually. The remaining 3,513 findings are not yet classified.",
+  "final_source_sha256": "441c8d4c0cdb3fc439872192b02e5369da59bed1921d39fa343376d461d1ae9e",
+  "after": 61402,
+  "removed": 1324,
   "added": 54,
-  "resolved": 1257,
+  "resolved": 1270,
   "revised": 54,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1311,
+    "removed": 1324,
     "added": 54
   },
   "changed_rules": {
@@ -48,8 +48,8 @@
     },
     "no_catch_all_exceptions": {
       "before": 221,
-      "after": 214,
-      "net_removed": 7
+      "after": 202,
+      "net_removed": 19
     },
     "no_consecutive_block_comments": {
       "before": 8,
@@ -83,8 +83,8 @@
     },
     "no_redundant_local_interfaces": {
       "before": 42,
-      "after": 28,
-      "net_removed": 14
+      "after": 27,
+      "net_removed": 15
     },
     "no_repeated_type_dispatch": {
       "before": 40,
@@ -346,6 +346,15 @@
       "revised": 0,
       "reviewed_unchanged": 12,
       "reviewed_policy_findings": 0
+    },
+    {
+      "round": 32,
+      "before": 61415,
+      "after": 61402,
+      "resolved": 13,
+      "revised": 0,
+      "reviewed_unchanged": 2,
+      "reviewed_policy_findings": 0
     }
   ],
   "packages": [
@@ -455,8 +464,8 @@
       "files": 54,
       "source_sha256": "a1ed08bae386a620d702228460b40c8156659696ecc34be6c0e67f2fafc472e3",
       "before": 557,
-      "after": 548,
-      "removed": 9,
+      "after": 547,
+      "removed": 10,
       "added": 0
     },
     {
@@ -475,8 +484,8 @@
       "files": 102,
       "source_sha256": "ec737233f07bcb4d47f841180dfd345586ef1274cd8fd46a06d639400a3b6239",
       "before": 584,
-      "after": 578,
-      "removed": 6,
+      "after": 577,
+      "removed": 7,
       "added": 0
     },
     {
@@ -535,8 +544,8 @@
       "files": 31,
       "source_sha256": "d8fa6efd06627047f2fad13918c77ea529c4982113bbdd0d74fd819dcaa25681",
       "before": 650,
-      "after": 648,
-      "removed": 2,
+      "after": 646,
+      "removed": 4,
       "added": 0
     },
     {
@@ -595,8 +604,8 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26207,
-      "removed": 675,
+      "after": 26205,
+      "removed": 677,
       "added": 24
     },
     {
@@ -750,8 +759,8 @@
       "files": 174,
       "source_sha256": "93d0a226d80e95ac3745f2139a630a0724691774671dc83107e2cf3afec933e4",
       "before": 1636,
-      "after": 1589,
-      "removed": 48,
+      "after": 1588,
+      "removed": 49,
       "added": 1
     },
     {
@@ -770,8 +779,8 @@
       "files": 97,
       "source_sha256": "b03f413c74872d386eefd86bd9c22f13297ab92f8e54da505aaaea5ea6b81270",
       "before": 1319,
-      "after": 1316,
-      "removed": 3,
+      "after": 1315,
+      "removed": 4,
       "added": 0
     },
     {
@@ -930,8 +939,8 @@
       "files": 48,
       "source_sha256": "b2e1f2ac85f0d8ab6275556bd9c6e75800e32aadd1eba2fce3c75db62ed37512",
       "before": 332,
-      "after": 329,
-      "removed": 3,
+      "after": 328,
+      "removed": 4,
       "added": 0
     },
     {
@@ -1020,8 +1029,8 @@
       "files": 315,
       "source_sha256": "ffc34ed2d0d9f14b1e5a753089f98de175e0d2188e6696d37254eafd10dfc7bf",
       "before": 2015,
-      "after": 1890,
-      "removed": 127,
+      "after": 1887,
+      "removed": 130,
       "added": 2
     },
     {
@@ -1160,15 +1169,15 @@
       "files": 7,
       "source_sha256": "845c305f744b93ad5c621b8096814931b03f99b6ece2747dd5b8b18caa4db10f",
       "before": 24,
-      "after": 24,
-      "removed": 0,
+      "after": 23,
+      "removed": 1,
       "added": 0
     }
   ],
   "review_coverage": {
     "source_grounded_policy_findings": 53374,
-    "individually_reviewed_retained": 4460,
-    "remaining_unclassified": 3528,
+    "individually_reviewed_retained": 4462,
+    "remaining_unclassified": 3513,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 53
   }

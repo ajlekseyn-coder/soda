@@ -25,6 +25,13 @@ aliases remain outside this bounded analysis.
 Prose and tags on unrelated declaration kinds do not count. References owned by an
 interface remain dependencies; a self-reference alone does not consume it.
 
+The type position in a class-like declaration's
+[`@property`, `@property-read`, or `@property-write` tag](https://docs.phpdoc.org/guide/references/phpdoc/tags/property.html)
+also consumes a contract. This follows phpDocumentor's retained type envelope,
+including tags without a `$`-prefixed property name; it does not prove a runtime
+property binding or validate the tag with PHPStan. Property names, descriptions,
+defaults and tags attached to functions or native properties do not consume types.
+
 ## Examples
 
 ```php

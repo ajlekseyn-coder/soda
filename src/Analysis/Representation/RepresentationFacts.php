@@ -53,18 +53,18 @@ final class RepresentationFacts
     }
 
     /**
-     * Catch-defined locals can carry their fallback into the immediately following return.
+     * Empty catches and catch-defined locals can continue into the next explicit return.
      */
     private static function returnedCatches(array $nodes): array
     {
         $returned = [];
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\TryCatch::class) as $try) {
-            $following = self::followingReturn($try);
+            $following = self::followingReturn($try, $nodes);
             if ($following === null) {
                 continue;
             }
             foreach ($try->catches as $catch) {
-                if (self::doesReturnCatchBinding($catch->stmts, $following)) {
+                if (self::doesReturnCatchValue($catch->stmts, $following)) {
                     $returned[$catch->getStartFilePos()] = true;
                 }
             }
@@ -76,21 +76,22 @@ final class RepresentationFacts
     /**
      * Only the next statement in the same execution list can consume this catch's fallback.
      */
-    private static function followingReturn(Stmt\TryCatch $try): ?Stmt\Return_
+    private static function followingReturn(Stmt\TryCatch $try, array $nodes): ?Stmt\Return_
     {
-        $parent = $try->getAttribute('parent');
-        if ($try->finally !== null || ! $parent instanceof Node) {
+        if ($try->finally !== null) {
             return null;
+        }
+        $parent = $try->getAttribute('parent');
+        if (! $parent instanceof Node) {
+            return self::nextReturn($try, $nodes);
         }
         foreach ($parent->getSubNodeNames() as $field) {
             $siblings = get_object_vars($parent)[$field];
             if (! is_array($siblings)) {
                 continue;
             }
-            $siblings = array_values($siblings);
-            $position = array_search($try, $siblings, true);
-            $following = $position === false ? null : ($siblings[$position + 1] ?? null);
-            if ($following instanceof Stmt\Return_) {
+            $following = self::nextReturn($try, $siblings);
+            if ($following !== null) {
                 return $following;
             }
         }
@@ -99,15 +100,34 @@ final class RepresentationFacts
     }
 
     /**
-     * A sole ordinary assignment defines the returned local on every continuing catch path.
+     * Root files and nested statement lists share the same adjacent-return boundary.
      */
-    private static function doesReturnCatchBinding(array $statements, Stmt\Return_ $following): bool
+    private static function nextReturn(Stmt\TryCatch $try, array $siblings): ?Stmt\Return_
     {
-        if (count($statements) !== 1 || $following->expr === null) {
+        $ordered = array_values($siblings);
+        $position = array_search($try, $ordered, true);
+        $following = $position === false ? null : ($ordered[$position + 1] ?? null);
+
+        return $following instanceof Stmt\Return_ ? $following : null;
+    }
+
+    /**
+     * An empty handler can return its next expression; an assignment must preserve its binding.
+     */
+    private static function doesReturnCatchValue(array $statements, Stmt\Return_ $following): bool
+    {
+        if ($following->expr === null) {
+            return false;
+        }
+        $body = array_values(array_filter($statements, static fn (Node $statement): bool => ! $statement instanceof Stmt\Nop));
+        if ($body === []) {
+            return true;
+        }
+        if (count($body) !== 1) {
             return false;
         }
         $remaining = self::MAX_FACTS;
-        $assignment = self::statement($statements[0], null, $remaining);
+        $assignment = self::statement($body[0], null, $remaining);
         $target = $assignment['target'] ?? [];
         if (($assignment['op'] ?? null) !== 'assign' || ($target['op'] ?? null) !== 'variable') {
             return false;

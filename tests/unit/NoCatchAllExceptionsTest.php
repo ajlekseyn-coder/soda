@@ -8,6 +8,7 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Rules\Architecture\NoCatchAllExceptions;
+use Cosmira\Soda\Rules\Structure\NoEmptyCatchBlocks;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitor\ParentConnectingVisitor;
@@ -215,14 +216,14 @@ final class NoCatchAllExceptionsTest extends TestCase
     }
 
     #[DataProvider('returnedCatchBindings')]
-    public function testAnImmediateReturnPreservesOnlyTheCatchDefinedBinding(string $source, int $expected): void
+    public function testAnImmediateReturnPreservesAnExplicitCatchOutcome(string $source, int $expected, bool $namespaced = true): void
     {
         $root = sys_get_temp_dir().'/soda-returned-catch-'.bin2hex(random_bytes(6));
         self::assertTrue(mkdir($root));
         $declaration = $root.'/Declarations.php';
         $caller = $root.'/Caller.php';
         self::assertNotFalse(file_put_contents($declaration, '<?php namespace App; class Outcome { public function __construct(public mixed $result, public mixed $other = null) {} } class Mutator { public function __construct(&$value) { $value = "success"; } }'));
-        self::assertNotFalse(file_put_contents($caller, '<?php namespace App;'."\n".$source."\n".'function genuinelyContinues() { try { work(); } catch (\\Throwable $error) { report($error); } }'));
+        self::assertNotFalse(file_put_contents($caller, ($namespaced ? '<?php namespace App;' : '<?php')."\n".$source."\n".'function genuinelyContinues() { try { work(); } catch (\\Throwable $error) { report($error); } }'));
 
         try {
             foreach ([[new NoCatchAllExceptions], RuleCatalog::standard()] as $checks) {
@@ -240,8 +241,8 @@ final class NoCatchAllExceptionsTest extends TestCase
                     $targets = $findings->filter(static fn ($row): bool => $row->line === 2)->values();
                     self::assertCount($expected, $targets);
                     self::assertCount($expected + 1, $findings);
-                    if ($expected !== 0) {
-                        self::assertSame([...$genuine[0]->toArray(), 'line' => 2], $targets[0]->toArray());
+                    foreach ($targets as $target) {
+                        self::assertSame([...$genuine[0]->toArray(), 'line' => 2], $target->toArray());
                     }
                 }
             }
@@ -278,6 +279,39 @@ final class NoCatchAllExceptionsTest extends TestCase
         yield 'null key collides with empty string' => ['function target() { '.$try.' return ["" => $result, null => null]; }', 1];
         yield 'explicit key replaces implicit value' => ['function target() { '.$try.' return [$result, 0 => null]; }', 1];
         yield 'duplicate nested array key erases wrapper payload' => ['function target() { '.$try.' return new Outcome(["result" => $result, "result" => null]); }', 1];
+        yield 'empty catch immediately returns false' => ['function target() { try { return work(); } catch (\\Throwable $error) {} return false; }', 0];
+        yield 'comment-only catch immediately returns false' => ['function target() { try { return work(); } catch (\\Throwable $error) { /* deliberate fallback */ } return false; }', 0];
+        yield 'empty catch immediately returns null' => ['function target() { try { return work(); } catch (\\Throwable $error) {} return null; }', 0];
+        yield 'empty catch immediately returns native array' => ['function target() { try { return work(); } catch (\\Throwable $error) {} return []; }', 0];
+        yield 'empty catch immediately returns explicit allocation' => ['function target() { try { return work(); } catch (\\Throwable $error) {} return new Outcome(null); }', 0];
+        yield 'empty catch with following bare return' => ['function target() { try { work(); } catch (\\Throwable $error) {} return; }', 1];
+        yield 'empty catch has intervening work' => ['function target() { try { return work(); } catch (\\Throwable $error) {} record(); return false; }', 1];
+        yield 'return belongs to a different statement list' => ['function target($enabled) { if ($enabled) { try { return work(); } catch (\\Throwable $error) {} } return false; }', 1];
+        yield 'empty catch has own finally' => ['function target() { try { return work(); } catch (\\Throwable $error) {} finally { cleanup(); } return false; }', 1];
+        yield 'empty catch has enclosing finally' => ['function target() { try { try { return work(); } catch (\\Throwable $error) {} return false; } finally { return true; } }', 1];
+        yield 'empty catch immediately returns an effectful expression' => ['function target() { try { return work(); } catch (\\Throwable $error) {} return recover(); }', 0];
+        yield 'empty catch immediately returns the final array value' => ['function target() { try { return work(); } catch (\\Throwable $error) {} return [0 => false, "0" => true]; }', 0];
+        yield 'top-level catch immediately returns a value' => ['try { return work(); } catch (\\Throwable $error) {} return false;', 0, false];
+        yield 'return in the same conditional branch' => ['function target($enabled) { if ($enabled) { try { return work(); } catch (\\Throwable $error) {} return false; } return true; }', 0];
+        yield 'multiple empty catches share explicit fallback' => ['function target() { try { return work(); } catch (\\Exception $error) {} catch (\\Throwable $error) { /* fallback */ } return false; }', 0];
+        yield 'empty recovery does not exempt another nonempty catch' => ['function target() { try { return work(); } catch (\\Exception $error) { report($error); } catch (\\Throwable $error) {} return false; }', 1];
+    }
+
+    public function testAnExplicitFallbackPreservesTheSeparateEmptyCatchDiagnostic(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-empty-catch-fallback-');
+        self::assertIsString($path);
+        self::assertNotFalse(file_put_contents($path, '<?php function fallback() { try { return work(); } catch (Throwable $error) {} return false; }'));
+
+        try {
+            $result = (new Runner)->check([$path], [new NoCatchAllExceptions, new NoEmptyCatchBlocks]);
+            self::assertSame([
+                ['rule'    => 'max_empty_catch_blocks', 'file' => $path, 'method' => 'fallback', 'class' => null,
+                    'line' => 1, 'value' => 1, 'threshold' => 0, 'message' => 'Empty catch block'],
+            ], $result->violations->map(static fn ($row): array => $row->toArray())->all());
+        } finally {
+            unlink($path);
+        }
     }
 
     public function testStandardRunnerAcceptsACompleteNestedFallback(): void

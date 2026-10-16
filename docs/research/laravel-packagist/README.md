@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,415 after
-thirty-one review rounds: 1,257 resolved and 54 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,311 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,402 after
+thirty-two review rounds: 1,270 resolved and 54 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,324 removals and
 54 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
@@ -32,7 +32,7 @@ original multiplicity.
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
-| `no_catch_all_exceptions` | 221 | 214 | 7 |
+| `no_catch_all_exceptions` | 221 | 202 | 19 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
@@ -40,12 +40,12 @@ original multiplicity.
 | `no_trivial_factories` | 127 | 77 | 50 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 | `avoid_redundant_naming` | 101 | 15 | 86 |
-| `no_redundant_local_interfaces` | 42 | 28 | 14 |
+| `no_redundant_local_interfaces` | 42 | 27 | 15 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,991 tests and three existing external-corpus skips; soda's self-check, PHPStan
+3,023 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -163,6 +163,27 @@ unambiguously bound native function calls. These verify the documented syntax
 policies, without inferring runtime defects or resolving other namespace fallback
 calls. All 36 existing policy proofs retain their exact diagnostic multisets.
 
+Round 32 recognizes an empty or comment-only catch followed immediately by a
+value return in the same statement list. Moving that expression into the empty
+handler preserves its outcome, including calls, assignments and conditional
+expressions. This removes 12 findings across eight packages. Bare returns,
+intervening work, different statement lists and finally blocks remain unproved;
+nonempty assignment handlers keep their existing binding-preservation checks.
+The independent empty-catch syntax policy remains unchanged.
+
+Class-like `@property`, `@property-read` and `@property-write` type positions also
+establish explicit PHPDoc consumers. This follows phpDocumentor's retained type
+envelope, including an unnamed property tag; it does not claim a runtime property
+binding or strict PHPStan validation. One Cashier Mollie finding is removed.
+`round32-resolved.jsonl` records all 13 exact removals and their source evidence.
+Both changes have tests in their corresponding rule classes.
+
+`round32-reviewed.jsonl` records two additional source-proved retained findings:
+Horizon's private `masters` property has only a constructor write, and Pint's
+owned private `echoSpan` method never reads its last input. These confirm the
+respective source policies without claiming general API deletion safety. The
+remaining findings are not classified by these proofs.
+
 ## Source-grounded policy review
 
 `verified-policies.json` records 53,374 findings across 36 policies checked against the pinned source:
@@ -234,9 +255,9 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 4,460 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 4,462 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 53 revised retained findings in `round18-reviewed.jsonl`,
-`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,528 retained
+`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 3,513 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 

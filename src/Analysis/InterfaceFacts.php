@@ -401,11 +401,11 @@ final class InterfaceFacts
     private static function isDeclarationTag(Node $node, string $tag): bool
     {
         return match ($tag) {
-            'var'                                                      => $node instanceof Stmt\Property,
-            'param', 'return'                                          => $node instanceof Node\FunctionLike,
-            'mixin', 'method'                                          => $node instanceof Stmt\ClassLike,
-            'template', 'template-covariant', 'template-contravariant' => $node instanceof Stmt\ClassLike || $node instanceof Node\FunctionLike,
-            default                                                    => false,
+            'var'                                                            => $node instanceof Stmt\Property,
+            'param', 'return'                                                => $node instanceof Node\FunctionLike,
+            'mixin', 'method', 'property', 'property-read', 'property-write' => $node instanceof Stmt\ClassLike,
+            'template', 'template-covariant', 'template-contravariant'       => $node instanceof Stmt\ClassLike || $node instanceof Node\FunctionLike,
+            default                                                          => false,
         };
     }
 }

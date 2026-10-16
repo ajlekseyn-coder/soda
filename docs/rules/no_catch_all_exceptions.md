@@ -20,6 +20,12 @@ one exact public static method whose body cannot return normally. A native `neve
 contract or an unconditional native exit or throw supplies that proof. PHPDoc
 alone, generator bodies, dynamic dispatch and ambiguous declarations do not.
 
+An empty or comment-only catch can also continue directly to a value-returning
+statement in the same statement list. Returning the same expression inside that
+empty handler would have the same outcome. A bare return, an intervening
+statement or an enclosing `finally` does not supply this proof. The separate
+empty-catch policy still applies to syntactically empty handlers.
+
 A catch may also define its fallback in one ordinary local assignment and use
 that unchanged local in the immediately following return. The return may carry
 the local directly, in a native array value, or in an explicitly named new
