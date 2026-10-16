@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Cosmira\Soda\Rules\Usage;
+namespace Cosmira\Soda\Analysis\Usage;
 
-use Cosmira\Soda\Rules\Complexity\AssignmentSyntax;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;

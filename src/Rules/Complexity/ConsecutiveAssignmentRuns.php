@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Rules\Complexity;
 
+use Cosmira\Soda\Analysis\Usage\AssignmentSyntax;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;

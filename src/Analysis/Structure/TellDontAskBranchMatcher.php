@@ -28,10 +28,10 @@ final class TellDontAskBranchMatcher
     /**
      * Match a queried receiver to a subsequent command while excluding calls on the owner itself.
      *
-     * @param list<array{receiver: string, method: string, result?: string}>   $questions
-     * @param array{receiver: string, method: string, arguments: list<string>} $command
+     * @param list<array{receiver: string, receiverKey: string, method: string, result?: string}>   $questions
+     * @param array{receiver: string, receiverKey: string, method: string, arguments: list<string>} $command
      *
-     * @return array{receiver: string, method: string, result?: string}|null
+     * @return array{receiver: string, receiverKey: string, method: string, result?: string}|null
      */
     public static function firstMatch(array $questions, array $command): ?array
     {
@@ -40,7 +40,7 @@ final class TellDontAskBranchMatcher
         }
 
         foreach ($questions as $question) {
-            if ($question['receiver'] !== $command['receiver']) {
+            if ($question['receiverKey'] !== $command['receiverKey']) {
                 continue;
             }
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cosmira\Soda\Rules\Complexity;
+namespace Cosmira\Soda\Analysis\Usage;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;

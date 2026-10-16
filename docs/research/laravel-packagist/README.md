@@ -10,16 +10,18 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,538 after
-twenty-five review rounds: 1,134 resolved and 50 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,184 removals and
-50 additions: the Cloud CLI dispatch group now names three methods instead of four,
-42 proven-empty interfaces have a more precise message, and seven commented-code
-ordinals exclude preceding prose. All other retained diagnostics match field-for-field
-with their original multiplicity.
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,518 after
+twenty-six review rounds: 1,154 resolved and 54 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,208 removals and
+54 additions: the Cloud CLI dispatch group now names three methods instead of four,
+42 proven-empty interfaces have a more precise message, seven commented-code
+ordinals exclude preceding prose, and four ask-then-tell messages retain their
+indexed receiver. All other retained diagnostics match field-for-field with their
+original multiplicity.
 
 | Rule | Before | After | Removed |
 | --- | ---: | ---: | ---: |
+| `max_ask_then_tell_patterns` | 234 | 214 | 20 |
 | `no_dynamic_invocation` | 506 | 505 | 1 |
 | `max_commented_out_code_lines` | 183 | 91 | 92 |
 | `no_unused_parameters` | 950 | 250 | 700 |
@@ -41,7 +43,7 @@ with their original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,754 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,830 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -60,6 +62,16 @@ visibility adaptations and intermediate traits retain their actual source origin
 Private parent methods cannot fulfill a child’s abstract trait requirement. Extra
 positions and ordinary concrete trait signatures remain checked. The seven exact
 diagnostics and pinned declarations are recorded in `round25-resolved.jsonl`.
+
+Round 26 distinguishes a queried container from an indexed service, and preserves
+literal or stable variable selectors in array and factory receiver paths. It removes
+18 container-versus-service matches and two Pulse matches between `make('config')`
+and `make(Pulse::class)`. Four genuine matches retain the same query and command
+source positions while their messages now name the indexed service. Binding writes,
+reference escapes and foreach evaluation order cannot establish an unchanged
+variable selector. Exact source hashes and call spans are recorded in
+`round26-resolved.jsonl` and `round26-revised.jsonl`; the other 210 retained matches
+remain unclassified.
 
 ## Source-grounded policy review
 
@@ -128,8 +140,9 @@ operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
 Together with the 2,847 individually reviewed findings in `reviewed-unchanged.jsonl`
-and 49 revised retained findings in `round18-reviewed.jsonl` and
-`round22-reviewed-revised.jsonl`, this leaves 5,671 retained findings unclassified.
+and 53 revised retained findings in `round18-reviewed.jsonl`,
+`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 5,647 retained
+findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
 After reproducing the corpus, run:

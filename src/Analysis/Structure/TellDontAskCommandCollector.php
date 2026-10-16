@@ -31,22 +31,24 @@ final readonly class TellDontAskCommandCollector
     /**
      * Extract a command receiver and method name from a concrete call expression.
      *
-     * @return list<array{receiver: string, method: string, arguments: list<string>}>
+     * @return list<array{receiver: string, receiverKey: string, method: string, arguments: list<string>}>
      */
     private function commandFromCall(MethodCall|NullsafeMethodCall|StaticCall $expr): array
     {
-        $receiver = $this->fingerprint->forCall($expr);
+        $receiverKey = $this->fingerprint->forCall($expr);
+        $receiver = $expr instanceof StaticCall ? $receiverKey : $this->fingerprint->fromExpr($expr->var);
         $method = $this->fingerprint->callName($expr);
-        $isIncompleteCall = $receiver === null || $method === null || $expr->isFirstClassCallable();
+        $isIncompleteCall = $receiver === null || $receiverKey === null || $method === null || $expr->isFirstClassCallable();
 
         if ($isIncompleteCall) {
             return [];
         }
 
         return [[
-            'receiver'  => $receiver,
-            'method'    => $method,
-            'arguments' => $this->argumentVariables($expr),
+            'receiver'    => $receiver,
+            'receiverKey' => $receiverKey,
+            'method'      => $method,
+            'arguments'   => $this->argumentVariables($expr),
         ]];
     }
 
@@ -71,7 +73,7 @@ final readonly class TellDontAskCommandCollector
     /**
      * Collect command calls from an expression and its conditional branches.
      *
-     * @return list<array{receiver: string, method: string, arguments: list<string>}>
+     * @return list<array{receiver: string, receiverKey: string, method: string, arguments: list<string>}>
      */
     public function fromExpr(Expr $expr): array
     {
@@ -101,7 +103,7 @@ final readonly class TellDontAskCommandCollector
      *
      * @param list<Node> $statements
      *
-     * @return list<array{receiver: string, method: string, arguments: list<string>}>
+     * @return list<array{receiver: string, receiverKey: string, method: string, arguments: list<string>}>
      */
     public function fromStatements(array $statements): array
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis;
 
+use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
@@ -84,5 +85,40 @@ trait CallableScopes
         $class = $owner instanceof ClassLike ? $owner->namespacedName?->toString() : null;
 
         return $class === null ? null : $class.'::'.$node->name->toString();
+    }
+
+    /**
+     * Nested callable bindings belong to their own entry pass; reference captures still escape here.
+     *
+     * @param array<mixed> $values
+     *
+     * @return list<Node>
+     */
+    private function bindingNodes(array $values, ?Node $parent = null): array
+    {
+        $nodes = [];
+        foreach ($values as $value) {
+            if (is_array($value)) {
+                array_push($nodes, ...$this->bindingNodes($value, $parent));
+
+                continue;
+            }
+            if (! $value instanceof Node) {
+                continue;
+            }
+            $nodes[] = $value;
+            if ($value instanceof Node\Arg && $parent !== null) {
+                $value->setAttribute('sodaReceiverEscapeAt', $parent->getEndFilePos());
+            }
+            if ($value instanceof Node\FunctionLike || $value instanceof ClassLike) {
+                continue;
+            }
+            $fields = get_object_vars($value);
+            foreach ($value->getSubNodeNames() as $name) {
+                array_push($nodes, ...$this->bindingNodes([$fields[$name]], $value));
+            }
+        }
+
+        return $nodes;
     }
 }

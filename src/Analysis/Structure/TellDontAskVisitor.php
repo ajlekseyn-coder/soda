@@ -30,7 +30,7 @@ use PhpParser\Node\Stmt\If_;
  */
 final class TellDontAskVisitor extends FactVisitor
 {
-    use CallableScopes;
+    use CallableScopes, TellDontAskScopes;
 
     /**
      * Query-then-command findings with their source and callable context.
@@ -55,17 +55,11 @@ final class TellDontAskVisitor extends FactVisitor
     private readonly TellDontAskCommandCollector $commandCollector;
 
     /**
-     * Aliases between variables and query results, tracked per closure scope.
-     */
-    private readonly TellDontAskScopes $aliases;
-
-    /**
      * Share one receiver fingerprint between the probe and the command collector.
      */
     public function __construct()
     {
         $fingerprint = new TellDontAskReceiverFingerprint;
-        $this->aliases = new TellDontAskScopes;
         $this->questionProbe = new TellDontAskQuestionProbe($fingerprint);
         $this->commandCollector = new TellDontAskCommandCollector($fingerprint);
     }
@@ -82,7 +76,7 @@ final class TellDontAskVisitor extends FactVisitor
 
         match ($node->getType()) {
             'Expr_Closure',
-            'Expr_ArrowFunction'       => $this->pushAliasScope(),
+            'Expr_ArrowFunction'       => $this->pushAliasScope($node),
             'Stmt_ClassMethod',
             'Stmt_Function'            => $this->enterMethodScope($node),
             'Expr_Assign'              => $this->recordAliasNode($node),
@@ -116,7 +110,7 @@ final class TellDontAskVisitor extends FactVisitor
 
         if ($isNamedCallable) {
             $this->currentMethod = null;
-            $this->aliases->clear();
+            $this->clear();
         }
     }
 
@@ -142,19 +136,21 @@ final class TellDontAskVisitor extends FactVisitor
         }
 
         $this->currentMethod = $name;
-        $this->aliases->reset();
+        $this->reset();
+        $this->bindReceiverKeys($node);
     }
 
     /**
      * Push alias scope using the current analysis state.
      */
-    private function pushAliasScope(): void
+    private function pushAliasScope(Node $node): void
     {
         if ($this->currentMethod === null) {
             return;
         }
 
-        $this->aliases->pushScope();
+        $this->pushScope();
+        $this->bindReceiverKeys($node);
     }
 
     /**
@@ -162,7 +158,7 @@ final class TellDontAskVisitor extends FactVisitor
      */
     private function popAliasScope(): void
     {
-        $this->aliases->popScope();
+        $this->popScope();
     }
 
     /**
@@ -175,14 +171,14 @@ final class TellDontAskVisitor extends FactVisitor
             return;
         }
 
-        $cannotRecordAlias = ! $node->var instanceof Expr\Variable || ! is_string($node->var->name) || ! $this->aliases->hasScopes();
+        $cannotRecordAlias = ! $node->var instanceof Expr\Variable || ! is_string($node->var->name) || ! $this->hasScopes();
         if ($cannotRecordAlias) {
             return;
         }
 
         $key = '$'.$node->var->name;
-        $questions = $this->questionProbe->questions($node->expr, $this->aliases->all());
-        $this->aliases->record($key, $questions);
+        $questions = $this->questionProbe->questions($node->expr, $this->all());
+        $this->record($key, $questions);
     }
 
     /**
@@ -212,11 +208,11 @@ final class TellDontAskVisitor extends FactVisitor
     /**
      * Match conditional queries to commands executed by their branch statements.
      *
-     * @param list<array{receiver: string, method: string, arguments: list<string>}> ...$commandGroups
+     * @param list<array{receiver: string, receiverKey: string, method: string, arguments: list<string>}> ...$commandGroups
      */
     private function collectFromConditional(Expr $condition, int $line, array ...$commandGroups): void
     {
-        $questions = $this->questionProbe->questions($condition, $this->aliases->all());
+        $questions = $this->questionProbe->questions($condition, $this->all());
 
         if ($questions === []) {
             return;
@@ -302,5 +298,40 @@ final class TellDontAskVisitor extends FactVisitor
             $node->getStartLine(),
             $this->commandCollector->fromExpr($node->right),
         );
+    }
+
+    /**
+     * Reference parameters and captures can change through another lexical owner.
+     *
+     * @return array<string, list<int>>
+     */
+    private function incomingReferenceBindings(Node\FunctionLike $owner): array
+    {
+        $escapes = [];
+        foreach ($owner->getParams() as $parameter) {
+            if ($parameter->byRef && $parameter->var instanceof Expr\Variable && is_string($parameter->var->name)) {
+                $escapes[$parameter->var->name] = [-1];
+            }
+        }
+        $this->capturedReferenceBindings($owner, -1, $escapes);
+
+        return $escapes;
+    }
+
+    /**
+     * A by-reference closure capture keeps its outer binding externally writable.
+     *
+     * @param array<string,list<int>> $escapes
+     */
+    private function capturedReferenceBindings(Node $closure, int $position, array &$escapes): void
+    {
+        if (! $closure instanceof Expr\Closure) {
+            return;
+        }
+        foreach ($closure->uses as $use) {
+            if ($use->byRef && is_string($use->var->name)) {
+                $this->recordBindingEvent($escapes, $use->var->name, $position);
+            }
+        }
     }
 }

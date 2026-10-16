@@ -41,9 +41,9 @@ final readonly class TellDontAskQuestionProbe
     /**
      * Resolve a variable to queries recorded in the nearest enclosing alias scope.
      *
-     * @param list<array<string, list<array{receiver: string, method: string, result?: string}>>> $questionAliases
+     * @param list<array<string, list<array{receiver: string, receiverKey: string, method: string, result?: string}>>> $questionAliases
      *
-     * @return list<array{receiver: string, method: string, result?: string}>
+     * @return list<array{receiver: string, receiverKey: string, method: string, result?: string}>
      */
     private function aliasedQuestions(string $variable, array $questionAliases): array
     {
@@ -70,30 +70,32 @@ final readonly class TellDontAskQuestionProbe
     /**
      * Extract a query receiver and method name from a call expression.
      *
-     * @return list<array{receiver: string, method: string, result?: string}>
+     * @return list<array{receiver: string, receiverKey: string, method: string, result?: string}>
      */
     private function questionFromCall(MethodCall|NullsafeMethodCall|StaticCall $expr): array
     {
-        $receiver = $this->fingerprint->forCall($expr);
+        $receiverKey = $this->fingerprint->forCall($expr);
+        $receiver = $expr instanceof StaticCall ? $receiverKey : $this->fingerprint->fromExpr($expr->var);
         $method = $this->fingerprint->callName($expr);
-        $isIncompleteCall = $receiver === null || $method === null;
+        $isIncompleteCall = $receiver === null || $receiverKey === null || $method === null || $expr->isFirstClassCallable();
 
         if ($isIncompleteCall) {
             return [];
         }
 
         return [[
-            'receiver' => $receiver,
-            'method'   => $method,
+            'receiver'    => $receiver,
+            'receiverKey' => $receiverKey,
+            'method'      => $method,
         ]];
     }
 
     /**
      * Find receiver queries in a condition, including variables holding earlier query results.
      *
-     * @param list<array<string, list<array{receiver: string, method: string, result?: string}>>> $questionAliases
+     * @param list<array<string, list<array{receiver: string, receiverKey: string, method: string, result?: string}>>> $questionAliases
      *
-     * @return list<array{receiver: string, method: string, result?: string}>
+     * @return list<array{receiver: string, receiverKey: string, method: string, result?: string}>
      */
     public function questions(Expr $expr, array $questionAliases): array
     {

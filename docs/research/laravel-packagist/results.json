@@ -8,19 +8,24 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 49 revised retained findings were reviewed individually. The remaining 5,671 findings are not yet classified.",
-  "final_source_sha256": "3e3c19460c33001c3c081edf68aa9ca54b5e5ee3deb859ac7f980dc5569ace78",
-  "after": 61538,
-  "removed": 1184,
-  "added": 50,
-  "resolved": 1134,
-  "revised": 50,
+  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 53 revised retained findings were reviewed individually. The remaining 5,647 findings are not yet classified.",
+  "final_source_sha256": "eb78b53bf45fb5db60f7586e808a31127be0d14445ccc14ba7db5b14b4eea0b2",
+  "after": 61518,
+  "removed": 1208,
+  "added": 54,
+  "resolved": 1154,
+  "revised": 54,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1184,
-    "added": 50
+    "removed": 1208,
+    "added": 54
   },
   "changed_rules": {
+    "max_ask_then_tell_patterns": {
+      "before": 234,
+      "after": 214,
+      "net_removed": 20
+    },
     "max_commented_out_code_lines": {
       "before": 183,
       "after": 91,
@@ -282,6 +287,13 @@
       "after": 61538,
       "resolved": 7,
       "revised": 0
+    },
+    {
+      "round": 26,
+      "before": 61538,
+      "after": 61518,
+      "resolved": 20,
+      "revised": 4
     }
   ],
   "packages": [
@@ -382,8 +394,8 @@
       "source_sha256": "31b84a90518c28d9281317caafdede3423f838b9bd0ae87f6e74aab727a23914",
       "before": 306,
       "after": 303,
-      "removed": 3,
-      "added": 0
+      "removed": 4,
+      "added": 1
     },
     {
       "name": "laravel/cashier",
@@ -531,9 +543,9 @@
       "files": 1639,
       "source_sha256": "026cd209aba6518c5301db4594974bbe0a338f1d5adf91ac2718ccce0dfa72f7",
       "before": 26858,
-      "after": 26264,
-      "removed": 616,
-      "added": 22
+      "after": 26247,
+      "removed": 635,
+      "added": 24
     },
     {
       "name": "laravel/head",
@@ -572,8 +584,8 @@
       "source_sha256": "7d06366cdca1e1a43a5e7076eef38eb13fe71419e0ceec84103108a0132478a7",
       "before": 804,
       "after": 795,
-      "removed": 11,
-      "added": 2
+      "removed": 12,
+      "added": 3
     },
     {
       "name": "laravel/installer",
@@ -746,8 +758,8 @@
       "files": 146,
       "source_sha256": "e53acd888dba13919946690b78bf567f541a2a44b99b07e168baa27459b08ab0",
       "before": 790,
-      "after": 772,
-      "removed": 18,
+      "after": 771,
+      "removed": 19,
       "added": 0
     },
     {
@@ -826,8 +838,8 @@
       "files": 56,
       "source_sha256": "9e6943bb35060ab9243009e6a70abdbe93d2d15fb287f188a906058256845157",
       "before": 488,
-      "after": 486,
-      "removed": 2,
+      "after": 484,
+      "removed": 4,
       "added": 0
     },
     {
@@ -1104,8 +1116,8 @@
   "review_coverage": {
     "source_grounded_policy_findings": 52971,
     "individually_reviewed_retained": 2847,
-    "remaining_unclassified": 5671,
+    "remaining_unclassified": 5647,
     "policy_proof": "verified-policies.json",
-    "individually_reviewed_revised": 49
+    "individually_reviewed_revised": 53
   }
 }
