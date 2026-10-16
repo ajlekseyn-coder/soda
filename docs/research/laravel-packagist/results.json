@@ -8,8 +8,8 @@
   "analyzed_packages": 81,
   "files": 5875,
   "before": 62672,
-  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 2847 unchanged and 53 revised retained findings were reviewed individually. The remaining 5,647 findings are not yet classified.",
-  "final_source_sha256": "eb78b53bf45fb5db60f7586e808a31127be0d14445ccc14ba7db5b14b4eea0b2",
+  "remaining_review": "Thirty-one standard policies have 52,971 source-grounded findings; 4216 unchanged and 53 revised retained findings were reviewed individually. The remaining 4,278 findings are not yet classified.",
+  "final_source_sha256": "aa0eb914003e3a4e92c083f84b2a397dc31f1617f1d6e5c89cb094bb6b9974bd",
   "after": 61518,
   "removed": 1208,
   "added": 54,
@@ -294,6 +294,14 @@
       "after": 61518,
       "resolved": 20,
       "revised": 4
+    },
+    {
+      "round": 27,
+      "before": 61518,
+      "after": 61518,
+      "resolved": 0,
+      "revised": 0,
+      "reviewed_unchanged": 1369
     }
   ],
   "packages": [
@@ -1115,8 +1123,8 @@
   ],
   "review_coverage": {
     "source_grounded_policy_findings": 52971,
-    "individually_reviewed_retained": 2847,
-    "remaining_unclassified": 5647,
+    "individually_reviewed_retained": 4216,
+    "remaining_unclassified": 4278,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 53
   }

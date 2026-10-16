@@ -11,7 +11,7 @@ application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
 The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,518 after
-twenty-six review rounds: 1,154 resolved and 54 existing diagnostics revised. No independent
+twenty-seven review rounds: 1,154 resolved and 54 existing diagnostics revised. No independent
 new finding was introduced. The raw diagnostic multiset contains 1,208 removals and
 54 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, seven commented-code
@@ -43,7 +43,7 @@ original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,830 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,847 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -72,6 +72,22 @@ reference escapes and foreach evaluation order cannot establish an unchanged
 variable selector. Exact source hashes and call spans are recorded in
 `round26-resolved.jsonl` and `round26-revised.jsonl`; the other 210 retained matches
 remain unclassified.
+
+Round 27 corrects mode-input origins after exhaustive overwrites. Only continuing
+branches contribute aliases to subsequent dispatches. The same final integer or
+string assignment on every continuing arm discards the old input even when the
+condition reads it; differing values preserve possible control dependence. This
+regression does not remove a pinned finding: all 81 package diagnostic multisets
+remain unchanged.
+
+A separate native AST review confirms 1,369 additional parameter-binding writes
+across 476 pinned files. These target actual by-value inputs outside a deliberately
+broad leading simple-assignment prefix; array/property mutation, shadowed scopes
+and by-reference inputs do not qualify. `round27-reviewed.jsonl` records every
+source span and declaration. `verify-parameter-writes.php` independently parses
+the source and consumes exact diagnostic and native-write occurrence budgets;
+forged fields, source hashes, binding evidence and duplicate/missing records are
+rejected. The omitted leading-prefix writes remain unclassified.
 
 ## Source-grounded policy review
 
@@ -139,9 +155,9 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 2,847 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 4,216 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 53 revised retained findings in `round18-reviewed.jsonl`,
-`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 5,647 retained
+`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 4,278 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
@@ -149,6 +165,7 @@ After reproducing the corpus, run:
 
 ```sh
 php docs/research/laravel-packagist/verify-policies.php /tmp/soda-laravel-recheck
+php docs/research/laravel-packagist/verify-parameter-writes.php /tmp/soda-laravel-recheck /tmp/soda-laravel-audit/sources
 ```
 
 For reports stored separately from source archives, pass the `sources` directory

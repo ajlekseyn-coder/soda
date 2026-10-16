@@ -51,6 +51,8 @@ return match ($protocol) {
 };
 ```
 
+A mode warning requires the original input to still select the operations. An exhaustive overwrite under an independent condition discards that input origin. Branches ending in `return`, `throw` or `exit` do not supply an input origin to later statements. Variable conditions retain possible input dependence unless every continuing arm ends with the same integer or string assignment.
+
 ## Configuration
 
 ```php

@@ -64,6 +64,70 @@ PHP);
         }
     }
 
+    #[DataProvider('continuingBranchOrigins')]
+    public function testOnlyContinuingBranchOriginsSelectOperations(string $body, int $expected): void
+    {
+        $root = sys_get_temp_dir().'/soda-mode-origins-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $target = $root.'/Target.php';
+        $control = $root.'/Control.php';
+        file_put_contents($target, '<?php function target($mode, $normalize = null) { '.$body.' }');
+        file_put_contents($control, '<?php function genuine($mode) { return match ($mode) { 0 => create(), 1 => update() }; }');
+
+        try {
+            foreach ([[new NoModeParameters], RuleCatalog::standard()] as $checks) {
+                foreach ([[$target, $control], [$control, $target]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_mode_parameters')->values();
+                    $genuine = $findings->filter(static fn ($row): bool => $row->file === $control)->values();
+                    self::assertCount(1, $genuine);
+                    self::assertSame(1, $genuine[0]->line);
+                    self::assertSame(1, $genuine[0]->value);
+                    self::assertSame(0, $genuine[0]->threshold);
+                    self::assertSame('Parameter $mode selects distinct operations at lines 1. Expose separate named operations instead of a mode selector.', $genuine[0]->message);
+                    $targets = $findings->filter(static fn ($row): bool => $row->file === $target)->values();
+                    self::assertCount($expected, $targets);
+                    self::assertCount($expected + 1, $findings);
+                    if ($expected !== 0) {
+                        self::assertSame(1, $targets[0]->line);
+                        self::assertSame(1, $targets[0]->value);
+                        self::assertSame(0, $targets[0]->threshold);
+                        self::assertStringContainsString('Parameter $mode selects distinct operations', $targets[0]->message);
+                    }
+                }
+            }
+        } finally {
+            unlink($target);
+            unlink($control);
+            rmdir($root);
+        }
+    }
+
+    public static function continuingBranchOrigins(): iterable
+    {
+        $dispatch = 'return match ($mode) { 0 => create(), 1 => update() };';
+        $aliasDispatch = 'return match ($selected) { 0 => create(), 1 => update() };';
+
+        yield 'both branches overwrite input' => ['if (choose()) { $mode = 0; } else { $mode = 0; } '.$dispatch, 0];
+        yield 'variable condition with uniform overwrite removes input' => ['if ($normalize) { $mode = 0; } else { $mode = 0; } '.$dispatch, 0];
+        yield 'input condition with uniform overwrite removes input' => ['if ($mode) { $mode = 0; } else { $mode = 0; } '.$dispatch, 0];
+        yield 'missing else preserves input' => ['if (choose()) { $mode = 0; } '.$dispatch, 1];
+        yield 'exhaustive elseif overwrites input' => ['if (first()) { $mode = 0; } elseif (second()) { $mode = 1; } else { $mode = 2; } '.$dispatch, 0];
+        yield 'elseif without else preserves input' => ['if (first()) { $mode = 0; } elseif (second()) { $mode = 1; } '.$dispatch, 1];
+        yield 'returned branch has no continuation' => ['if (choose()) { return null; } else { $mode = 0; } '.$dispatch, 0];
+        yield 'throwing branch has no continuation' => ['if (choose()) { throw new RuntimeException; } else { $mode = 0; } '.$dispatch, 0];
+        yield 'exiting branch has no continuation' => ['if (choose()) { exit; } else { $mode = 0; } '.$dispatch, 0];
+        yield 'terminal expression still dispatches input' => ['if (choose()) { '.$dispatch.' } else { $mode = 0; } '.$dispatch, 1];
+        yield 'input selects operations before overwrites' => ['if ($mode === 0) { $mode = 0; create(); } else { $mode = 0; update(); }', 1];
+        yield 'input condition still selects branch assigned operation' => ['if ($mode === \'a\') { $mode = 0; } else { $mode = 1; } '.$dispatch, 1];
+        yield 'computed input condition still selects branch assigned operation' => ['$selected = $mode === \'a\'; if ($selected) { $mode = 0; } else { $mode = 1; } '.$dispatch, 1];
+        yield 'saved alias survives input overwrites' => ['$selected = $mode; if (choose()) { $mode = 0; } else { $mode = 1; } '.$aliasDispatch, 1];
+        yield 'all branches overwrite saved alias' => ['$selected = $mode; if (choose()) { $selected = 0; } else { $selected = 1; } '.$aliasDispatch, 0];
+        yield 'one continuing alias still preserves input' => ['if (choose()) { $selected = $mode; } else { $selected = 0; } '.$aliasDispatch, 1];
+        yield 'nested local write cannot overwrite outer input' => ['$callback = function () { $mode = 0; }; '.$dispatch, 1];
+    }
+
     public static function cases(): iterable
     {
         yield 'switch' => ['switch ($mode) { case "new": create(); break; case "old": update(); break; }', 1];
