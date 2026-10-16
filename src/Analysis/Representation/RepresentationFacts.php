@@ -37,7 +37,7 @@ final class RepresentationFacts
      *
      * @param list<Node> $nodes
      *
-     * @return array{types: array<string, array>, callables: array<string, array>, truncated: list<array>}
+     * @return array{types: array<string, array>, callables: array<string, array>, truncated: list<array>, catchCalls: array<int,array>}
      */
     public static function collect(array $nodes): array
     {
@@ -48,7 +48,7 @@ final class RepresentationFacts
         self::classes($nodes, $unconditional, $types, $callables, $truncated);
         self::functions($nodes, $unconditional, $callables, $truncated);
 
-        return ['types' => $types, 'callables' => $callables, 'truncated' => $truncated];
+        return ['types' => $types, 'callables' => $callables, 'truncated' => $truncated, 'catchCalls' => self::catchCalls($nodes)];
     }
 
     /**
@@ -72,6 +72,7 @@ final class RepresentationFacts
                 $row['eligible'] = false;
             }
 
+            $row['declared'] = $reason === null;
             $types[$id] = $row;
             foreach ($type->getMethods() as $method) {
                 $callable = self::callable($method, $row['name'].'::'.$method->name->toString(), $id, $truncated);
@@ -125,6 +126,7 @@ final class RepresentationFacts
         foreach ($callables as $id => $callable) {
             if ($callable['class'] !== null && isset($duplicates[$callable['class']])) {
                 $callable['statements'] = [self::barrier(self::DUPLICATE_DECLARATION, $callable['line'])];
+                $callable['terminal'] = false;
                 $callables[$id] = $callable;
             }
         }
@@ -164,6 +166,7 @@ final class RepresentationFacts
         $barrier = isset($callables[$id]) ? self::DUPLICATE_DECLARATION : $reason;
         if ($barrier !== null) {
             $callable['statements'] = [self::barrier($barrier, $callable['line'])];
+            $callable['terminal'] = false;
         }
 
         $callables[$id] = $callable;
@@ -200,7 +203,46 @@ final class RepresentationFacts
 
         return ['id'                                => strtolower($name), 'name' => $name, 'class' => $class, 'line' => $node->getStartLine(),
             ...self::modifiers($node), 'parameters' => $parameters,
-            'returnType'                            => self::nativeType($node->returnType, $class), 'byRef' => $node->byRef, 'statements' => $statements];
+            'returnType'                            => self::nativeType($node->returnType, $class), 'byRef' => $node->byRef, 'statements' => $statements,
+            'terminal'                              => self::isTerminal($node, $statements, $class, $remaining)];
+    }
+
+    /**
+     * Native terminal syntax supplies the positive proof; scalar gaps only veto it.
+     */
+    private static function isTerminal(Stmt\ClassMethod|Stmt\Function_ $node, array $statements, ?string $class, int $remaining): bool
+    {
+        if ($node->stmts === null || $remaining < 0) {
+            return false;
+        }
+        $body = array_values(array_filter($node->stmts, static fn (Node $statement): bool => ! $statement instanceof Stmt\Nop));
+        $last = $body === [] ? null : $body[array_key_last($body)];
+        $terminal = $last instanceof Stmt\Expression ? $last->expr : null;
+        if ($terminal instanceof Expr\Exit_ || $terminal instanceof Expr\Throw_) {
+            $prefix = array_slice($statements, 0, -1);
+            $operand = $terminal->expr === null ? [] : [self::expression($terminal->expr, $class, $remaining)];
+
+            return ! self::hasOutcomeGap([...$prefix, ...$operand]);
+        }
+
+        return self::nativeType($node->returnType, $class) === 'never' && ! self::hasOutcomeGap($statements);
+    }
+
+    /**
+     * Unknown expressions include deferred generators; unsupported control can bypass a later exit.
+     */
+    private static function hasOutcomeGap(array $values): bool
+    {
+        if (in_array($values['op'] ?? null, ['unknown', 'barrier', 'return'], true)) {
+            return true;
+        }
+        foreach ($values as $value) {
+            if (is_array($value) && self::hasOutcomeGap($value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -262,7 +304,7 @@ final class RepresentationFacts
     {
         $line = $statement->getStartLine();
         if ($statement instanceof Stmt\Return_) {
-            return ['op' => 'return', 'value' => $statement->expr instanceof Expr ? self::expression($statement->expr, $class, $remaining) : null, 'line' => $line];
+            return ['op' => 'return', 'value' => $statement->expr !== null ? self::expression($statement->expr, $class, $remaining) : null, 'line' => $line];
         }
 
         if ($statement instanceof Stmt\Expression && $statement->expr instanceof Expr\Assign) {

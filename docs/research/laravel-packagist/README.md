@@ -10,9 +10,9 @@ were scanned separately with the standard rule catalog. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,518 after
-twenty-seven review rounds: 1,154 resolved and 54 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,208 removals and
+The 5,875 selected PHP files produced 62,672 baseline diagnostics and 61,517 after
+twenty-eight review rounds: 1,155 resolved and 54 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,209 removals and
 54 additions: the Cloud CLI dispatch group now names three methods instead of four,
 42 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
@@ -32,7 +32,7 @@ original multiplicity.
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
 | `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
-| `no_catch_all_exceptions` | 221 | 217 | 4 |
+| `no_catch_all_exceptions` | 221 | 216 | 5 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
 | `no_unused_private_state` | 2 | 1 | 1 |
@@ -43,7 +43,7 @@ original multiplicity.
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-2,847 tests and three existing external-corpus skips; soda's self-check, PHPStan
+2,863 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -88,6 +88,14 @@ source span and declaration. `verify-parameter-writes.php` independently parses
 the source and consumes exact diagnostic and native-write occurrence budgets;
 forged fields, source hashes, binding evidence and duplicate/missing records are
 rejected. The omitted leading-prefix writes remain unclassified.
+
+Round 28 accepts a sole exact static call whose selected source proves that it
+cannot return normally. Vapor CLI’s timezone catch calls a public static method
+with an unconditional native `exit(1)`. Native `never` contracts also qualify;
+PHPDoc-only claims, generators, dynamic calls and ambiguous declarations remain
+checked. `round28-resolved.jsonl` records the original diagnostic, caller and
+callee hashes, native exit span and public Runner checks in both file orders.
+Only compact scalar outcomes survive into project analysis.
 
 ## Source-grounded policy review
 
@@ -157,7 +165,7 @@ thresholds, values, lines, messages and duplicate occurrences were rejected.
 
 Together with the 4,216 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 53 revised retained findings in `round18-reviewed.jsonl`,
-`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 4,278 retained
+`round22-reviewed-revised.jsonl` and `round26-revised.jsonl`, this leaves 4,277 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 

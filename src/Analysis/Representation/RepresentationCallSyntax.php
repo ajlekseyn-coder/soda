@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Cosmira\Soda\Analysis\Representation;
 
+use Cosmira\Soda\Analysis\CallableIdentity;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
+use PhpParser\NodeFinder;
 
 /**
  * Records exact call syntax and declared object storage for RepresentationFacts.
@@ -106,7 +108,8 @@ trait RepresentationCallSyntax
         $id = strtolower($name);
         $properties = [];
         $methods = [];
-        $eligible = ! $type->extends instanceof Name && $type->getTraitUses() === [];
+        $standalone = ! $type->extends instanceof Name && $type->getTraitUses() === [];
+        $eligible = $standalone;
         foreach ($type->getProperties() as $property) {
             $eligible = $eligible && self::hasSupportedStorage($property);
             foreach ($property->props as $item) {
@@ -126,8 +129,63 @@ trait RepresentationCallSyntax
         $properties += self::promotedProperties($constructor, $id, $eligible);
 
         return ['name'    => $name, 'final' => $type->isFinal(), 'readonly' => $type->isReadonly(),
-            'eligible'    => $eligible, 'properties' => $properties,
+            'eligible'    => $eligible, 'standalone' => $standalone, 'properties' => $properties,
             'constructor' => $methods['__construct'] ?? null, 'methods' => $methods];
+    }
+
+    /**
+     * Sole actual static calls can be linked after every source declaration has been collected.
+     */
+    private static function catchCalls(array $nodes): array
+    {
+        $calls = [];
+        foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\Catch_::class) as $catch) {
+            $call = self::catchCall($catch);
+            if ($call !== null) {
+                $calls[$catch->getStartFilePos()] = $call;
+            }
+        }
+
+        return $calls;
+    }
+
+    /**
+     * Relative dispatch and argument unpacking do not identify one exact executed declaration.
+     */
+    private static function catchCall(Stmt\Catch_ $catch): ?array
+    {
+        if (count($catch->stmts) !== 1 || ! $catch->stmts[0] instanceof Stmt\Expression) {
+            return null;
+        }
+        $call = $catch->stmts[0]->expr;
+        if (! $call instanceof Expr\StaticCall || ! $call->class instanceof Name || ! $call->name instanceof Node\Identifier || $call->isFirstClassCallable()) {
+            return null;
+        }
+        $class = strtolower($call->class->toString());
+        if (in_array($class, ['self', 'static', 'parent'], true)) {
+            return null;
+        }
+        if (! self::hasPositionalArguments($call->args)) {
+            return null;
+        }
+
+        return ['types' => array_map(static fn (Name $type): string => $type->getLast(), $catch->types),
+            'line'      => $catch->getStartLine(), 'identity' => CallableIdentity::enclosingMethod($catch),
+            'class'     => $class, 'method' => $call->name->toLowerString(), 'arity' => count($call->args)];
+    }
+
+    /**
+     * Named, unpacked and reference arguments require binding facts outside this exact-call proof.
+     */
+    private static function hasPositionalArguments(array $arguments): bool
+    {
+        foreach ($arguments as $argument) {
+            if ($argument->name !== null || $argument->unpack || $argument->byRef) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

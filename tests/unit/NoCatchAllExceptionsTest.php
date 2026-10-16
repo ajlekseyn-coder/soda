@@ -149,6 +149,71 @@ final class NoCatchAllExceptionsTest extends TestCase
         $this->assertSame([], iterator_to_array((new NoCatchAllExceptions)->checkFile($file)));
     }
 
+    #[DataProvider('sourceTerminalCalls')]
+    public function testSourceTerminalCallsRequireAnExactNativeOutcome(string $declarations, string $call, int $expected, bool $classCaller = false): void
+    {
+        $root = sys_get_temp_dir().'/soda-terminal-catch-'.bin2hex(random_bytes(6));
+        mkdir($root);
+        $declaration = $root.'/Declarations.php';
+        $caller = $root.'/Caller.php';
+        file_put_contents($declaration, '<?php namespace App; '.$declarations);
+        $target = 'function target($service, $class, $method) { try { work(); } catch (\\Throwable $error) { '.$call.' } }';
+        $target = $classCaller ? 'class Consumer { public '.$target.' }' : $target;
+        file_put_contents($caller, '<?php namespace App; use App\\Terminator as Boundary;'."\n".$target.'
+            function genuinelyContinues() { try { work(); } catch (\\Throwable $error) { report($error); } }
+            function throwsDirectly() { try { work(); } catch (\\Throwable $error) { throw $error; } }');
+
+        try {
+            foreach ([[new NoCatchAllExceptions], RuleCatalog::standard()] as $checks) {
+                foreach ([[$declaration, $caller], [$caller, $declaration]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    self::assertSame([], $result->violations->filter(static fn ($row): bool => $row->rule === 'parse_error')->all());
+                    $findings = $result->violations->filter(static fn ($row): bool => $row->rule === 'no_catch_all_exceptions')->values();
+                    $genuine = $findings->filter(static fn ($row): bool => $row->line === 3)->values();
+                    self::assertCount(1, $genuine);
+                    self::assertSame($caller, $genuine[0]->file);
+                    self::assertNull($genuine[0]->class);
+                    self::assertNull($genuine[0]->method);
+                    self::assertSame(1, $genuine[0]->value);
+                    self::assertSame(0, $genuine[0]->threshold);
+                    self::assertSame('A broad catch continues without returning a value or throwing. Make the failure outcome explicit.', $genuine[0]->message);
+                    $targets = $findings->filter(static fn ($row): bool => $row->line === 2)->values();
+                    self::assertCount($expected, $targets);
+                    self::assertCount($expected + 1, $findings);
+                    if ($expected !== 0) {
+                        self::assertSame([...$genuine[0]->toArray(), 'line' => 2], $targets[0]->toArray());
+                    }
+                }
+            }
+        } finally {
+            unlink($declaration);
+            unlink($caller);
+            rmdir($root);
+        }
+    }
+
+    public static function sourceTerminalCalls(): iterable
+    {
+        $exit = 'class Terminator { public static function stop($error) { report($error); exit(1); } }';
+
+        yield 'explicit class native exit body' => [$exit, 'Terminator::stop($error);', 0];
+        yield 'class caller observes exact static terminal' => [$exit, 'Terminator::stop($error);', 0, true];
+        yield 'imported alias identifies native exit body' => [$exit, 'Boundary::stop($error);', 0];
+        yield 'native never contract' => ['class Terminator { public static function stop($error): never { dispatch($error); } }', 'Terminator::stop($error);', 0];
+        yield 'PHPDoc alone cannot terminate catch' => ['class Terminator { /** @return never */ public static function stop($error) { report($error); } }', 'Terminator::stop($error);', 1];
+        yield 'unknown class binding' => [$exit, 'UnknownTerminator::stop($error);', 1];
+        yield 'unknown selected method' => [$exit, 'Terminator::other($error);', 1];
+        yield 'conditional declaration is not an unconditional binding' => ['if (enabled()) { '.$exit.' }', 'Terminator::stop($error);', 1];
+        yield 'ambiguous alternatives can select a returning declaration' => ['if (enabled()) { '.$exit.' } else { class Terminator { public static function stop($error) {} } }', 'Terminator::stop($error);', 1];
+        yield 'open instance receiver can select a returning method' => ['class Terminator { public function stop($error) { exit(1); } } class Returning extends Terminator { public function stop($error) {} }', '$service->stop($error);', 1];
+        yield 'dynamic class is not the declared terminal binding' => [$exit, '$class::stop($error);', 1];
+        yield 'dynamic method can select another target' => [$exit, 'Terminator::$method($error);', 1];
+        yield 'first class callable creation does not terminate catch' => [$exit, 'Terminator::stop(...);', 1];
+        yield 'missing required argument is an unsupported invocation' => [$exit, 'Terminator::stop();', 1];
+        yield 'generator body does not execute native exit on call' => ['class Terminator { public static function stop($error) { yield $error; exit(1); } }', 'Terminator::stop($error);', 1];
+        yield 'native exit after a possible normal return is insufficient' => ['class Terminator { public static function stop($error) { if (recoverable($error)) { return; } exit(1); } }', 'Terminator::stop($error);', 1];
+    }
+
     public function testStandardRunnerAcceptsACompleteNestedFallback(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'soda-catch-fallback-');

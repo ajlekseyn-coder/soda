@@ -92,11 +92,44 @@ trait CollectsDesignFacts
      */
     private static function representationMetrics(array $metrics, array $nodes, ?array $required): array
     {
-        if (self::isRequired($required, 'representationFlow')) {
-            $metrics['representationFlow'] = RepresentationFacts::collect($nodes);
+        $representation = self::isRequired($required, 'representationFlow');
+        $outcomes = self::isRequired($required, 'terminalOutcomes');
+        if ($representation || $outcomes) {
+            $facts = RepresentationFacts::collect($nodes);
+            if ($representation) {
+                $metrics['representationFlow'] = $facts;
+            }
+            if ($outcomes) {
+                $metrics['terminalOutcomes'] = self::terminalOutcomes($facts);
+            }
         }
 
         return $metrics;
+    }
+
+    /**
+     * Standard checks retain only declaration outcomes and call sites, not the research IR.
+     */
+    private static function terminalOutcomes(array $facts): array
+    {
+        $types = [];
+        foreach ($facts['types'] as $name => $type) {
+            $types[$name] = ['declared' => $type['declared'], 'standalone' => $type['standalone']];
+        }
+        $callables = [];
+        foreach ($facts['callables'] as $name => $callable) {
+            $required = 0;
+            foreach ($callable['parameters'] as $index => $parameter) {
+                if ($parameter['default'] === null) {
+                    $required = $index + 1;
+                }
+            }
+            $callables[$name] = ['class' => $callable['class'], 'terminal' => $callable['terminal'],
+                'static'                 => $callable['static'], 'visibility' => $callable['visibility'],
+                'required'               => $required, 'maximum' => count($callable['parameters'])];
+        }
+
+        return ['types' => $types, 'callables' => $callables, 'catches' => $facts['catchCalls']];
     }
 
     /**

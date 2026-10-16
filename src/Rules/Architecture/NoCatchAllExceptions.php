@@ -7,12 +7,12 @@ namespace Cosmira\Soda\Rules\Architecture;
 use Cosmira\Soda\Analysis\CallableIdentity;
 use Cosmira\Soda\Analysis\Complexity\StatementLists;
 use Cosmira\Soda\Analysis\FileFacts;
+use Cosmira\Soda\Analysis\ProjectFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
-use PhpParser\NodeFinder;
 
 final class NoCatchAllExceptions extends Check
 {
@@ -32,24 +32,115 @@ final class NoCatchAllExceptions extends Check
     public function checkFile(FileFacts $file): iterable
     {
         $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
-        $nodes = (new NodeFinder)->find($file->nodes, fn (Node $node): bool => $node instanceof Stmt\Catch_ && $this->isCatchAll($node) && ! $this->hasExplicitOutcome($node->stmts));
+        $nodes = $this->catches($file->nodes);
+        $outcomes = $file->metrics['terminalOutcomes'] ?? [];
+        $deferred = $outcomes['catches'] ?? [];
 
         foreach ($nodes as $node) {
+            if (! $this->isCatchAll($node) || $this->hasExplicitOutcome($node->stmts) || isset($deferred[$node->getStartFilePos()])) {
+                continue;
+            }
             $identity = CallableIdentity::enclosingMethod($node);
             $key = $identity !== null ? strtolower($identity) : null;
             if ($key !== null && isset($contracts[$key])) {
                 continue;
             }
 
-            yield new Violation(
-                rule: $this->id(),
-                file: $file->path,
-                value: 1,
-                threshold: 0,
-                line: $node->getStartLine(),
-                message: 'A broad catch continues without returning a value or throwing. Make the failure outcome explicit.',
-            );
+            yield $this->violation($file->path, $node->getStartLine());
         }
+    }
+
+    /**
+     * Exact static targets are checked only after all selected source declarations are known.
+     */
+    public function checkProject(ProjectFacts $project): iterable
+    {
+        $declarations = $this->projectDeclarations($project);
+        $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
+        foreach ($project->files as $file => $facts) {
+            yield from $this->deferredCatches($file, $facts['terminalOutcomes'] ?? [], $declarations, $contracts);
+        }
+    }
+
+    /**
+     * Duplicate source identities cannot establish a terminal target.
+     */
+    private function projectDeclarations(ProjectFacts $project): array
+    {
+        $types = [];
+        $callables = [];
+        foreach ($project->files as $facts) {
+            $outcomes = $facts['terminalOutcomes'] ?? [];
+            foreach ($outcomes['types'] ?? [] as $name => $type) {
+                $types[$name] = isset($types[$name]) ? ['declared' => false, 'standalone' => false] : $type;
+            }
+            foreach ($outcomes['callables'] ?? [] as $name => $callable) {
+                $callables[$name] = isset($callables[$name]) ? ['terminal' => false] : $callable;
+            }
+        }
+
+        return ['types' => $types, 'callables' => $callables];
+    }
+
+    /**
+     * Deferred catches retain their source order and the same exact contract exclusions.
+     */
+    private function deferredCatches(string $file, array $outcomes, array $declarations, array $contracts): iterable
+    {
+        ['types' => $types, 'callables' => $callables] = $declarations;
+        foreach ($outcomes['catches'] ?? [] as $catch) {
+            $identity = strtolower($catch['identity'] ?? '');
+            if (array_intersect($catch['types'], ['Throwable', 'Exception']) === [] || isset($contracts[$identity]) || $this->hasTerminalTarget($catch, $types, $callables)) {
+                continue;
+            }
+            yield $this->violation($file, $catch['line']);
+        }
+    }
+
+    /**
+     * Only an own public static body can discharge an explicitly named source call.
+     */
+    private function hasTerminalTarget(array $catch, array $types, array $callables): bool
+    {
+        $type = $types[$catch['class']] ?? [];
+        $callable = $callables[$catch['class'].'::'.$catch['method']] ?? [];
+        if (! ($type['declared'] ?? false) || ! ($type['standalone'] ?? false) || ! ($callable['terminal'] ?? false)) {
+            return false;
+        }
+
+        return $callable['static'] && $callable['visibility'] === 'public'
+            && $catch['arity'] >= $callable['required'] && $catch['arity'] <= $callable['maximum'];
+    }
+
+    /**
+     * Nested callable catches retain their own original syntax locations.
+     *
+     * @return list<Stmt\Catch_>
+     */
+    private function catches(array $nodes): array
+    {
+        $catches = [];
+        foreach ($nodes as $node) {
+            if (is_array($node)) {
+                array_push($catches, ...$this->catches($node));
+            } elseif ($node instanceof Node) {
+                if ($node instanceof Stmt\Catch_) {
+                    $catches[] = $node;
+                }
+                array_push($catches, ...$this->catches(get_object_vars($node)));
+            }
+        }
+
+        return $catches;
+    }
+
+    /**
+     * Preserve the diagnostic fields for both immediate and project-deferred catches.
+     */
+    private function violation(string $file, int $line): Violation
+    {
+        return new Violation(rule: $this->id(), file: $file, value: 1, threshold: 0, line: $line,
+            message: 'A broad catch continues without returning a value or throwing. Make the failure outcome explicit.');
     }
 
     /**
@@ -193,13 +284,13 @@ final class NoCatchAllExceptions extends Check
     }
 
     /**
-     * This check uses the resolved AST directly and needs no extra metrics.
+     * Link scalar static-call bindings to source terminal declarations after file analysis.
      *
      * @return list<string>
      */
     #[\Override]
     public function requiredAnalyses(): array
     {
-        return [];
+        return ['terminalOutcomes'];
     }
 }

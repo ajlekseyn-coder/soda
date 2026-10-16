@@ -15,6 +15,11 @@ statements after an unconditional outcome do not replace that outcome. A nested
 return a value, throw, or terminate the process. Nested blocks containing jumps
 are still checked conservatively because a jump can bypass the apparent outcome.
 
+A sole static call can also supply an outcome when the selected source declares
+one exact public static method whose body cannot return normally. A native `never`
+contract or an unconditional native exit or throw supplies that proof. PHPDoc
+alone, generator bodies, dynamic dispatch and ambiguous declarations do not.
+
 ## Examples
 
 ```php

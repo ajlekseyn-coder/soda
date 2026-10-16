@@ -55,7 +55,8 @@ use PhpParser\Node;
  *
  * @phpstan-type FileMetrics array{
  *   staticAccessors?: list<array{class: string|null, method: string, line: int}>,
- *   representationFlow?: array{types: array<string, array>, callables: array<string, array>, truncated: list<array>},
+ *   representationFlow?: array{types: array<string, array>, callables: array<string, array>, truncated: list<array>, catchCalls?: array<int,array>},
+ *   terminalOutcomes?: array{types: array<string,array>, callables: array<string,array>, catches: array<int,array>},
  *   registeredMiddleware?: array<string, true>,
  *   parameterInputs?: list<array>, parameterContracts?: array<string, array>,
  *   argumentContracts?: array<string, int>,
