@@ -15,9 +15,9 @@ executed, and no package dependencies were installed. Pint and Vet omit their
 application source from Composer distributions; their matching Git tags supplied
 that source after verifying the pinned commit. Bundled PHARs are excluded.
 
-The 5,890 selected PHP files produced 62,793 baseline diagnostics and 61,516 after
-thirty-three review rounds: 1,277 resolved and 55 existing diagnostics revised. No independent
-new finding was introduced. The raw diagnostic multiset contains 1,332 removals and
+The 5,890 selected PHP files produced 62,793 baseline diagnostics and 61,511 after
+thirty-four review rounds: 1,282 resolved and 55 existing diagnostics revised. No independent
+new finding was introduced. The raw diagnostic multiset contains 1,337 removals and
 55 additions: the Cloud CLI dispatch group now names three methods instead of four,
 43 proven-empty interfaces have a more precise message, seven commented-code
 ordinals exclude preceding prose, and four ask-then-tell messages retain their
@@ -36,7 +36,7 @@ original multiplicity.
 | `no_empty_local_interfaces` | 83 | 43 | 40 |
 | `no_declarations_before_early_exit` | 171 | 39 | 132 |
 | `useless_variable` | 6 | 3 | 3 |
-| `prefer_null_coalesce_assignment` | 16 | 15 | 1 |
+| `prefer_null_coalesce_assignment` | 16 | 11 | 5 |
 | `no_catch_all_exceptions` | 226 | 207 | 19 |
 | `no_consecutive_block_comments` | 8 | 4 | 4 |
 | `no_singleton_access` | 181 | 95 | 86 |
@@ -45,12 +45,12 @@ original multiplicity.
 | `no_trivial_factories` | 127 | 77 | 50 |
 | `no_repeated_type_dispatch` | 40 | 34 | 6 |
 | `avoid_redundant_naming` | 101 | 15 | 86 |
-| `no_redundant_local_interfaces` | 43 | 28 | 15 |
+| `no_redundant_local_interfaces` | 43 | 27 | 16 |
 
 Removed diagnostics include proved false positives and conservative suppression
 where an implicit consumer cannot be ruled out. This does not reclassify every
 remaining finding as a confirmed violation. The full test suite passes with
-3,071 tests and three existing external-corpus skips; soda's self-check, PHPStan
+3,100 tests and three existing external-corpus skips; soda's self-check, PHPStan
 and Pint also pass.
 
 Round 24 removes Horizon’s `SupervisorFactory::make()` finding: the command
@@ -212,6 +212,30 @@ finding is reviewed in `round33-reviewed-revised.jsonl`. Independent policy chec
 cover 93 additional findings from the recovered package. None of these reviews
 classifies the other remaining findings.
 
+Round 34 recognizes a trait's `@phpstan-require-implements` type as an explicit
+interface consumer. Fortify's `PasskeyAuthenticatable` trait requires `PasskeyUser`;
+that requirement removes the unused-interface false positive. Wrong declaration
+owners, prose and malformed type envelopes remain checked. The existing balanced
+PHPDoc parser and import rules supply the type reference.
+
+Fallback-assignment advice now requires a proved ordinary array container before
+suggesting `??=` for an offset. Four recommendations are conservatively omitted:
+unknown callback elements, a branch after input preparation, a method-return value
+and a runtime superglobal lie outside the bounded entry proof. The callback has a
+compatible native `ArrayAccess` counterexample: ordinary assignment calls
+`offsetSet()` when a value already exists, while `??=` skips it. This does not claim
+a uniquely installed namespace-function binding or observed production execution.
+The other omissions are not classified as confirmed behavior false positives.
+Native array inputs and ordinary local-variable controls retain their advice.
+
+`round34-resolved.jsonl` records the one trait-consumer correction and four
+conservative omissions, with exact diagnostics and pinned source evidence.
+Tests belong to `NoRedundantLocalInterfacesTest` and
+`PreferNullCoalesceAssignmentTest`. `round34-reviewed.jsonl` adds eleven retained
+plain-variable fallback assignments, independently reconstructed as syntax-policy
+findings without claiming runtime defects. All 36 existing policy proofs retain
+their full diagnostic fields and occurrence multiplicities.
+
 ## Source-grounded policy review
 
 `verified-policies.json` records 53,467 findings across 36 policies checked against the pinned source:
@@ -283,10 +307,10 @@ complexity checks independently inventory owned AST nodes, body ancestry and boo
 operator runs. All 1,150 diagnostics match in every field; forged owners, FQNs,
 thresholds, values, lines, messages and duplicate occurrences were rejected.
 
-Together with the 4,473 individually reviewed findings in `reviewed-unchanged.jsonl`
+Together with the 4,484 individually reviewed findings in `reviewed-unchanged.jsonl`
 and 54 revised retained findings in `round18-reviewed.jsonl`,
 `round22-reviewed-revised.jsonl`, `round26-revised.jsonl` and
-`round33-reviewed-revised.jsonl`, this leaves 3,522 retained
+`round33-reviewed-revised.jsonl`, this leaves 3,506 retained
 findings unclassified.
 These policy checks do not prove the behavior of the remaining semantic rules.
 
@@ -331,7 +355,7 @@ quality findings themselves are expected and do not stop the corpus run.
 
 `results.json` records the before/after diagnostic counts and a SHA-256 digest of
 each source list (`path + NUL + file SHA-256 + newline`, sorted by path).
-`resolved.jsonl` preserves the 1,277 resolved diagnostics and their source hashes.
+`resolved.jsonl` preserves the 1,282 resolved diagnostics and their source hashes.
 `round2-resolved.jsonl` isolates the 81 additional resolutions from the second round.
 `round3-resolved.jsonl` records 40 native contract corrections: 18 for `ArrayAccess`,
 19 for `SessionHandlerInterface`, and three for `php_user_filter`.
@@ -496,7 +520,7 @@ the uncaptured outer temporary. Returning the closure directly preserves its bod
 PHPDoc and reference captures.
 `revised.jsonl` retains both versions of the Cloud CLI finding, the 43 interface messages
 and seven commented-code ordinals;
-`reviewed-unchanged.jsonl` records 4,473 retained findings: 29 string-policy findings,
+`reviewed-unchanged.jsonl` records 4,484 retained findings: 29 string-policy findings,
 52 recommendations about repeated branches and boolean expressions, 95 source-proved
 singleton accesses, 14 temporary-return-variable findings and 287 guard/early-exit
 recommendations. Round 21 adds 197 return-assignment and 40 literal-concatenation
@@ -506,7 +530,7 @@ indirect-call helpers. Round 22 adds 74 unchanged commented-code fragments;
 round 23 adds three captured-parameter rebindings, round 27 adds 1,369 native
 parameter-binding writes, round 29 adds 72 structural measurements, and round 30 adds 131 structural
 measurements and 29 dependency cycles. Rounds 31–33 add 25 unchanged findings.
-Changes are compared as diagnostic multisets, including message, location and multiplicity.
+Round 34 adds eleven plain-variable fallback assignments. Changes are compared as diagnostic multisets, including message, location and multiplicity.
 The baseline uses the original soda source plus the one-line `switch` crash fix:
 the original Runner cannot finish packages containing affected switches.
 

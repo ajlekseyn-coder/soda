@@ -84,7 +84,7 @@ final class InterfaceFacts
                 'hasProperties' => $interface->getProperties() !== [],
                 'parentNames'   => array_map(fn (Node\Name $parent): string => $parent->toString(), $interface->extends),
                 'line'          => $interface->getStartLine(),
-                'methods'       => array_map(fn (Stmt\ClassMethod $method): string => strtolower($method->name->toString()), $interface->getMethods()),
+                'methods'       => array_map(fn ($method): string => strtolower($method->name->toString()), $interface->getMethods()),
                 'parents'       => array_map(fn (Node\Name $parent): string => strtolower($parent->toString()), $interface->extends),
             ];
         }
@@ -401,11 +401,12 @@ final class InterfaceFacts
     private static function isDeclarationTag(Node $node, string $tag): bool
     {
         return match ($tag) {
-            'var'                                                            => $node instanceof Stmt\Property,
-            'param', 'return'                                                => $node instanceof Node\FunctionLike,
-            'mixin', 'method', 'property', 'property-read', 'property-write' => $node instanceof Stmt\ClassLike,
-            'template', 'template-covariant', 'template-contravariant'       => $node instanceof Stmt\ClassLike || $node instanceof Node\FunctionLike,
-            default                                                          => false,
+            'var'                                                             => $node instanceof Stmt\Property,
+            'param', 'return'                                                 => $node instanceof Node\FunctionLike,
+            'mixin', 'method', 'property', 'property-read', 'property-write'  => $node instanceof Stmt\ClassLike,
+            'template', 'template-covariant', 'template-contravariant'        => $node instanceof Stmt\ClassLike || $node instanceof Node\FunctionLike,
+            'phpstan-require-implements'                                      => $node instanceof Stmt\Trait_,
+            default                                                           => false,
         };
     }
 }

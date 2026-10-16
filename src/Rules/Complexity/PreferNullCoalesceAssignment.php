@@ -8,13 +8,11 @@ use Cosmira\Soda\Analysis\FileFacts;
 use Cosmira\Soda\Contracts\Check;
 use Cosmira\Soda\Reporting\Violation;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\BinaryOp\Coalesce;
-use PhpParser\Node\Expr\PropertyFetch;
-use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Identifier;
-use PhpParser\Node\Stmt\Class_;
 use PhpParser\NodeFinder;
 use PhpParser\PrettyPrinter\Standard;
 
@@ -24,7 +22,7 @@ use PhpParser\PrettyPrinter\Standard;
 final class PreferNullCoalesceAssignment extends Check
 {
     /**
-     * AST link to the immediately enclosing syntax node.
+     * Parser links delimit the local binding used by a dimension target.
      */
     private const PARENT = 'parent';
 
@@ -67,7 +65,11 @@ final class PreferNullCoalesceAssignment extends Check
                 continue;
             }
 
-            if ($this->doesReadWriteState($assign)) {
+            if (StateWriteSearch::hasStateWriteOrCall($assign->var)) {
+                continue;
+            }
+
+            if ($assign->var instanceof Expr\ArrayDimFetch && ! $this->isNativeArray($assign)) {
                 continue;
             }
 
@@ -83,92 +85,41 @@ final class PreferNullCoalesceAssignment extends Check
     }
 
     /**
-     * Reevaluation and skipped property writes must preserve observable behavior.
+     * A native array container says nothing about the type of a nested element.
      */
-    private function doesReadWriteState(Assign $assign): bool
+    private function isNativeArray(Assign $assignment): bool
     {
-        if (StateWriteSearch::hasStateWriteOrCall($assign->var)) {
-            return true;
-        }
+        $target = $assignment->var;
 
-        $property = (new NodeFinder)->findFirst([$assign->var], static fn ($node): bool => $node instanceof PropertyFetch);
-
-        return $property instanceof PropertyFetch && ($property !== $assign->var || ! $this->isPlainProperty($property));
+        return $target instanceof Expr\ArrayDimFetch && $target->var instanceof Expr\Variable
+            && is_string($target->var->name) && $this->hasArrayBinding($assignment, $target->var->name);
     }
 
     /**
-     * Only an owned field with no hooks or possible magic setter proves an ordinary write.
+     * Only an incoming native array is established before any statement can expose its binding.
      */
-    private function isPlainProperty(PropertyFetch $target): bool
+    private function hasArrayBinding(Assign $assignment, string $name): bool
     {
-        $name = $target->name;
-        if (! $name instanceof Identifier) {
+        $statement = $assignment->getAttribute(self::PARENT);
+        $scope = $statement instanceof Node ? $statement->getAttribute(self::PARENT) : null;
+        if (! $statement instanceof Node\Stmt\Expression || ! $scope instanceof FunctionLike) {
             return false;
         }
 
-        $class = $this->propertyOwner($target);
-        if ($class === null || ! $this->hasPlainWrites($class)) {
-            return false;
-        }
+        return ($scope->getStmts()[0] ?? null) === $statement && $this->isArrayInput($name, $scope);
+    }
 
-        foreach ($class->getProperties() as $property) {
-            if ($property->isStatic() || $property->isReadonly() || $property->hooks !== []) {
-                continue;
-            }
-
-            foreach ($property->props as $item) {
-                if ($item->name->toString() === $name->toString()) {
-                    return true;
-                }
+    /**
+     * Entry proof cannot be borrowed from a reference input or another lexical callable.
+     */
+    private function isArrayInput(string $name, FunctionLike $scope): bool
+    {
+        foreach ($scope->getParams() as $parameter) {
+            if ($parameter->var instanceof Expr\Variable && $parameter->var->name === $name) {
+                return ! $parameter->byRef && $parameter->type instanceof Identifier && $parameter->type->toString() === 'array';
             }
         }
 
         return false;
-    }
-
-    /**
-     * Rebound closures and unrelated receivers do not inherit the declaring method's property proof.
-     */
-    private function propertyOwner(PropertyFetch $target): ?Class_
-    {
-        if (! $target->var instanceof Variable || $target->var->name !== 'this') {
-            return null;
-        }
-
-        $scope = $target->getAttribute(self::PARENT);
-        while ($scope instanceof Node && ! $scope instanceof FunctionLike) {
-            $scope = $scope->getAttribute(self::PARENT);
-        }
-
-        $class = $scope instanceof Node ? $scope->getAttribute(self::PARENT) : null;
-        if (! $class instanceof Class_) {
-            return null;
-        }
-
-        foreach ($class->getMethods() as $method) {
-            if ($method === $scope) {
-                return $method->isStatic() ? null : $class;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Parent classes, traits and subclasses can introduce accessors outside this declaration.
-     */
-    private function hasPlainWrites(Class_ $class): bool
-    {
-        if (! $class->isFinal() || $class->isReadonly() || $class->extends !== null || $class->getTraitUses() !== []) {
-            return false;
-        }
-
-        foreach (['__get', '__set', '__isset'] as $method) {
-            if ($class->getMethod($method) !== null) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

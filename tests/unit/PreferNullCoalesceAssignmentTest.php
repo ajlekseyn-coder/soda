@@ -27,7 +27,8 @@ final class PreferNullCoalesceAssignmentTest extends TestCase
     {
         yield 'plain variable' => ['$value = $value ?? "draft";', 1];
         yield 'fallback to null literal' => ['$value = $value ?? null;', 1];
-        yield 'array dimension' => ['$cache["key"] = $cache["key"] ?? [];', 1];
+        yield 'array dimension' => ['function initialize(array $cache) { $cache["key"] = $cache["key"] ?? []; }', 1];
+        yield 'nested property target stays outside' => ['final class Context { private string $scope = "value"; function initialize() { ${$this->scope} = ${$this->scope} ?? 1; } }', 0];
         yield 'declared property fetch' => ['final class Context { private ?string $scope = null; function initialize() { $this->scope = $this->scope ?? "web"; } }', 1];
         yield 'chained fallback' => ['$value = $value ?? $fallback ?? "draft";', 1];
         yield 'different target' => ['$value = $other ?? "draft";', 0];
@@ -58,7 +59,7 @@ final class PreferNullCoalesceAssignmentTest extends TestCase
 
     public function testReportsTheTargetWithAdvice(): void
     {
-        $findings = $this->findings('<?php $cache["key"] = $cache["key"] ?? [];');
+        $findings = $this->findings('<?php function initialize(array $cache) { $cache["key"] = $cache["key"] ?? []; }');
         self::assertCount(1, $findings);
         self::assertSame('prefer_null_coalesce_assignment', $findings[0]->rule);
         self::assertSame(1, $findings[0]->value);
@@ -98,6 +99,116 @@ final class PreferNullCoalesceAssignmentTest extends TestCase
         } finally {
             unlink($path);
         }
+    }
+
+    #[DataProvider('arrayOffsets')]
+    public function testStandardRunnerPreservesArrayOffsetWrites(string $source, int $expected): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'soda-coalesce-array-');
+        $control = tempnam(sys_get_temp_dir(), 'soda-coalesce-native-');
+        self::assertIsString($path);
+        self::assertIsString($control);
+        file_put_contents($path, '<?php '.$source);
+        file_put_contents($control, '<?php function nativeArray(array $items) { $items["quantity"] = $items["quantity"] ?? 1; } function plainVariable($value) { $value = $value ?? 1; }');
+
+        try {
+            foreach ([[new PreferNullCoalesceAssignment], RuleCatalog::standard()] as $checks) {
+                foreach ([[$path, $control], [$control, $path]] as $paths) {
+                    $result = (new Runner)->check($paths, $checks);
+                    $findings = $result->violations->filter(static fn ($item): bool => $item->rule === 'prefer_null_coalesce_assignment');
+                    $target = $findings->filter(static fn ($item): bool => $item->file === $path)->values();
+                    self::assertCount($expected, $target);
+                    self::assertCount(2, $findings->filter(static fn ($item): bool => $item->file === $control));
+                    self::assertCount(0, $result->violations->filter(static fn ($item): bool => $item->rule === 'parse_error'));
+                    if ($expected === 1) {
+                        self::assertSame(['rule' => 'prefer_null_coalesce_assignment', 'file' => $path, 'method' => null, 'class' => null, 'line' => 1, 'value' => 1, 'threshold' => 0, 'message' => "Assign the fallback with the ??= operator instead of repeating \$items['quantity'] on both sides."], $target[0]->toArray());
+                    }
+                }
+            }
+        } finally {
+            unlink($path);
+            unlink($control);
+        }
+    }
+
+    public static function arrayOffsets(): iterable
+    {
+        yield 'native array parameter' => [<<<'PHP'
+function target(array $items) { $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 1];
+        yield 'local initializer is outside entry proof' => [<<<'PHP'
+function target() { $items = []; $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'reference input initializer stays unsupported' => [<<<'PHP'
+function target(&$items) { $items = []; $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'reference capture initializer stays unsupported' => [<<<'PHP'
+function target(&$items) { return function () use (&$items) { $items = []; $items['quantity'] = $items['quantity'] ?? 1; }; }
+PHP
+            , 0];
+        yield 'unknown receiver' => [<<<'PHP'
+function target($items) { $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'native ArrayAccess receiver' => [<<<'PHP'
+function target(\ArrayAccess $items) { $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'nested array element can be ArrayAccess' => [<<<'PHP'
+function target(array $items) { $items[0]['quantity'] = $items[0]['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'outer array does not type callback item' => [<<<'PHP'
+function target(array $rows) { return array_map(function ($items) { $items['quantity'] = $items['quantity'] ?? 1; return $items; }, $rows); }
+PHP
+            , 0];
+        yield 'by reference array input' => [<<<'PHP'
+function target(array &$items) { $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'replacement before target' => [<<<'PHP'
+function target(array $items) { $items = other(); $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'reference alias before target' => [<<<'PHP'
+function target(array $items) { $alias =& $items; $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'branch before target' => [<<<'PHP'
+function target(array $items) { if (choose()) { $items = other(); } $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'capture before target' => [<<<'PHP'
+function target(array $items) { $callback = function () use (&$items) { $items = other(); }; $items['quantity'] = $items['quantity'] ?? 1; }
+PHP
+            , 0];
+        yield 'loop binding replaces input' => [<<<'PHP'
+function target(array $items) { foreach (rows() as $items) { $items['quantity'] = $items['quantity'] ?? 1; } }
+PHP
+            , 0];
+        yield 'nested callable parameter shadows array' => [<<<'PHP'
+function target(array $items) { return function ($items) { $items['quantity'] = $items['quantity'] ?? 1; }; }
+PHP
+            , 0];
+        yield 'float key conversion is observable' => [<<<'PHP'
+function target(array $items) { $items[1.5] = $items[1.5] ?? 1; }
+PHP
+            , 0];
+        yield 'computed key unsupported' => [<<<'PHP'
+function target(array $items, $key) { $items[$key] = $items[$key] ?? 1; }
+PHP
+            , 0];
+        yield 'unknown fallback offset can execute code' => [<<<'PHP'
+function target(array $items, $fallback) { $items['quantity'] = $items['quantity'] ?? $fallback[0]; }
+PHP
+            , 0];
+        yield 'suspending fallback unsupported' => [<<<'PHP'
+function target(array $items) { $items['quantity'] = $items['quantity'] ?? yield 1; }
+PHP
+            , 0];
     }
 
     private function findings(string $source): array

@@ -59,6 +59,28 @@ final class NoRedundantLocalInterfacesTest extends TestCase
         $this->assertDocumentedConsumer($consumer, $expected, '@property \\Contracts\\Selfish $self');
     }
 
+    #[DataProvider('requiredImplementationConsumers')]
+    public function testTraitImplementationRequirementsConsumeTheirInterface(string $consumer, int $expected): void
+    {
+        $this->assertDocumentedConsumer($consumer, $expected, '@phpstan-require-implements \\Contracts\\Selfish');
+    }
+
+    public static function requiredImplementationConsumers(): iterable
+    {
+        yield 'Fortify trait requires its qualified interface' => ['/** @phpstan-require-implements \\Contracts\\Subject */ trait Authenticatable {}', 0];
+        yield 'trait requirement resolves class import' => ['namespace App; use Contracts\\Subject as Account; /** @phpstan-require-implements Account */ trait Authenticatable {}', 0];
+        yield 'trait requirement spans decorated lines' => ['/**
+            * @phpstan-require-implements
+            * \\Contracts\\Subject
+            */ trait Authenticatable {}', 0];
+        yield 'class cannot declare a trait requirement' => ['/** @phpstan-require-implements \\Contracts\\Subject */ class Account {}', 1];
+        yield 'function cannot declare a trait requirement' => ['/** @phpstan-require-implements \\Contracts\\Subject */ function account() {}', 1];
+        yield 'property cannot declare a trait requirement' => ['class Account { /** @phpstan-require-implements \\Contracts\\Subject */ public $account; }', 1];
+        yield 'requirement prose is not a tag' => ['/** Mentions @phpstan-require-implements \\Contracts\\Subject. */ trait Authenticatable {}', 1];
+        yield 'requirement description is not a type' => ['/** @phpstan-require-implements Other \\Contracts\\Subject describes another interface. */ trait Authenticatable {}', 1];
+        yield 'unfinished requirement type is not a consumer' => ['/** @phpstan-require-implements External<\\Contracts\\Subject */ trait Authenticatable {}', 1];
+    }
+
     public static function propertyConsumers(): iterable
     {
         yield 'Cashier order item declares an unnamed property type' => ['namespace App; use Contracts\\Subject as Entry; /** @property Entry orderable */ class Item {}', 0];

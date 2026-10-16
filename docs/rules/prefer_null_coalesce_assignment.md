@@ -10,6 +10,8 @@
 
 Targets evaluated through calls, assignments or increments stay outside the comparison: the merged operator would evaluate them once instead of twice, changing behavior.
 
+An array offset qualifies only in the first statement of a callable, on a by-value native `array` parameter with a literal string or integer key. Its fallback must be a named local, a string or integer literal, `true`, `false`, `null`, or a literal array of these values without references or unpacking. Unknown containers, nested offsets and earlier setup stay outside this bounded proof: `ArrayAccess::offsetSet()` observes the write that `??=` can skip.
+
 A property qualifies only when it is an ordinary declared mutable field on `$this`
 inside a method of a final class with no parent, traits or magic accessors. Hooked,
 readonly and unknown properties stay outside the recommendation: `??=` can skip
@@ -21,11 +23,23 @@ inherit their enclosing method's property proof.
 ```php
 // ❌ the target is spelled twice
 $scope = $scope ?? 'web';
-$cache['limits'] = $cache['limits'] ?? [];
 
 // ✅ one operator carries the fallback
 $scope ??= 'web';
-$cache['limits'] ??= [];
+```
+
+```php
+// ❌ a proved native array repeats an inert element target
+function defaults(array $cache): void
+{
+    $cache['limits'] = $cache['limits'] ?? [];
+}
+
+// ✅
+function defaults(array $cache): void
+{
+    $cache['limits'] ??= [];
+}
 ```
 
 ```php

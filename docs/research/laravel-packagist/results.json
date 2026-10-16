@@ -8,16 +8,16 @@
   "analyzed_packages": 82,
   "files": 5890,
   "before": 62793,
-  "remaining_review": "Thirty-six standard policies have 53,467 source-grounded findings; 4473 unchanged and 54 revised retained findings were reviewed individually. The remaining 3,522 findings are not yet classified.",
-  "final_source_sha256": "cd5e5cab6af685e17a75a7fe0499370446f15bbcf5fdd6862813d635c5b4317c",
-  "after": 61516,
-  "removed": 1332,
+  "remaining_review": "Thirty-six standard policies have 53,467 source-grounded findings; 4484 unchanged and 54 revised retained findings were reviewed individually. The remaining 3,506 findings are not yet classified.",
+  "final_source_sha256": "55fbf7ab31099d4b24fc4258de841394aef941880c8fbd0c0fdf141a56936658",
+  "after": 61511,
+  "removed": 1337,
   "added": 55,
-  "resolved": 1277,
+  "resolved": 1282,
   "revised": 55,
   "new": 0,
   "diagnostic_multiset": {
-    "removed": 1332,
+    "removed": 1337,
     "added": 55
   },
   "changed_rules": {
@@ -83,8 +83,8 @@
     },
     "no_redundant_local_interfaces": {
       "before": 43,
-      "after": 28,
-      "net_removed": 15
+      "after": 27,
+      "net_removed": 16
     },
     "no_repeated_type_dispatch": {
       "before": 40,
@@ -113,8 +113,8 @@
     },
     "prefer_null_coalesce_assignment": {
       "before": 16,
-      "after": 15,
-      "net_removed": 1
+      "after": 11,
+      "net_removed": 5
     },
     "useless_variable": {
       "before": 6,
@@ -368,6 +368,15 @@
       "scope_additions": [
         "laravel/liferaft"
       ]
+    },
+    {
+      "round": 34,
+      "before": 61516,
+      "after": 61511,
+      "resolved": 5,
+      "revised": 0,
+      "reviewed_unchanged": 11,
+      "reviewed_policy_findings": 0
     }
   ],
   "packages": [
@@ -477,8 +486,8 @@
       "files": 54,
       "source_sha256": "a1ed08bae386a620d702228460b40c8156659696ecc34be6c0e67f2fafc472e3",
       "before": 557,
-      "after": 547,
-      "removed": 10,
+      "after": 545,
+      "removed": 12,
       "added": 0
     },
     {
@@ -527,8 +536,8 @@
       "files": 357,
       "source_sha256": "3ea5350641b44002d137efb9a8509d2855e92fc428188b510f9dbb40d6d5c734",
       "before": 4064,
-      "after": 4045,
-      "removed": 21,
+      "after": 4044,
+      "removed": 22,
       "added": 2
     },
     {
@@ -607,8 +616,8 @@
       "files": 110,
       "source_sha256": "6ad129c4a242716572a9968925900cb47026a87913598e25fc37d2425a346722",
       "before": 277,
-      "after": 242,
-      "removed": 38,
+      "after": 241,
+      "removed": 39,
       "added": 3
     },
     {
@@ -1109,8 +1118,8 @@
       "files": 45,
       "source_sha256": "617da94ca338d9a0b3aff3e3c21da6ce1738dd647d8379f14dc13cadede27871",
       "before": 776,
-      "after": 764,
-      "removed": 12,
+      "after": 763,
+      "removed": 13,
       "added": 0
     },
     {
@@ -1196,8 +1205,8 @@
   ],
   "review_coverage": {
     "source_grounded_policy_findings": 53467,
-    "individually_reviewed_retained": 4473,
-    "remaining_unclassified": 3522,
+    "individually_reviewed_retained": 4484,
+    "remaining_unclassified": 3506,
     "policy_proof": "verified-policies.json",
     "individually_reviewed_revised": 54
   },
