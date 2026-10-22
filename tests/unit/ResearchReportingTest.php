@@ -127,7 +127,8 @@ final class ResearchReportingTest extends TestCase
                 'command'         => 'quality',
                 'path'            => [$dir],
                 '--config'        => $dir.'/soda.php',
-                '--report-json'   => $quality,
+                '--report-type'   => 'json',
+                '--report-file'   => $quality,
                 '--research-json' => $research,
             ]);
             $buffer = new BufferedOutput;
@@ -188,7 +189,8 @@ final class ResearchReportingTest extends TestCase
                 'command'         => 'quality',
                 'path'            => [__DIR__.'/../fixtures/representation/text'],
                 '--config'        => $dir.'/soda.php',
-                '--report-json'   => $dir.'/quality.json',
+                '--report-type'   => 'json',
+                '--report-file'   => $dir.'/quality.json',
                 '--research-json' => $dir.'/research.json',
             ]);
             $buffer = new BufferedOutput;

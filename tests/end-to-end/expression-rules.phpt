@@ -18,7 +18,7 @@ return \Cosmira\Soda\Config\Soda::configure()->with([
     new \Cosmira\Soda\Rules\Structure\MaxArguments(1),
 ]);
 PHP);
-$_SERVER['argv'] = ['soda', 'quality', $directory, '--config=' . $config, '--report-json=' . $report];
+$_SERVER['argv'] = ['soda', 'quality', $directory, '--config=' . $config, '--report-type=json', '--report-file=' . $report];
 define('SODA_ENTRY_NO_EXIT', true);
 try {
     $status = require __DIR__ . '/../../soda';

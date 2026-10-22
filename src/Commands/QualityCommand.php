@@ -8,27 +8,38 @@ use Cosmira\Soda\Analysis\Runner;
 use Cosmira\Soda\Config\ConfigLoader;
 use Cosmira\Soda\Config\RuleCatalog;
 use Cosmira\Soda\Reporting\QualityJsonReportFormatter;
+use Cosmira\Soda\Reporting\QualityJunitReportFormatter;
 use Cosmira\Soda\Reporting\QualityResult;
+use Cosmira\Soda\Reporting\QualityTeamCityReportFormatter;
 use Cosmira\Soda\Reporting\ReportFormatter;
 use Cosmira\Soda\Reporting\ResearchJsonReportFormatter;
 use Cosmira\Soda\Reporting\RuleMetadata;
 use Cosmira\Soda\Support\ConfigException;
 use Cosmira\Soda\Support\FnmatchPathExclusion;
 
+use function explode;
 use function file_put_contents;
 use function getcwd;
 
 use Illuminate\Console\Command;
 
+use function implode;
+use function in_array;
 use function is_string;
 use function json_encode;
 use function preg_match;
 use function rtrim;
 
 use SebastianBergmann\FileIterator\Facade;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 
 final class QualityCommand extends Command
 {
+    /**
+     * Report formats accepted by the --report-type option.
+     */
+    private const REPORT_TYPES = ['json', 'junit', 'teamcity'];
+
     /**
      * Compose the command with the runner executing the configured checks.
      *
@@ -48,7 +59,8 @@ final class QualityCommand extends Command
         {--suffix= : Include files with names ending in suffix (default: .php)}
         {--exclude=* : Exclude files with path in their path}
         {--config= : Path to soda.php}
-        {--report-json= : Write quality report to JSON file}
+        {--report-type= : Report format: json, junit or teamcity}
+        {--report-file= : Write the report to this file instead of stdout}
         {--research-json= : Write nongating research evidence to a separate JSON file}
     ';
 
@@ -62,6 +74,12 @@ final class QualityCommand extends Command
      */
     public function handle(): int
     {
+        if (! $this->hasValidReportType()) {
+            $this->error('The report type must be one of: json, junit, teamcity.');
+
+            return self::FAILURE;
+        }
+
         /** @var list<non-empty-string> $directories */
         $directories = (array) $this->argument('path');
 
@@ -74,10 +92,21 @@ final class QualityCommand extends Command
         }
 
         (new ReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->write($this->output, $result, $root);
-        $this->writeReportJson($result);
+        $this->writeReport($result);
         $this->writeResearchJson($result);
 
         return $result->isPassing() ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Verify the requested report type names a supported format.
+     */
+    private function hasValidReportType(): bool
+    {
+        $type = $this->option('report-type');
+
+        return in_array($type, self::REPORT_TYPES, true)
+            || ($type === null && ! $this->input->hasParameterOption('--report-type'));
     }
 
     /**
@@ -194,21 +223,42 @@ final class QualityCommand extends Command
     }
 
     /**
-     * Write report json using the current analysis state.
+     * Emit the requested report to stdout or the requested file.
      */
-    private function writeReportJson(QualityResult $result): void
+    private function writeReport(QualityResult $result): void
     {
-        $reportJson = $this->option('report-json');
-        $isMissingReport = ! is_string($reportJson) || $reportJson === '';
-
-        if ($isMissingReport) {
+        $type = $this->option('report-type');
+        if (! is_string($type)) {
             return;
         }
 
-        $data = (new QualityJsonReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format($result);
-        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $metadata = new RuleMetadata(RuleCatalog::definitions());
+        $report = match ($type) {
+            'json'     => $this->jsonReport($result, $metadata),
+            'junit'    => (new QualityJunitReportFormatter($metadata))->format($result),
+            'teamcity' => implode("\n", (new QualityTeamCityReportFormatter($metadata))->format($result))."\n",
+        };
 
-        file_put_contents($reportJson, $json);
+        $file = $this->option('report-file');
+        if (is_string($file) && $file !== '') {
+            file_put_contents($file, $report);
+
+            return;
+        }
+
+        foreach (explode("\n", rtrim($report, "\n")) as $line) {
+            $this->output->writeln(OutputFormatter::escape($line));
+        }
+    }
+
+    /**
+     * Serialize the machine-readable JSON report.
+     */
+    private function jsonReport(QualityResult $result, RuleMetadata $metadata): string
+    {
+        $data = (new QualityJsonReportFormatter($metadata))->format($result);
+
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n";
     }
 
     /**

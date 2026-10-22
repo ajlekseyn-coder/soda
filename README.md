@@ -58,7 +58,9 @@ Optional rules remain opt-in.
 | `vendor/bin/soda` | Check the paths in `soda.php` |
 | `vendor/bin/soda quality src/ tests/` | Check explicit paths |
 | `vendor/bin/soda --config=tools/soda.php` | Select a configuration |
-| `vendor/bin/soda --report-json=quality.json` | Save a JSON report for CI |
+| `vendor/bin/soda quality src/ --report-type=json --report-file=quality.json` | Save a JSON report for CI |
+| `vendor/bin/soda quality src/ --report-type=teamcity` | Print TeamCity service messages for CI |
+| `vendor/bin/soda quality src/ --report-type=junit --report-file=build/soda-junit.xml` | Save a JUnit XML report for CI |
 | `vendor/bin/soda quality src/ --exclude=generated` | Exclude a directory; repeat for more exclusions |
 | `vendor/bin/soda list:rules` | Inspect available rules and defaults |
 | `vendor/bin/soda --help` | Show check options |

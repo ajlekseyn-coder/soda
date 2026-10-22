@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cosmira\Soda\Reporting;
 
 /**
- * Formats the public `soda quality --report-json` payload.
+ * Formats the public `soda quality --report-type=json` payload.
  */
 final readonly class QualityJsonReportFormatter
 {

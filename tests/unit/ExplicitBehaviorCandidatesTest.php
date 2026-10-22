@@ -290,7 +290,7 @@ final class ExplicitBehaviorCandidatesTest extends TestCase
                 $rules = $enabled ? 'new \\'.NoTrivialFactories::class.'(), new \\'.NoRepeatedCompoundConditions::class.'()' : '';
                 file_put_contents($config, '<?php return \\Cosmira\\Soda\\Config\\Soda::configure()->with(['.$rules.']);');
                 $input = new ArrayInput([
-                    'command' => 'quality', 'path' => [$directory.'/src'], '--config' => $config, '--report-json' => $report,
+                    'command' => 'quality', 'path' => [$directory.'/src'], '--config' => $config, '--report-type' => 'json', '--report-file' => $report,
                 ]);
                 $output = new BufferedOutput;
                 self::assertSame($enabled ? 1 : 0, $console->run($input, new OutputStyle($input, $output)));

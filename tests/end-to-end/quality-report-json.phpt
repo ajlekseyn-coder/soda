@@ -1,11 +1,11 @@
 --TEST--
-soda quality --report-json
+soda quality --report-type=json --report-file
 --FILE--
 <?php declare(strict_types=1);
 require __DIR__ . '/../../vendor/autoload.php';
 
 $reportPath = sys_get_temp_dir() . '/soda-quality-' . uniqid() . '.json';
-$_SERVER['argv'] = ['soda', 'quality', '--report-json', $reportPath, __DIR__ . '/../quality-fixture'];
+$_SERVER['argv'] = ['soda', 'quality', '--report-type=json', '--report-file', $reportPath, __DIR__ . '/../quality-fixture'];
 
 define('SODA_ENTRY_NO_EXIT', true);
 
