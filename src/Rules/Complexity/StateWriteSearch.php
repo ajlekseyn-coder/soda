@@ -50,6 +50,7 @@ final readonly class StateWriteSearch
         if (! $target->var instanceof Expr\Variable || ! is_string($target->var->name) || ! self::isLiteralArrayKey($target->dim)) {
             return false;
         }
+
         $assignment = $target->getAttribute(self::PARENT);
 
         return $assignment instanceof Expr\Assign && $assignment->expr instanceof Expr\BinaryOp\Coalesce
@@ -72,12 +73,15 @@ final readonly class StateWriteSearch
         if ($value instanceof Expr\Variable) {
             return is_string($value->name);
         }
+
         if ($value instanceof Node\Scalar\String_ || $value instanceof Node\Scalar\Int_) {
             return true;
         }
+
         if ($value instanceof Expr\ConstFetch) {
             return in_array($value->name->toLowerString(), ['true', 'false', 'null'], true);
         }
+
         if (! $value instanceof Expr\Array_) {
             return false;
         }
@@ -94,6 +98,7 @@ final readonly class StateWriteSearch
             if ($item === null || $item->byRef || $item->unpack || ! self::isPureValue($item->value)) {
                 return false;
             }
+
             if ($item->key !== null && ! self::isPureValue($item->key)) {
                 return false;
             }
@@ -113,7 +118,7 @@ final readonly class StateWriteSearch
         }
 
         $class = self::propertyOwner($target);
-        if ($class === null || ! self::hasPlainWrites($class)) {
+        if (! $class instanceof Node || ! self::hasPlainWrites($class)) {
             return false;
         }
 
@@ -165,12 +170,12 @@ final readonly class StateWriteSearch
      */
     private static function hasPlainWrites(Class_ $class): bool
     {
-        if (! $class->isFinal() || $class->isReadonly() || $class->extends !== null || $class->getTraitUses() !== []) {
+        if (! $class->isFinal() || $class->isReadonly() || $class->extends instanceof Node || $class->getTraitUses() !== []) {
             return false;
         }
 
         foreach (['__get', '__set', '__isset'] as $method) {
-            if ($class->getMethod($method) !== null) {
+            if ($class->getMethod($method) instanceof Node) {
                 return false;
             }
         }
@@ -186,6 +191,7 @@ final readonly class StateWriteSearch
         if ($predicate($node)) {
             return true;
         }
+
         $properties = get_object_vars($node);
         foreach ($node->getSubNodeNames() as $name) {
             $value = $properties[$name];

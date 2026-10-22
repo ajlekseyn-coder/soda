@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 — 2026-10-22
 
 - Fix a fatal `Undefined constant GLOB_BRACE` crash on PHP builds whose glob
   lacks brace expansion, such as musl-based images.
@@ -9,6 +9,13 @@
   file instead of stdout. TeamCity service messages and a JUnit XML file both
   surface every violation as a failed test in the TeamCity Tests tab. Exit
   status, human output and the JSON schema stay unchanged.
+
+- Reduce false positives for inherited and trait parameter contracts, factory
+  dispatch, documented type consumers, native hooks and observable writes.
+- Preserve receiver identity, input snapshots and prior effects when suggesting
+  early exits, and recognize shared catch fallbacks and terminal calls.
+- Run Infection with its maximum worker setting locally and in CI.
+- Fix Windows test fixtures, documentation lint and current Rector findings.
 
 ## 1.1.1 — 2026-10-15
 

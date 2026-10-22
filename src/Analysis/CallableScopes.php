@@ -103,16 +103,20 @@ trait CallableScopes
 
                 continue;
             }
+
             if (! $value instanceof Node) {
                 continue;
             }
+
             $nodes[] = $value;
-            if ($value instanceof Node\Arg && $parent !== null) {
+            if ($value instanceof Node\Arg && $parent instanceof Node) {
                 $value->setAttribute('sodaReceiverEscapeAt', $parent->getEndFilePos());
             }
+
             if ($value instanceof Node\FunctionLike || $value instanceof ClassLike) {
                 continue;
             }
+
             $fields = get_object_vars($value);
             foreach ($value->getSubNodeNames() as $name) {
                 array_push($nodes, ...$this->bindingNodes([$fields[$name]], $value));

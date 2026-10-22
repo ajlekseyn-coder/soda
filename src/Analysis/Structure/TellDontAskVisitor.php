@@ -30,7 +30,8 @@ use PhpParser\Node\Stmt\If_;
  */
 final class TellDontAskVisitor extends FactVisitor
 {
-    use CallableScopes, TellDontAskScopes;
+    use CallableScopes;
+    use TellDontAskScopes;
 
     /**
      * Query-then-command findings with their source and callable context.
@@ -313,6 +314,7 @@ final class TellDontAskVisitor extends FactVisitor
                 $escapes[$parameter->var->name] = [-1];
             }
         }
+
         $this->capturedReferenceBindings($owner, -1, $escapes);
 
         return $escapes;
@@ -328,6 +330,7 @@ final class TellDontAskVisitor extends FactVisitor
         if (! $closure instanceof Expr\Closure) {
             return;
         }
+
         foreach ($closure->uses as $use) {
             if ($use->byRef && is_string($use->var->name)) {
                 $this->recordBindingEvent($escapes, $use->var->name, $position);

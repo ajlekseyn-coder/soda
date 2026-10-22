@@ -57,6 +57,7 @@ final class AvoidRedundantNaming extends Check
         if ($this->threshold <= 0) {
             return;
         }
+
         $types = $this->typeIndex($project);
         $contexts = [];
         foreach ($types as $name => $type) {
@@ -64,11 +65,13 @@ final class AvoidRedundantNaming extends Check
             foreach ($type['inherits'] ?? [] as $parent) {
                 $inherited += $this->inheritedMethods(strtolower($parent), $types);
             }
+
             $concrete = array_filter($inherited, static fn (array $method): bool => ! $method['abstract']);
             $contexts[$name] = ['contracts' => $inherited + $this->traitRequirements($name, $types),
                 'occupied'                  => array_keys(($type['methodDeclarations'] ?? []) + $concrete),
                 'resolved'                  => $this->hasCompleteAncestry($name, $types)];
         }
+
         foreach ($project->files as $file => $metrics) {
             $naming = $metrics['naming'] ?? [];
             if (array_key_exists('types', $naming)) {
@@ -85,6 +88,7 @@ final class AvoidRedundantNaming extends Check
         if ($this->threshold <= 0 || ! isset($naming['classes'], $naming['methods'])) {
             return;
         }
+
         $threshold = $this->normalisedSimilarityThreshold($this->threshold);
         $analyzer = new RedundantNamingAnalyzer($threshold);
         foreach ($analyzer->analyze($naming) as $finding) {
@@ -119,6 +123,7 @@ final class AvoidRedundantNaming extends Check
         if (isset($seen[$name]) || ! ($type['eligible'] ?? false) || ! ($type['traitsResolved'] ?? false)) {
             return false;
         }
+
         $seen[$name] = true;
         foreach ([...$type['inherits'], ...$type['traits']] as $ancestor) {
             if (! $this->hasCompleteAncestry(strtolower($ancestor), $types, $seen)) {
@@ -138,11 +143,13 @@ final class AvoidRedundantNaming extends Check
         if (isset($seen[$name]) || ! ($type['eligible'] ?? false)) {
             return [];
         }
+
         $seen[$name] = true;
         $methods = [];
         foreach ($type['inherits'] ?? [] as $parent) {
             $methods += $this->inheritedMethods(strtolower($parent), $types, $seen);
         }
+
         foreach ($type['methodDeclarations'] ?? [] as $method => $declaration) {
             if (! $declaration['private']) {
                 $methods[$method] = $declaration;
@@ -161,6 +168,7 @@ final class AvoidRedundantNaming extends Check
         if (isset($seen[$name]) || ! ($type['eligible'] ?? false)) {
             return [];
         }
+
         $seen[$name] = true;
         $required = [];
         foreach ($type['traits'] ?? [] as $trait) {
@@ -170,6 +178,7 @@ final class AvoidRedundantNaming extends Check
                 $required += $this->traitRequirements($trait, $types, $seen);
             }
         }
+
         if ($type['kind'] === 'trait') {
             foreach ($type['methodDeclarations'] ?? [] as $method => $declaration) {
                 if ($declaration['abstract']) {
@@ -203,8 +212,10 @@ final class AvoidRedundantNaming extends Check
                 $method['hasNativeNameContract'] = array_key_exists($key, $context['contracts']);
                 $method['occupiedMethods'] = $context['occupied'];
             }
+
             $methods[] = $method;
         }
+
         $naming['methods'] = $methods;
 
         return $naming;

@@ -157,12 +157,14 @@ final class NamingVisitor extends FactVisitor
         if ($name === null || ! isset($this->types[$name])) {
             return;
         }
+
         $traits = [];
         $resolved = true;
         foreach ($node->getTraitUses() as $use) {
             array_push($traits, ...array_map(static fn (Node\Name $trait): string => $trait->toString(), $use->traits));
             $resolved = $resolved && $use->adaptations === [];
         }
+
         $type = $this->types[$name];
         $type['traits'] = $traits;
         $type['traitsResolved'] = $resolved;
@@ -183,6 +185,7 @@ final class NamingVisitor extends FactVisitor
         if ($owner instanceof Interface_) {
             return;
         }
+
         $class = $owner instanceof Class_ || $owner instanceof Trait_ ? $owner->namespacedName?->toString() : null;
 
         $methods = $this->result['methods'];

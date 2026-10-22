@@ -154,7 +154,7 @@ final class ClassBehaviorFacts
      */
     private static function isEmptyStaticSlot(bool $static, ?Node $default): bool
     {
-        return $static && ($default === null || ($default instanceof ConstFetch && $default->name->toLowerString() === 'null'));
+        return $static && (! $default instanceof Node || ($default instanceof ConstFetch && $default->name->toLowerString() === 'null'));
     }
 
     /**

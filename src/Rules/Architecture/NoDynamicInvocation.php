@@ -24,7 +24,7 @@ final class NoDynamicInvocation extends Check
     {
         $nodes = (new NodeFinder)->find($file->nodes, fn (Node $node): bool => ($node instanceof Expr\FuncCall && $node->name instanceof Name
                 && in_array(strtolower($node->name->toString()), ['call_user_func', 'call_user_func_array', 'forward_static_call', 'forward_static_call_array'], true))
-                || self::isDynamicCall($node));
+                || $this->isDynamicCall($node));
 
         foreach ($nodes as $node) {
             yield new Violation(
@@ -33,7 +33,7 @@ final class NoDynamicInvocation extends Check
                 value: 1,
                 threshold: 0,
                 line: $node->getStartLine(),
-                message: self::message($node),
+                message: $this->message($node),
             );
         }
     }
@@ -41,7 +41,7 @@ final class NoDynamicInvocation extends Check
     /**
      * Native string magic constants retain their declaration context through trait aliases and closures.
      */
-    private static function isDynamicCall(Node $node): bool
+    private function isDynamicCall(Node $node): bool
     {
         return ($node instanceof Expr\MethodCall || $node instanceof Expr\NullsafeMethodCall || $node instanceof Expr\StaticCall)
             && ! $node->name instanceof Node\Identifier
@@ -52,7 +52,7 @@ final class NoDynamicInvocation extends Check
     /**
      * Describe the prohibited mechanism without claiming that every callback lacks a contract.
      */
-    private static function message(Node $node): string
+    private function message(Node $node): string
     {
         if ($node instanceof Expr\FuncCall && $node->name instanceof Name) {
             return 'Indirect callable helpers are forbidden by this policy. Invoke the callable directly.';

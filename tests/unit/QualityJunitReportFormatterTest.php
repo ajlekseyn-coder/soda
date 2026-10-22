@@ -14,14 +14,14 @@ final class QualityJunitReportFormatterTest extends TestCase
         $xml = (new QualityJunitReportFormatter(new RuleMetadata(RuleCatalog::definitions())))->format(new QualityResult([]));
 
         $this->assertSame(
-            <<<'XML'
+            str_replace("\r\n", "\n", <<<'XML'
             <?xml version="1.0" encoding="UTF-8"?>
             <testsuites>
             <testsuite name="soda quality" tests="0" failures="0" errors="0">
             </testsuite>
             </testsuites>
 
-            XML,
+            XML),
             $xml,
         );
     }
@@ -43,7 +43,7 @@ final class QualityJunitReportFormatterTest extends TestCase
         $advice = RuleCatalog::definitions()['max_effective_class_length']['advice'];
 
         $this->assertSame(
-            <<<XML
+            str_replace("\r\n", "\n", <<<XML
             <?xml version="1.0" encoding="UTF-8"?>
             <testsuites>
             <testsuite name="soda quality" tests="1" failures="1" errors="0">
@@ -54,7 +54,7 @@ final class QualityJunitReportFormatterTest extends TestCase
             </testsuite>
             </testsuites>
 
-            XML,
+            XML),
             $xml,
         );
     }
@@ -67,7 +67,7 @@ final class QualityJunitReportFormatterTest extends TestCase
         $advice = RuleCatalog::definitions()['max_effective_class_length']['advice'];
 
         $this->assertSame(
-            <<<XML
+            str_replace("\r\n", "\n", <<<XML
             <?xml version="1.0" encoding="UTF-8"?>
             <testsuites>
             <testsuite name="soda quality" tests="1" failures="1" errors="0">
@@ -77,7 +77,7 @@ final class QualityJunitReportFormatterTest extends TestCase
             </testsuite>
             </testsuites>
 
-            XML,
+            XML),
             $xml,
         );
     }

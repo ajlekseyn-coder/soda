@@ -14,6 +14,8 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Else_;
+use PhpParser\Node\Stmt\ElseIf_;
 use PhpParser\NodeFinder;
 
 /**
@@ -57,7 +59,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
                 continue;
             }
 
-            if ($finder->findFirst([$scope], static fn ($node): bool => $node->getType() === 'Stmt_Goto') !== null) {
+            if ($finder->findFirst([$scope], static fn ($node): bool => $node->getType() === 'Stmt_Goto') instanceof Node) {
                 continue;
             }
 
@@ -121,7 +123,7 @@ final class NoDeclarationsBeforeEarlyExit extends Check
     {
         foreach ($finder->findInstanceOf([$declaration], Variable::class) as $input) {
             $name = $input->name;
-            if (is_string($name) && $finder->findFirst($between, static fn ($node): bool => UselessVariableMutation::isMutationOf($node, $name)) !== null) {
+            if (is_string($name) && $finder->findFirst($between, static fn (Node $node): bool => UselessVariableMutation::isMutationOf($node, $name)) instanceof Node) {
                 return true;
             }
         }
@@ -230,8 +232,8 @@ final class NoDeclarationsBeforeEarlyExit extends Check
             return false;
         }
 
-        $branches = [...array_map(static fn ($elseif): array => $elseif->stmts, $if->elseifs)];
-        if ($if->else !== null) {
+        $branches = [...array_map(static fn (ElseIf_ $elseif): array => $elseif->stmts, $if->elseifs)];
+        if ($if->else instanceof Else_) {
             $branches[] = $if->else->stmts;
         }
 

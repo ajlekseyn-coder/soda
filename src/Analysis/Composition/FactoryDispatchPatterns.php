@@ -44,15 +44,18 @@ trait FactoryDispatchPatterns
         if ($expression instanceof String_) {
             return self::pattern($expression);
         }
+
         if ($expression instanceof Expr\Assign || self::doesBlockSelectorInput($expression, $method, [])) {
             return null;
         }
+
         if ($expression instanceof Expr\BinaryOp\Concat) {
             $left = self::selectorPattern($expression->left, $method);
             $right = self::selectorPattern($expression->right, $method);
 
             return $left === null || $right === null ? null : $left.$right;
         }
+
         if ($expression instanceof InterpolatedString) {
             return self::interpolatedPattern($expression, $method);
         }
@@ -80,9 +83,11 @@ trait FactoryDispatchPatterns
         if (! $variable instanceof Expr\Variable) {
             return self::doesBlockNativeSelector($variable, $method, $seen);
         }
+
         if (! is_string($variable->name) || isset($seen[$variable->name])) {
             return false;
         }
+
         $seen[$variable->name] = true;
         $assignments = (new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\Assign::class);
         $matches = array_filter($assignments, static fn (Expr\Assign $assignment): bool => self::isPriorSelectorAssignment($assignment, $variable, $method));
@@ -109,9 +114,11 @@ trait FactoryDispatchPatterns
         if ($expression instanceof Expr\BinaryOp\Concat) {
             return self::doesBlockSelectorInput($expression->left, $method, $seen) && self::doesBlockSelectorInput($expression->right, $method, $seen);
         }
+
         if (! $expression instanceof InterpolatedString) {
             return ! $expression instanceof Expr || ! self::isOpenSelector($expression);
         }
+
         foreach ($expression->parts as $part) {
             if ($part instanceof Expr && ! self::doesBlockSelectorInput($part, $method, $seen)) {
                 return false;
@@ -132,6 +139,7 @@ trait FactoryDispatchPatterns
             if ($segment === null) {
                 return null;
             }
+
             $pattern .= $segment;
         }
 
@@ -162,14 +170,17 @@ trait FactoryDispatchPatterns
         if (! $expression instanceof Expr\Array_) {
             return [];
         }
+
         $names = [];
         foreach ($expression->items as $item) {
             if ($item === null) {
                 return [];
             }
+
             if ($item->key !== null || $item->unpack || $item->byRef || ! $item->value instanceof String_) {
                 return [];
             }
+
             $names[] = strtolower($item->value->value);
         }
 

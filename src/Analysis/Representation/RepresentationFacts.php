@@ -6,7 +6,9 @@ namespace Cosmira\Soda\Analysis\Representation;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Throw_;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeFinder;
 
 /**
@@ -80,10 +82,12 @@ final class RepresentationFacts
 
                 continue;
             }
+
             $following = self::followingReturn($try, $nodes);
-            if ($following === null) {
+            if (! $following instanceof Node) {
                 continue;
             }
+
             foreach ($try->catches as $catch) {
                 if (self::doesReturnCatchValue($catch->stmts, $following)) {
                     $returned[$catch->getStartFilePos()] = true;
@@ -103,14 +107,16 @@ final class RepresentationFacts
         if (! $loop instanceof Stmt\Foreach_ || ! self::hasRetryLoop($try, $loop)) {
             return null;
         }
+
         $scope = $loop->getAttribute(self::PARENT_ATTRIBUTE);
         if (! $scope instanceof Stmt\ClassMethod && ! $scope instanceof Stmt\Function_) {
             return null;
         }
+
         $name = self::retryLocal($try, $scope);
         $failure = self::retryThrow($loop, $scope);
 
-        return $name !== null && $failure !== null && self::hasRetryValues($try, $loop, $failure, $name)
+        return $name !== null && $failure instanceof Node && self::hasRetryValues($try, $loop, $failure, $name)
             ? $try->catches[0]->getStartFilePos() : null;
     }
 
@@ -119,15 +125,17 @@ final class RepresentationFacts
      */
     private static function hasRetryLoop(Stmt\TryCatch $try, Stmt\Foreach_ $loop): bool
     {
-        if ($try->finally !== null || count($try->catches) !== 1 || $loop->stmts !== [$try]) {
+        if ($try->finally instanceof Node || count($try->catches) !== 1 || $loop->stmts !== [$try]) {
             return false;
         }
-        if ($loop->byRef || $loop->keyVar !== null) {
+
+        if ($loop->byRef || $loop->keyVar instanceof Node) {
             return false;
         }
+
         $attempt = $try->stmts[0] ?? null;
 
-        return count($try->stmts) === 1 && $attempt instanceof Stmt\Return_ && $attempt->expr !== null;
+        return count($try->stmts) === 1 && $attempt instanceof Return_ && $attempt->expr instanceof Node;
     }
 
     /**
@@ -141,6 +149,7 @@ final class RepresentationFacts
         if (! is_string($name) || $body !== []) {
             return null;
         }
+
         foreach ($scope->params as $parameter) {
             if ($parameter->byRef && $parameter->var->name === $name) {
                 return null;
@@ -153,7 +162,7 @@ final class RepresentationFacts
     /**
      * Exhaustion reaches the next and final statement in this own callable body.
      */
-    private static function retryThrow(Stmt\Foreach_ $loop, Stmt\ClassMethod|Stmt\Function_ $scope): ?Expr\Throw_
+    private static function retryThrow(Stmt\Foreach_ $loop, Stmt\ClassMethod|Stmt\Function_ $scope): ?Throw_
     {
         $body = array_values(array_filter($scope->stmts ?? [], static fn (Node $node): bool => ! $node instanceof Stmt\Nop));
         $last = $body[1] ?? null;
@@ -161,13 +170,13 @@ final class RepresentationFacts
             return null;
         }
 
-        return $last->expr instanceof Expr\Throw_ ? $last->expr : null;
+        return $last->expr instanceof Throw_ ? $last->expr : null;
     }
 
     /**
      * Bounded scalar syntax preserves the selector and final error bindings without retaining ASTs.
      */
-    private static function hasRetryValues(Stmt\TryCatch $try, Stmt\Foreach_ $loop, Expr\Throw_ $failure, string $name): bool
+    private static function hasRetryValues(Stmt\TryCatch $try, Stmt\Foreach_ $loop, Throw_ $failure, string $name): bool
     {
         $remaining = self::MAX_FACTS;
         $iterable = self::expression($loop->expr, null, $remaining);
@@ -178,6 +187,7 @@ final class RepresentationFacts
         if (($iterable['op'] ?? null) !== 'cast' || $iterable['type'] !== 'array' || ($input['op'] ?? null) !== self::VALUE_VARIABLE) {
             return false;
         }
+
         if (($selector['op'] ?? null) !== self::VALUE_VARIABLE || $selector['name'] === $name) {
             return false;
         }
@@ -194,9 +204,11 @@ final class RepresentationFacts
         if (in_array($values['op'] ?? null, ['unknown', self::STATEMENT_BARRIER], true) || (($values['op'] ?? null) === self::VALUE_VARIABLE && $values['name'] === $name)) {
             return true;
         }
+
         if (($values['kind'] ?? null) === 'function' && basename(str_replace('\\', '/', $values['name'])) === 'extract') {
             return true;
         }
+
         foreach ($values as $value) {
             if (is_array($value) && self::hasRetryBindingGap($value, $name)) {
                 return true;
@@ -209,22 +221,25 @@ final class RepresentationFacts
     /**
      * Only the next statement in the same execution list can consume this catch's fallback.
      */
-    private static function followingReturn(Stmt\TryCatch $try, array $nodes): ?Stmt\Return_
+    private static function followingReturn(Stmt\TryCatch $try, array $nodes): ?Return_
     {
-        if ($try->finally !== null) {
+        if ($try->finally instanceof Node) {
             return null;
         }
+
         $parent = $try->getAttribute(self::PARENT_ATTRIBUTE);
         if (! $parent instanceof Node) {
             return self::nextReturn($try, $nodes);
         }
+
         foreach ($parent->getSubNodeNames() as $field) {
             $siblings = get_object_vars($parent)[$field];
             if (! is_array($siblings)) {
                 continue;
             }
+
             $following = self::nextReturn($try, $siblings);
-            if ($following !== null) {
+            if ($following instanceof Node) {
                 return $following;
             }
         }
@@ -235,36 +250,40 @@ final class RepresentationFacts
     /**
      * Root files and nested statement lists share the same adjacent-return boundary.
      */
-    private static function nextReturn(Stmt\TryCatch $try, array $siblings): ?Stmt\Return_
+    private static function nextReturn(Stmt\TryCatch $try, array $siblings): ?Return_
     {
         $ordered = array_values($siblings);
         $position = array_search($try, $ordered, true);
         $following = $position === false ? null : ($ordered[$position + 1] ?? null);
 
-        return $following instanceof Stmt\Return_ ? $following : null;
+        return $following instanceof Return_ ? $following : null;
     }
 
     /**
      * An empty handler can return its next expression; an assignment must preserve its binding.
      */
-    private static function doesReturnCatchValue(array $statements, Stmt\Return_ $following): bool
+    private static function doesReturnCatchValue(array $statements, Return_ $following): bool
     {
-        if ($following->expr === null) {
+        if (! $following->expr instanceof Node) {
             return false;
         }
+
         $body = array_values(array_filter($statements, static fn (Node $statement): bool => ! $statement instanceof Stmt\Nop));
         if ($body === []) {
             return true;
         }
+
         if (count($body) !== 1) {
             return false;
         }
+
         $remaining = self::MAX_FACTS;
         $assignment = self::statement($body[0], null, $remaining);
         $target = $assignment['target'] ?? [];
         if (($assignment['op'] ?? null) !== 'assign' || ($target['op'] ?? null) !== self::VALUE_VARIABLE) {
             return false;
         }
+
         $value = self::expression($following->expr, null, $remaining);
         $variables = self::returnedVariables($value);
         $name = $target['name'];
@@ -436,12 +455,13 @@ final class RepresentationFacts
         if ($node->stmts === null || $remaining < 0) {
             return false;
         }
+
         $body = array_values(array_filter($node->stmts, static fn (Node $statement): bool => ! $statement instanceof Stmt\Nop));
         $last = $body === [] ? null : $body[array_key_last($body)];
         $terminal = $last instanceof Stmt\Expression ? $last->expr : null;
-        if ($terminal instanceof Expr\Exit_ || $terminal instanceof Expr\Throw_) {
+        if ($terminal instanceof Expr\Exit_ || $terminal instanceof Throw_) {
             $prefix = array_slice($statements, 0, -1);
-            $operand = $terminal->expr === null ? [] : [self::expression($terminal->expr, $class, $remaining)];
+            $operand = $terminal->expr instanceof Node ? [self::expression($terminal->expr, $class, $remaining)] : [];
 
             return ! self::hasOutcomeGap([...$prefix, ...$operand]);
         }
@@ -457,6 +477,7 @@ final class RepresentationFacts
         if (in_array($values['op'] ?? null, ['unknown', self::STATEMENT_BARRIER, 'return'], true)) {
             return true;
         }
+
         foreach ($values as $value) {
             if (is_array($value) && self::hasOutcomeGap($value)) {
                 return true;
@@ -524,8 +545,8 @@ final class RepresentationFacts
     private static function statement(Node $statement, ?string $class, int &$remaining): array
     {
         $line = $statement->getStartLine();
-        if ($statement instanceof Stmt\Return_) {
-            return ['op' => 'return', 'value' => $statement->expr !== null ? self::expression($statement->expr, $class, $remaining) : null, 'line' => $line];
+        if ($statement instanceof Return_) {
+            return ['op' => 'return', 'value' => $statement->expr instanceof Node ? self::expression($statement->expr, $class, $remaining) : null, 'line' => $line];
         }
 
         if ($statement instanceof Stmt\Expression) {

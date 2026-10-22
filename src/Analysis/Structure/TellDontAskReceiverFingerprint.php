@@ -81,10 +81,12 @@ final class TellDontAskReceiverFingerprint
         if ($expr instanceof StaticCall) {
             return $expr->class instanceof Name ? $expr->class->toString() : null;
         }
+
         $receiver = $this->fromExpr($expr->var);
         if ($receiver === null) {
             return null;
         }
+
         $bindings = $this->receiverBindings($expr->var);
 
         if ($bindings === null) {
@@ -163,7 +165,7 @@ final class TellDontAskReceiverFingerprint
     private function arrayReceiverFingerprint(ArrayDimFetch $expr): ?string
     {
         $receiver = $this->fromExpr($expr->var);
-        $key = $expr->dim === null ? null : $this->stableValue($expr->dim);
+        $key = $expr->dim instanceof Expr ? $this->stableValue($expr->dim) : null;
 
         return $receiver === null || $key === null ? null : $receiver.'['.$key.']';
     }
@@ -176,13 +178,16 @@ final class TellDontAskReceiverFingerprint
         if ($value instanceof Node\Scalar\String_) {
             return var_export($value->value, true);
         }
+
         if ($value instanceof Node\Scalar\Int_) {
             return (string) $value->value;
         }
+
         if ($value instanceof Expr\ClassConstFetch && $value->class instanceof Name
             && $value->name instanceof Node\Identifier && strtolower($value->name->toString()) === 'class') {
             return $value->class->toString().'::class';
         }
+
         if ($value instanceof Variable && is_string($value->name) && is_string($value->getAttribute(self::RECEIVER_BINDING))) {
             return '$'.$value->name;
         }
@@ -212,12 +217,14 @@ final class TellDontAskReceiverFingerprint
         if ($call->isFirstClassCallable()) {
             return null;
         }
+
         $arguments = [];
         foreach ($call->getArgs() as $argument) {
             $value = $this->stableValue($argument->value);
             if ($value === null || $argument->unpack || $argument->byRef) {
                 return null;
             }
+
             $name = $argument->name === null ? '' : $argument->name->toString().': ';
             $arguments[] = $name.$value;
         }
@@ -237,12 +244,15 @@ final class TellDontAskReceiverFingerprint
 
             return is_string($binding) ? [$binding] : null;
         }
+
         if ($expr instanceof ArrayDimFetch) {
             return $this->arrayBindings($expr);
         }
+
         if ($expr instanceof PropertyFetch) {
             return $this->receiverBindings($expr->var, $indexed);
         }
+
         if ($expr instanceof MethodCall || $expr instanceof NullsafeMethodCall || $expr instanceof StaticCall) {
             return $this->callBindings($expr, $indexed);
         }
@@ -276,9 +286,11 @@ final class TellDontAskReceiverFingerprint
                 $bindings[] = $argument->value->getAttribute(self::RECEIVER_BINDING);
             }
         }
+
         if ($expr instanceof StaticCall) {
             return $bindings;
         }
+
         $base = $this->receiverBindings($expr->var, $indexed);
 
         return $base === null ? null : [...$base, ...$bindings];

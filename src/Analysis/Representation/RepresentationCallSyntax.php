@@ -158,14 +158,17 @@ trait RepresentationCallSyntax
         if (count($catch->stmts) !== 1 || ! $catch->stmts[0] instanceof Stmt\Expression) {
             return null;
         }
+
         $call = $catch->stmts[0]->expr;
         if (! $call instanceof Expr\StaticCall || ! $call->class instanceof Name || ! $call->name instanceof Node\Identifier || $call->isFirstClassCallable()) {
             return null;
         }
+
         $class = strtolower($call->class->toString());
         if (in_array($class, ['self', 'static', 'parent'], true)) {
             return null;
         }
+
         if (! self::hasPositionalArguments($call->args)) {
             return null;
         }

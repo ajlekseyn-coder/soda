@@ -117,8 +117,10 @@ final class CommentedCodeDetector
                 if (! in_array($id, [T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES], true)) {
                     continue;
                 }
+
                 $token = '{';
             }
+
             if (isset($pairs[$token])) {
                 $closing[] = $pairs[$token];
             } elseif ($token === end($closing)) {

@@ -69,7 +69,7 @@ final readonly class ParameterUseAnalysis
         }
 
         $joined = $this->join($paths);
-        if ($node->finally === null) {
+        if (! $node->finally instanceof Node) {
             return $joined;
         }
 

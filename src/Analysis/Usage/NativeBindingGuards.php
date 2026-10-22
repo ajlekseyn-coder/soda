@@ -6,6 +6,7 @@ namespace Cosmira\Soda\Analysis\Usage;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
@@ -32,7 +33,7 @@ trait NativeBindingGuards
      */
     private static function variableGuard(Node $variable, ?Expr\Assign $assignment, ?Node $invocation = null): ?string
     {
-        $fallback = $invocation === null ? null : self::skippedExistenceFallback($variable, $invocation);
+        $fallback = $invocation instanceof Node ? self::skippedExistenceFallback($variable, $invocation) : null;
         if ($fallback !== null) {
             return $fallback;
         }
@@ -47,7 +48,7 @@ trait NativeBindingGuards
         }
 
         $call = $argument->getAttribute(self::PARENT_ATTRIBUTE);
-        if (! $call instanceof Expr\FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== self::EXISTENCE_FUNCTION) {
+        if (! $call instanceof FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== self::EXISTENCE_FUNCTION) {
             return null;
         }
 
@@ -62,14 +63,16 @@ trait NativeBindingGuards
         if (! $invocation instanceof Expr\MethodCall) {
             return null;
         }
+
         $child = $reference;
         for ($owner = $reference->getAttribute(self::PARENT_ATTRIBUTE); $owner instanceof Node; $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE)) {
             if ($owner instanceof Expr\BinaryOp\BooleanOr && $owner->right === $child) {
                 $guard = self::matchingExistenceFallback($owner, $invocation);
-                if ($guard !== null) {
+                if ($guard instanceof Node) {
                     return $guard->name->getAttribute(self::NAMESPACED_NAME)?->toLowerString() ?? '';
                 }
             }
+
             $child = $owner;
         }
 
@@ -79,27 +82,29 @@ trait NativeBindingGuards
     /**
      * The observed call must belong to the true body of this exact native OR condition.
      */
-    private static function matchingExistenceFallback(Expr\BinaryOp\BooleanOr $expression, Expr\MethodCall $invocation): ?Expr\FuncCall
+    private static function matchingExistenceFallback(Expr\BinaryOp\BooleanOr $expression, Expr\MethodCall $invocation): ?FuncCall
     {
         $condition = $expression->getAttribute(self::PARENT_ATTRIBUTE);
         if (! $condition instanceof Stmt\If_ || $condition->cond !== $expression || ! self::isInsideCondition($invocation, $condition)) {
             return null;
         }
+
         $guard = $expression->left;
 
-        return $guard instanceof Expr\FuncCall && self::isPlainExistenceGuard($guard) && self::isExistenceTarget($guard, $invocation) ? $guard : null;
+        return $guard instanceof FuncCall && self::isPlainExistenceGuard($guard) && self::isExistenceTarget($guard, $invocation) ? $guard : null;
     }
 
     /**
      * Two positional native arguments keep the receiver and method-name slots unambiguous.
      */
-    private static function isPlainExistenceGuard(Expr\FuncCall $guard): bool
+    private static function isPlainExistenceGuard(FuncCall $guard): bool
     {
         if (! $guard->name instanceof Name || $guard->name->toLowerString() !== self::EXISTENCE_FUNCTION || count($guard->args) !== 2) {
             return false;
         }
+
         foreach ($guard->getArgs() as $argument) {
-            if (! $argument instanceof Node\Arg || $argument->name !== null || $argument->unpack || $argument->byRef) {
+            if (! $argument instanceof Node\Arg || $argument->name instanceof Node || $argument->unpack || $argument->byRef) {
                 return false;
             }
         }
@@ -110,12 +115,13 @@ trait NativeBindingGuards
     /**
      * The native check must describe the same lexical receiver and selector as the observed call.
      */
-    private static function isExistenceTarget(Expr\FuncCall $guard, Expr\MethodCall $invocation): bool
+    private static function isExistenceTarget(FuncCall $guard, Expr\MethodCall $invocation): bool
     {
         $selector = $guard->args[1]->value;
         if (! $selector instanceof Expr\Variable || ! $invocation->name instanceof Expr\Variable || $selector->name !== $invocation->name->name) {
             return false;
         }
+
         $receiver = $guard->args[0]->value;
         $field = self::ownProperty($receiver);
         if ($field !== null) {
@@ -133,9 +139,10 @@ trait NativeBindingGuards
     {
         $argument = $assignment->getAttribute(self::PARENT_ATTRIBUTE);
         $call = $argument instanceof Node\Arg ? $argument->getAttribute(self::PARENT_ATTRIBUTE) : null;
-        if (! $call instanceof Expr\FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== self::EXISTENCE_FUNCTION) {
+        if (! $call instanceof FuncCall || ! $call->name instanceof Name || $call->name->toLowerString() !== self::EXISTENCE_FUNCTION) {
             return null;
         }
+
         $condition = $call->getAttribute(self::PARENT_ATTRIBUTE);
         $fields = $condition instanceof Node ? get_object_vars($condition) : [];
         if (($fields['cond'] ?? null) !== $call) {
@@ -153,9 +160,10 @@ trait NativeBindingGuards
         if (self::hasBindingJump($method)) {
             return true;
         }
+
         $unsafe = (new NodeFinder)->find($method->stmts ?? [], static fn (Node $node): bool => $node instanceof Expr\Include_
             || $node instanceof Expr\Eval_ || ($node instanceof Expr\Variable && ! is_string($node->name))
-            || ($node instanceof Expr\FuncCall && $node->name instanceof Name && $node->name->getLast() === 'extract'));
+            || ($node instanceof FuncCall && $node->name instanceof Name && $node->name->getLast() === 'extract'));
         foreach ($unsafe as $node) {
             if (self::isOwnedBy($node, $method)) {
                 return true;
@@ -172,7 +180,7 @@ trait NativeBindingGuards
     {
         $isVariable = $argument->value instanceof Expr\Variable && is_string($argument->value->name);
 
-        return $argument->name === null && ! $argument->unpack && ! $argument->byRef && $isVariable
+        return ! $argument->name instanceof Node && ! $argument->unpack && ! $argument->byRef && $isVariable
             ? $argument->value->name : null;
     }
 
@@ -199,6 +207,7 @@ trait NativeBindingGuards
             if ($statement === $loop) {
                 return true;
             }
+
             if (! self::isPlainTaskPrefix($statement, $method)) {
                 return false;
             }
@@ -213,11 +222,13 @@ trait NativeBindingGuards
     private static function isPlainTaskPrefix(Node $statement, Stmt\ClassMethod $method): bool
     {
         if ($statement instanceof Stmt\If_) {
-            return $statement->else === null && $statement->elseifs === [] && $statement->cond instanceof Expr\FuncCall && self::hasNormalTaskOperands($statement->cond, $method);
+            return ! $statement->else instanceof Node && $statement->elseifs === [] && $statement->cond instanceof FuncCall && self::hasNormalTaskOperands($statement->cond, $method);
         }
+
         if (! $statement instanceof Stmt\Expression) {
             return false;
         }
+
         $expression = $statement->expr;
         if ($expression instanceof Expr\Assign && $expression->var instanceof Expr\Variable) {
             $expression = $expression->expr;
@@ -231,13 +242,15 @@ trait NativeBindingGuards
      */
     private static function hasNormalTaskOperands(Node $expression, Stmt\ClassMethod $method): bool
     {
-        if (! $expression instanceof Expr\Variable && ! $expression instanceof Expr\MethodCall && ! $expression instanceof Expr\FuncCall) {
+        if (! $expression instanceof Expr\Variable && ! $expression instanceof Expr\MethodCall && ! $expression instanceof FuncCall) {
             return false;
         }
+
         if (self::hasEagerTaskExit($expression, $method)) {
             return false;
         }
-        foreach ((new NodeFinder)->findInstanceOf($expression, Expr\FuncCall::class) as $call) {
+
+        foreach ((new NodeFinder)->findInstanceOf($expression, FuncCall::class) as $call) {
             if (self::isOwnedBy($call, $method) && ! $call->name instanceof Name) {
                 return false;
             }
@@ -251,10 +264,11 @@ trait NativeBindingGuards
      */
     private static function hasTaskScopeSnapshot(Stmt\ClassMethod $method): bool
     {
-        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Expr\FuncCall::class) as $call) {
+        foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], FuncCall::class) as $call) {
             if (! $call->name instanceof Name || $call->isFirstClassCallable() || ! self::isSameClassScope($call, $method)) {
                 continue;
             }
+
             if (strtolower($call->name->getLast()) === 'compact') {
                 return true;
             }

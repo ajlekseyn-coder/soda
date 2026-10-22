@@ -6,6 +6,7 @@ namespace Cosmira\Soda\Rules\Usage;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt;
 
 /**
@@ -179,7 +180,7 @@ final readonly class ParameterInputNormalization
     private function isNormalizationOption(Node\Arg $argument, int $subject): bool
     {
         $options = $subject === 2 ? ['search', 'replace'] : ['characters'];
-        if ($argument->name !== null && ! in_array($argument->name->toString(), $options, true)) {
+        if ($argument->name instanceof Identifier && ! in_array($argument->name->toString(), $options, true)) {
             return false;
         }
 
@@ -199,6 +200,7 @@ final readonly class ParameterInputNormalization
             if ($item === null || $item->unpack || $item->byRef || ! $this->isScalarLiteral($item->value)) {
                 return false;
             }
+
             if ($item->key !== null && ! $this->isScalarLiteral($item->key)) {
                 return false;
             }

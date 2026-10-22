@@ -78,13 +78,18 @@ final class InterfaceFacts
         $interfaces = [];
         foreach ((new NodeFinder)->findInstanceOf($nodes, Stmt\Interface_::class) as $interface) {
             $name = $interface->namespacedName?->toString() ?? $interface->name->toString();
+            $methods = [];
+            foreach ($interface->getMethods() as $method) {
+                $methods[] = strtolower($method->name->toString());
+            }
+
             $interfaces[strtolower($name)] = [
                 'name'          => $name,
                 'isInterface'   => true,
                 'hasProperties' => $interface->getProperties() !== [],
                 'parentNames'   => array_map(fn (Node\Name $parent): string => $parent->toString(), $interface->extends),
                 'line'          => $interface->getStartLine(),
-                'methods'       => array_map(fn ($method): string => strtolower($method->name->toString()), $interface->getMethods()),
+                'methods'       => $methods,
                 'parents'       => array_map(fn (Node\Name $parent): string => strtolower($parent->toString()), $interface->extends),
             ];
         }
@@ -134,7 +139,7 @@ final class InterfaceFacts
     private static function documentedReferences(array $nodes, array $references, array $dependencies): array
     {
         $free = $references;
-        foreach ((new NodeFinder)->find($nodes, static fn (Node $node): bool => $node->getDocComment() !== null) as $node) {
+        foreach ((new NodeFinder)->find($nodes, static fn (Node $node): bool => is_object($node->getDocComment())) as $node) {
             $documented = self::documentedTypes($node, self::nameContext($node, $nodes));
             $owner = self::interfaceOwner($node);
             if ($owner === null) {
@@ -187,7 +192,7 @@ final class InterfaceFacts
     private static function documentedTypes(Node $node, NameContext $context): array
     {
         $comment = $node->getDocComment();
-        if ($comment === null) {
+        if (! is_object($comment)) {
             return [];
         }
 
@@ -199,6 +204,7 @@ final class InterfaceFacts
             if (! self::isDeclarationTag($node, $tag)) {
                 continue;
             }
+
             $type = self::typeExpression($tag, array_shift($annotation));
             $type = preg_replace('/\bint<\s*(?:min|-?[0-9]+)\s*,\s*(?:max|-?[0-9]+)\s*>/i', '', $type);
             $type = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/s', '', $type);
@@ -232,6 +238,7 @@ final class InterfaceFacts
         if ($tag === 'method') {
             return self::methodTypes(trim($text));
         }
+
         if (str_starts_with($tag, 'template') && preg_match('/^[A-Za-z_][A-Za-z0-9_]*\s+(?:of|as)\s+(.+)$/s', trim($text), $bound) !== 1) {
             return '';
         }
@@ -258,6 +265,7 @@ final class InterfaceFacts
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*\s*\(/', $afterType, $signature) !== 1) {
             [$afterType, $returnType] = [$declaration, ''];
         }
+
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*\s*\(/', $afterType, $signature) !== 1) {
             return '';
         }
@@ -279,19 +287,23 @@ final class InterfaceFacts
             if ($boundary === ord(')')) {
                 return $types.' '.self::typePrefix($parameter);
             }
+
             if ($boundary === ord(',')) {
                 $types .= ' '.self::typePrefix($parameter);
                 [$parameter, $readingType] = ['', true];
 
                 continue;
             }
+
             if ($depth === 0 && $token->id === T_VARIABLE) {
                 $parameter = preg_replace('/(?:&\s*)?(?:\.\.\.\s*)?$/', '', $parameter);
                 $readingType = false;
             }
+
             if ($readingType && $token->id === ord('=')) {
                 return '';
             }
+
             $parameter .= $readingType ? $token->text : '';
             $depth += ($nesting[$token->id] ?? 0) + (int) $readingType * ([ord('<') => 1, ord('>') => -1, T_SR => -2][$token->id] ?? 0);
         }
@@ -308,12 +320,14 @@ final class InterfaceFacts
         while ($owner instanceof Node && ! $owner instanceof Stmt\Namespace_) {
             $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE);
         }
+
         $context = new NameContext(new Throwing);
         $context->startNamespace($owner?->name);
         foreach ($owner?->stmts ?? $nodes as $statement) {
             if ($statement->getStartFilePos() >= $node->getStartFilePos()) {
                 break;
             }
+
             if ($statement instanceof Stmt\Use_ || $statement instanceof Stmt\GroupUse) {
                 self::importNames($statement, $context);
             }
@@ -344,9 +358,11 @@ final class InterfaceFacts
             if ($owner instanceof Stmt\ClassLike || $owner instanceof Node\FunctionLike) {
                 $names += self::declaredBindings($owner);
             }
+
             if ($owner instanceof Stmt\ClassLike) {
                 break;
             }
+
             $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE);
         } while ($owner instanceof Node);
 
@@ -365,6 +381,7 @@ final class InterfaceFacts
         if (! $owner instanceof Stmt\ClassLike) {
             return $names;
         }
+
         preg_match_all('/^[ \t]*@(?:phpstan|psalm)-import-type\s+([A-Za-z_][A-Za-z0-9_]*)\s+from\s+\\\\?[A-Za-z_][A-Za-z0-9_\\\\]*(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?/m', $comment, $imports, PREG_SET_ORDER);
         foreach ($imports as $import) {
             $names[$import[2] ?? $import[1]] = true;
@@ -381,15 +398,19 @@ final class InterfaceFacts
         if (isset($templates[$class]) || str_contains($class, '-')) {
             return null;
         }
+
         if (preg_match('/^(?:int|integer|string|bool|boolean|float|double|number|numeric|scalar|resource|mixed|array|iterable|list|null|true|false|void|never|empty|object|callable)$/i', $class) === 1) {
             return null;
         }
+
         if (str_starts_with($class, '\\')) {
             return strtolower(ltrim($class, '\\'));
         }
+
         if (str_starts_with(strtolower($class), 'namespace\\')) {
             return strtolower(ltrim(($context->getNamespace()?->toString() ?? '').'\\'.substr($class, 10), '\\'));
         }
+
         $name = new Node\Name($class);
 
         return $name->isSpecialClassName() ? null : $context->getResolvedClassName($name)->toLowerString();

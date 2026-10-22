@@ -55,6 +55,7 @@ final readonly class FactCollector
         if ($required === null || in_array('classBehavior', $required, true)) {
             $metrics['staticAccessors'] = $this->staticAccessors($nodes);
         }
+
         $needsComments = $required === null || in_array('comments', $required, true);
         $commentIssues = $needsComments
             ? SourceCommentIssueScanner::scan($source)

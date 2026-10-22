@@ -34,7 +34,7 @@ final class NoTrivialFactories extends Check
             return;
         }
 
-        yield from $this->violations($file->path, self::factoryConstruction($file->nodes), self::hookTypes($file), []);
+        yield from $this->violations($file->path, self::factoryConstruction($file->nodes), $this->hookTypes($file), []);
     }
 
     /**
@@ -55,7 +55,7 @@ final class NoTrivialFactories extends Check
 
         $observed = [];
         foreach ($calls as $call) {
-            $origin = self::incomingFactoryOrigin($types, $call['receiver'], $call['method'], $call['arity']);
+            $origin = $this->incomingFactoryOrigin($types, $call['receiver'], $call['method'], $call['arity']);
             if ($origin !== null) {
                 $observed[$origin] = true;
             }
@@ -75,7 +75,7 @@ final class NoTrivialFactories extends Check
     /**
      * Trait adaptations and unresolved ancestry do not establish an incoming dispatch target.
      */
-    private static function incomingFactoryOrigin(array $types, string $receiver, string $method, int $arity): ?string
+    private function incomingFactoryOrigin(array $types, string $receiver, string $method, int $arity): ?string
     {
         $bound = $types[$receiver] ?? [];
         if (! ($bound['open'] ?? false)) {
@@ -112,7 +112,7 @@ final class NoTrivialFactories extends Check
         $contracts = array_fill_keys(array_map(strtolower(...), $this->contracts), true);
         foreach ($construction['candidates'] ?? [] as $candidate) {
             if (isset($contracts[$candidate['identity']]) || isset($observed[$candidate['identity']])
-                || self::isRequired($hooks, $candidate['class'], $candidate['method'])) {
+                || $this->isRequired($hooks, $candidate['class'], $candidate['method'])) {
                 continue;
             }
 
@@ -146,7 +146,7 @@ final class NoTrivialFactories extends Check
     /**
      * Use source declarations only; no application class is instantiated or autoloaded.
      */
-    private static function hookTypes(FileFacts $file): array
+    private function hookTypes(FileFacts $file): array
     {
         $types = InheritedParameterContracts::collect($file->nodes);
 
@@ -156,7 +156,7 @@ final class NoTrivialFactories extends Check
     /**
      * A hook requires positive contract evidence, not a conventional method name alone.
      */
-    private static function isRequired(array $types, string $class, string $method): bool
+    private function isRequired(array $types, string $class, string $method): bool
     {
         $class = strtolower($class);
         $method = strtolower($method);
@@ -173,7 +173,7 @@ final class NoTrivialFactories extends Check
             $methods = $type['methods'] ?? [];
             $signature = $methods[$method] ?? [];
             $isInherited = $name !== $class && ! ($signature['private'] ?? true);
-            if ($isInherited || self::isDispatchMatch($type['factoryDispatch'] ?? [], $method)) {
+            if ($isInherited || $this->isDispatchMatch($type['factoryDispatch'] ?? [], $method)) {
                 return true;
             }
 
@@ -186,7 +186,7 @@ final class NoTrivialFactories extends Check
     /**
      * Match method names proved by calls on the declaring receiver.
      */
-    private static function isDispatchMatch(array $patterns, string $method): bool
+    private function isDispatchMatch(array $patterns, string $method): bool
     {
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $method) === 1) {

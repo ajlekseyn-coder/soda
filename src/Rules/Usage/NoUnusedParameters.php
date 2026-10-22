@@ -77,6 +77,7 @@ final class NoUnusedParameters extends Check
             foreach (array_intersect_key($types, $declared) as $name => $duplicate) {
                 $types[$name] = array_replace($duplicate, ['ambiguous' => true]);
             }
+
             $types += $declared;
             $middleware += $facts['registeredMiddleware'] ?? [];
             $functions += array_change_key_case($facts['methods']);
@@ -162,6 +163,7 @@ final class NoUnusedParameters extends Check
         foreach ($this->taskSignatures($types, $surfaces) as $origin => $arity) {
             $dispatches[$origin] = max($dispatches[$origin] ?? 0, $arity);
         }
+
         foreach ($dispatches as $origin => $arity) {
             $signatures[$origin] = max($signatures[$origin] ?? 0, $arity);
         }
@@ -196,6 +198,7 @@ final class NoUnusedParameters extends Check
             if ($type['ambiguous'] ?? false) {
                 continue;
             }
+
             foreach ($type['taskDispatch'] ?? [] as $call) {
                 yield $call + ['lists' => $type['taskLists'] ?? []];
             }
@@ -228,17 +231,20 @@ final class NoUnusedParameters extends Check
         if ($surface['unknown'] !== []) {
             return [];
         }
+
         $callers = array_filter($surface['methods'], static fn (array $method): bool => $method['origin'] === $call['caller']);
         $caller = array_shift($callers);
         if ($caller === null || $caller['scope'] === null) {
             return [];
         }
+
         $names = $call['names'];
         $field = $call['property'];
         if ($field !== null) {
             if (! $this->isKnownField($field, $surface, $caller) || ! $this->isUnwrittenTaskField($field, $surface, $types)) {
                 return [];
             }
+
             $origins = $surface['propertyOrigins'] ?? [];
             $lists = $call['lists'];
             $names = ($origins[$field] ?? null) === $caller['scope'] ? ($lists[$field] ?? []) : [];
@@ -262,12 +268,14 @@ final class NoUnusedParameters extends Check
             if (! $this->isAccessibleTask($method, $bound[$name] ?? [], $caller)) {
                 return [];
             }
+
             [$owner, $original] = explode('::', $method['origin'], 2);
             $type = $types[$owner] ?? [];
             $signature = ($type['methods'] ?? [])[$original] ?? [];
             if (($type['ambiguous'] ?? false) || ! ($signature['positional'] ?? false) || ($signature['abstract'] ?? false)) {
                 return [];
             }
+
             $targets[$method['origin']] = $signature;
         }
 
@@ -313,6 +321,7 @@ final class NoUnusedParameters extends Check
             if (array_intersect_key($functions, array_flip($call['guards'])) !== []) {
                 continue;
             }
+
             foreach ($surfaces as $class => $surface) {
                 foreach ($this->dispatchTargets($call, $class, $surface, $types) as $method) {
                     $origin = $method['origin'];
@@ -337,9 +346,11 @@ final class NoUnusedParameters extends Check
 
             return array_filter($methods, static fn (array $method, string $name): bool => $method['visibility'] !== self::PRIVATE_VISIBILITY && preg_match($call['method'], $name) === 1, ARRAY_FILTER_USE_BOTH);
         }
+
         if (($call['pattern'] ?? false) && $this->isReceiverFamily($class, $call['type'], $types, [])) {
             return array_filter($methods, static fn (array $method, string $name): bool => $method['visibility'] === self::PUBLIC_VISIBILITY && preg_match($call['method'], $name) === 1, ARRAY_FILTER_USE_BOTH);
         }
+
         $method = $methods[$call['method']] ?? [];
         if (($method['visibility'] ?? '') !== self::PUBLIC_VISIBILITY || ! $this->isReceiverFamily($class, $call['type'], $types, [])) {
             return [];
@@ -359,16 +370,19 @@ final class NoUnusedParameters extends Check
 
                 continue;
             }
+
             foreach ($surfaces as $surface) {
                 $callers = array_filter($surface['methods'], static fn (array $method): bool => $method['origin'] === $call['caller']);
                 $caller = array_shift($callers);
                 if ($caller === null) {
                     continue;
                 }
+
                 $bound = $this->propertyBound($call['property'], $surface, $types, $functions, $caller);
                 if ($bound === null) {
                     continue;
                 }
+
                 $source = $this->openSourceBound($bound['source'], $surfaces, $types);
                 if ($source !== null && $this->isReceiverFamily($source, $bound['type'], $types, [])) {
                     yield array_replace($call, ['caller' => null, 'type' => $source, 'pattern' => true]);
@@ -386,6 +400,7 @@ final class NoUnusedParameters extends Check
         if ($bound === null || ! $this->isKnownField($field, $surface, $caller)) {
             return null;
         }
+
         $store = $this->stableFieldStore($field, $surface, $types, $functions) ?? [];
         $methods = $surface['methods'];
         $constructor = $methods['__construct'] ?? [];
@@ -394,6 +409,7 @@ final class NoUnusedParameters extends Check
         if (($constructor['visibility'] ?? '') !== self::PUBLIC_VISIBILITY || ($store['origin'] ?? null) !== ($constructor['origin'] ?? null) || ! ($store['constructor'] ?? false)) {
             return null;
         }
+
         if (! $this->isWiringCompatible($store['prefix'] ?? [], $surface, $constructor, $types)) {
             return null;
         }
@@ -428,11 +444,13 @@ final class NoUnusedParameters extends Check
             if (isset($blocked[$field]) || isset($blocked['*']) || array_intersect_key($functions, array_flip($flow['guards'] ?? [])) !== []) {
                 return null;
             }
+
             $writes = $flow['writes'] ?? [];
             foreach ([...($writes[$field] ?? []), ...($writes['*'] ?? [])] as $store) {
                 if (! $this->isKnownField($field, $surface, $method)) {
                     return null;
                 }
+
                 $stores[] = $store + ['origin' => $method['origin']];
             }
         }
@@ -473,11 +491,13 @@ final class NoUnusedParameters extends Check
         if (! isset($source['getter'])) {
             return $source['type'];
         }
+
         $surface = $surfaces[$source['type']] ?? [];
         $getter = ($surface['methods'] ?? [])[$source['getter']] ?? [];
         if (($getter['visibility'] ?? '') !== self::PUBLIC_VISIBILITY) {
             return null;
         }
+
         $getterFlow = $this->methodFlow($getter, $types);
         $field = $getterFlow['return'] ?? null;
         if ($field === null || ! $this->isKnownField($field, $surface, $getter)) {
@@ -496,6 +516,7 @@ final class NoUnusedParameters extends Check
             if ($method['visibility'] !== self::PUBLIC_VISIBILITY || ! $this->isKnownField($field, $surface, $method)) {
                 continue;
             }
+
             $flow = $this->methodFlow($method, $types);
             $writes = $flow['writes'] ?? [];
             foreach ($writes[$field] ?? [] as $store) {
@@ -518,6 +539,7 @@ final class NoUnusedParameters extends Check
         if (! ($store['setter'] ?? false) || ($readonly && (! $store['constructor'] || ! $singleWrite))) {
             return null;
         }
+
         $input = $store['source'];
         $native = ($surface['propertyTypes'] ?? [])[$field] ?? null;
         $untyped = ($surface['untypedProperties'] ?? [])[$field] ?? false;
@@ -565,7 +587,7 @@ final class NoUnusedParameters extends Check
                 }
             }
 
-            foreach (($surfaces[$name] ?? [])['methods'] ?? [] as $method => $signature) {
+            foreach (($surfaces[$name] ?? [])['methods'] ?? [] as $signature) {
                 if ($signature['visibility'] !== self::PRIVATE_VISIBILITY) {
                     $signatures[strtolower($signature['origin'])] = null;
                 }

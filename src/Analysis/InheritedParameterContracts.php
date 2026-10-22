@@ -17,7 +17,8 @@ use PhpParser\NodeFinder;
  */
 final readonly class InheritedParameterContracts
 {
-    use FactoryDispatchPatterns, FactoryParameterDispatch;
+    use FactoryDispatchPatterns;
+    use FactoryParameterDispatch;
 
     /**
      * Method name reserved by PHP for object construction contracts.
@@ -81,7 +82,7 @@ final readonly class InheritedParameterContracts
     private static function canVaryByReceiver(Stmt\ClassLike $class, string $name, bool $lateBound): bool
     {
         $target = $class->getMethod($name);
-        if ($target === null) {
+        if (! $target instanceof Node) {
             return false;
         }
 
@@ -133,7 +134,7 @@ final readonly class InheritedParameterContracts
     {
         return [
             'arity'               => count($method->params),
-            'required'            => count(array_filter($method->params, static fn (Node\Param $input): bool => $input->default === null && ! $input->variadic)),
+            'required'            => count(array_filter($method->params, static fn (Node\Param $input): bool => ! $input->default instanceof Node && ! $input->variadic)),
             'private'             => $method->isPrivate(),
             'abstract'            => $method->isAbstract(),
             'constructorContract' => $class instanceof Stmt\Interface_ || $method->isAbstract(),
@@ -363,11 +364,13 @@ final readonly class InheritedParameterContracts
         if (isset($seen[$name]) || ! ($type['isTrait'] ?? false)) {
             return [];
         }
+
         $seen[$name] = true;
         $methods = $type['methods'] ?? [];
         if (isset($methods[$method])) {
             return $methods[$method];
         }
+
         $signatures = $this->importedTraitSignatures($type, $method, $seen, true);
         $concrete = array_filter($signatures, static fn (array $signature): bool => ! ($signature['abstract'] ?? false));
         if ($concrete !== []) {
@@ -410,8 +413,10 @@ final readonly class InheritedParameterContracts
                 $traits = array_diff($traits, $alias['traits']);
                 $alias['excluded'] = $excluded;
             }
+
             $imports[] = $alias;
         }
+
         $imports[] = ['traits' => $traits, 'method' => $method, 'excluded' => $excluded];
 
         return $imports;

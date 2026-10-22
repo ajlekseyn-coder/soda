@@ -983,7 +983,7 @@ PHP);
         yield 'later conditional write keeps selection open' => ["\$kind = 'Other'; if (condition()) { \$kind = \$other; } return \$this->{'render'.\$kind}(\$input);", 1];
         yield 'closed cast through binding' => ["\$kind = (string)'Other'; return \$this->{'render'.\$kind}(\$input);", 2];
         yield 'closed choice through binding' => ["\$kind = \$other ? 'Other' : 'Also'; return \$this->{'render'.\$kind}(\$input);", 2];
-        yield 'closed native suffix binding' => ["\$kind = 'O'.'ther'; return \$this->{'render'.\$kind}(\$input);", 2];
+        yield 'closed native suffix binding' => ["\$kind = 'Al'.'so'; return \$this->{'render'.\$kind}(\$input);", 2];
         yield 'closed inline assignment' => ["return \$this->{'render'.(\$kind = 'Other')}(\$input);", 2];
         yield 'same-block assignment' => ['if (condition()) { '.$binding.$call.' }', 1];
         yield 'assignment dominates nested later statement' => ['if (condition()) { '.$binding.' if (other()) { '.$call.' } }', 1];

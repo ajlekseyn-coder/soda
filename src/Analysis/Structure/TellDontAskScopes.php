@@ -124,6 +124,7 @@ trait TellDontAskScopes
                 $opaque[] = $node->getEndFilePos();
             }
         }
+
         foreach ($nodes as $node) {
             if ($node instanceof Expr\Variable && is_string($node->name)) {
                 $this->stampReceiverBinding($node, $owner->getStartFilePos(), ['writes' => $writes, 'escapes' => $escapes, 'opaque' => $opaque]);
@@ -144,6 +145,7 @@ trait TellDontAskScopes
             if ($target instanceof Expr\Variable && ! is_string($target->name)) {
                 $opaque[] = $node->getEndFilePos();
             }
+
             $position = $node instanceof Expr ? $node->getEndFilePos() : $target->getEndFilePos();
             foreach (ParameterWriteTargets::bindings($target) as $name => $line) {
                 $this->recordBindingEvent($writes, $name, $position);
@@ -165,6 +167,7 @@ trait TellDontAskScopes
 
             return;
         }
+
         if ($node instanceof Stmt\Global_ || $node instanceof Stmt\Static_ || $node instanceof Expr\AssignRef) {
             $this->recordBindingEvent($escapes, $name, $node->getEndFilePos());
         }
@@ -180,9 +183,11 @@ trait TellDontAskScopes
         if ($node instanceof Node\Arg && $node->value instanceof Expr\Variable && is_string($node->value->name)) {
             $this->recordBindingEvent($escapes, $node->value->name, $node->getAttribute('sodaReceiverEscapeAt', $node->getEndFilePos()));
         }
+
         if ($node instanceof Expr\AssignRef && $node->expr instanceof Expr\Variable && is_string($node->expr->name)) {
             $this->recordBindingEvent($escapes, $node->expr->name, $node->getEndFilePos());
         }
+
         $this->capturedReferenceBindings($node, $node->getStartFilePos(), $escapes);
     }
 

@@ -73,7 +73,7 @@ trait FactorySignatures
             return $method->returnType->isSpecialClassName() ? null : $method->returnType->toLowerString();
         }
 
-        if ($method->returnType !== null || preg_match('/(?:^|\\R)\\s*(?:\\/\\*\\*|\\*)?\\s*@return\\s+(\\\\?[a-z_][a-z0-9_\\\\]*)(?=\\s|\\*\\/)/i', $method->getDocComment()?->getText() ?? '', $match) !== 1) {
+        if ($method->returnType instanceof Node || preg_match('/(?:^|\\R)\\s*(?:\\/\\*\\*|\\*)?\\s*@return\\s+(\\\\?[a-z_][a-z0-9_\\\\]*)(?=\\s|\\*\\/)/i', $method->getDocComment()?->getText() ?? '', $match) !== 1) {
             return null;
         }
 
@@ -97,8 +97,12 @@ trait FactorySignatures
             return false;
         }
 
-        $parameters = array_map(static fn ($parameter): ?string => ! $parameter->variadic && ! $parameter->byRef && $parameter->var instanceof Expr\Variable
-            && is_string($parameter->var->name) ? $parameter->var->name : null, $method->params);
+        $parameters = [];
+        foreach ($method->params as $parameter) {
+            $parameters[] = ! $parameter->variadic && ! $parameter->byRef && $parameter->var instanceof Expr\Variable
+                && is_string($parameter->var->name) ? $parameter->var->name : null;
+        }
+
         $arguments = array_map(self::argument(...), $call->getArgs());
 
         return ! in_array(null, $parameters, true) && $parameters === $arguments;
@@ -132,8 +136,9 @@ trait FactorySignatures
                 if (! $adaptation instanceof Stmt\TraitUseAdaptation\Alias) {
                     continue;
                 }
+
                 $name = ($adaptation->newName ?? $adaptation->method)->toLowerString();
-                $sources = $adaptation->trait === null ? $use->traits : [$adaptation->trait];
+                $sources = $adaptation->trait instanceof Node ? [$adaptation->trait] : $use->traits;
                 $aliases[$name] = [...($aliases[$name] ?? []), [
                     'method'   => $adaptation->method->toLowerString(),
                     'renamed'  => $name !== $adaptation->method->toLowerString(),

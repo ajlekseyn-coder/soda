@@ -123,6 +123,7 @@ final class DocumentationSemanticsTest extends TestCase
     private function examples(string $rule): array
     {
         $source = file_get_contents(__DIR__.'/../../docs/rules/'.$rule.'.md');
+        $source = str_replace("\r\n", "\n", (string) $source);
         preg_match_all('/```php\n(.*?)\n```/s', $source, $matches);
         // The assignment guide has before/after in the same fence.
         if ($rule === 'no_assignment_in_condition') {

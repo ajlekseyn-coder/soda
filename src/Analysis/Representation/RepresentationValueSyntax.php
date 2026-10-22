@@ -41,18 +41,22 @@ trait RepresentationValueSyntax
         if (($value['op'] ?? null) !== 'new') {
             return self::pureReturnVariables($value);
         }
+
         if ($value['class'] === null || in_array($value['class'], ['self', 'static', 'parent'], true)) {
             return null;
         }
+
         $variables = [];
         foreach ($value['args'] as $argument) {
             if ($argument['name'] !== null || $argument['unpack'] || $argument['byRef']) {
                 return null;
             }
+
             $reads = self::pureReturnVariables($argument['value']);
             if ($reads === null) {
                 return null;
             }
+
             $variables += $reads;
         }
 
@@ -80,12 +84,14 @@ trait RepresentationValueSyntax
         if (! self::hasDistinctReturnKeys($items)) {
             return null;
         }
+
         $variables = [];
         foreach ($items as $item) {
             $reads = self::pureReturnVariables($item['value']);
             if ($reads === null) {
                 return null;
             }
+
             $variables += $reads;
         }
 
@@ -104,18 +110,22 @@ trait RepresentationValueSyntax
                 if (array_key_exists(PHP_INT_MAX, $keys)) {
                     return false;
                 }
+
                 $keys[] = true;
 
                 continue;
             }
+
             if (($key['op'] ?? null) !== self::VALUE_LITERAL) {
                 return false;
             }
+
             $value = $key['value'];
             $value = is_bool($value) || is_float($value) ? (int) $value : ($value ?? '');
             if ($value === PHP_INT_MAX || array_key_exists($value, $keys)) {
                 return false;
             }
+
             $keys[$value] = true;
         }
 

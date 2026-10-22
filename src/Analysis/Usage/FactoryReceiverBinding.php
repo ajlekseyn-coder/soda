@@ -6,6 +6,7 @@ namespace Cosmira\Soda\Analysis\Usage;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
@@ -43,6 +44,7 @@ trait FactoryReceiverBinding
             if ($guard === null) {
                 return null;
             }
+
             if ($guard !== '') {
                 $guards[] = $guard;
             }
@@ -70,13 +72,16 @@ trait FactoryReceiverBinding
         if (self::isOwnedBy($closure, $method)) {
             return true;
         }
+
         $owner = $closure->getAttribute(self::PARENT_ATTRIBUTE);
         while ($owner instanceof Node && ! $owner instanceof Node\FunctionLike) {
             $owner = $owner->getAttribute(self::PARENT_ATTRIBUTE);
         }
+
         if (! $owner instanceof Expr\Closure) {
             return false;
         }
+
         foreach ($owner->uses as $capture) {
             if ($capture->byRef && $capture->var->name === $use->var->name) {
                 return self::doesCaptureOuterBinding($capture, $method);
@@ -131,9 +136,10 @@ trait FactoryReceiverBinding
     private static function isIncomingArgument(Node\Arg $argument, Stmt\ClassMethod $method): bool
     {
         $value = $argument->value;
-        if ($argument->name !== null || $argument->unpack || ! $value instanceof Expr\Variable) {
+        if ($argument->name instanceof Node || $argument->unpack || ! $value instanceof Expr\Variable) {
             return false;
         }
+
         $parameters = array_column(array_column($method->params, 'var'), 'name');
         if (! in_array($value->name, $parameters, true)) {
             return false;
@@ -169,6 +175,7 @@ trait FactoryReceiverBinding
             if ($owner === $condition) {
                 return in_array($child, $fields['stmts'] ?? [], true);
             }
+
             $child = $owner;
         }
 
@@ -183,12 +190,14 @@ trait FactoryReceiverBinding
         if ($method->isStatic() || self::hasOpaqueBindings($method)) {
             return [];
         }
+
         $calls = [];
         foreach ((new NodeFinder)->findInstanceOf($method->stmts ?? [], Stmt\Foreach_::class) as $loop) {
             $call = self::sharedTaskCall($loop, $method);
-            if ($call === null) {
+            if (! $call instanceof Node) {
                 continue;
             }
+
             $names = self::literalTasks($loop->expr);
             $property = self::ownProperty($loop->expr);
             if ($names !== [] || $property !== null) {
@@ -202,18 +211,20 @@ trait FactoryReceiverBinding
     /**
      * Selector writes, keys, nested callables and argument transformations are outside this protocol.
      */
-    private static function sharedTaskCall(Stmt\Foreach_ $loop, Stmt\ClassMethod $method): ?Expr\MethodCall
+    private static function sharedTaskCall(Stmt\Foreach_ $loop, Stmt\ClassMethod $method): ?MethodCall
     {
         $selector = self::taskIterationName($loop, $method);
         if ($selector === null) {
             return null;
         }
+
         $body = $loop->stmts;
         $statement = count($body) === 1 ? reset($body) : null;
         $call = $statement instanceof Stmt\Expression ? $statement->expr : null;
-        if (! $call instanceof Expr\MethodCall || ! $call->name instanceof Expr\Variable || ! self::isOwnDispatch($call, $method) || $call->isFirstClassCallable()) {
+        if (! $call instanceof MethodCall || ! $call->name instanceof Expr\Variable || ! self::isOwnDispatch($call, $method) || $call->isFirstClassCallable()) {
             return null;
         }
+
         $arguments = array_map(self::argument(...), $call->getArgs());
 
         return $call->name->name === $selector && self::hasDistinctTaskArguments($arguments, $method) ? $call : null;
@@ -224,7 +235,7 @@ trait FactoryReceiverBinding
      */
     private static function taskIterationName(Stmt\Foreach_ $loop, Stmt\ClassMethod $method): ?string
     {
-        if ($loop->byRef || $loop->keyVar !== null || ! $loop->valueVar instanceof Expr\Variable || ! self::doesTaskPrefixReach($loop, $method)) {
+        if ($loop->byRef || $loop->keyVar instanceof Node || ! $loop->valueVar instanceof Expr\Variable || ! self::doesTaskPrefixReach($loop, $method)) {
             return null;
         }
 
@@ -239,12 +250,14 @@ trait FactoryReceiverBinding
         if (in_array(null, $arguments, true) || count(array_unique($arguments)) !== count($arguments)) {
             return false;
         }
+
         $finder = new NodeFinder;
         $aliases = [...$finder->findInstanceOf($method->stmts ?? [], Expr\Assign::class), ...$finder->findInstanceOf($method->stmts ?? [], Expr\AssignRef::class)];
         foreach ($aliases as $alias) {
             if (! self::isOwnedBy($alias, $method) || ! $alias->var instanceof Expr\Variable || ! $alias->expr instanceof Expr\Variable) {
                 continue;
             }
+
             if (in_array($alias->var->name, $arguments, true)) {
                 return false;
             }

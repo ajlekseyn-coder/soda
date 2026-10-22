@@ -99,6 +99,7 @@ trait CollectsDesignFacts
             if ($representation) {
                 $metrics['representationFlow'] = $facts;
             }
+
             if ($outcomes) {
                 $metrics['terminalOutcomes'] = self::terminalOutcomes($facts);
             }
@@ -116,6 +117,7 @@ trait CollectsDesignFacts
         foreach ($facts['types'] as $name => $type) {
             $types[$name] = ['declared' => $type['declared'], 'standalone' => $type['standalone']];
         }
+
         $callables = [];
         foreach ($facts['callables'] as $name => $callable) {
             $required = 0;
@@ -124,6 +126,7 @@ trait CollectsDesignFacts
                     $required = $index + 1;
                 }
             }
+
             $callables[$name] = ['class' => $callable['class'], 'terminal' => $callable['terminal'],
                 'static'                 => $callable['static'], 'visibility' => $callable['visibility'],
                 'required'               => $required, 'maximum' => count($callable['parameters'])];

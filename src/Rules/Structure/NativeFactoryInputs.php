@@ -6,6 +6,7 @@ namespace Cosmira\Soda\Rules\Structure;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeFinder;
@@ -41,7 +42,7 @@ trait NativeFactoryInputs
     {
         $first = $method->stmts[0] ?? null;
         $expression = $first instanceof Stmt\Return_ || $first instanceof Stmt\Expression ? $first->expr : null;
-        $assignment = $expression instanceof Expr\Assign ? $expression : null;
+        $assignment = $expression instanceof Assign ? $expression : null;
         $call = $assignment?->expr ?? $expression;
         if (! $call instanceof Expr\MethodCall || $call->isFirstClassCallable()) {
             return null;
@@ -62,9 +63,9 @@ trait NativeFactoryInputs
     /**
      * Complex assignment targets can evaluate code before the call.
      */
-    private static function isFactoryResult(?Expr\Assign $assignment, string $receiver): bool
+    private static function isFactoryResult(?Assign $assignment, string $receiver): bool
     {
-        if ($assignment === null) {
+        if (! $assignment instanceof Assign) {
             return true;
         }
 
@@ -109,9 +110,9 @@ trait NativeFactoryInputs
             }
 
             return $node instanceof Expr\FuncCall || $node instanceof Expr\Eval_ || $node instanceof Expr\Include_
-                || $node instanceof Expr\Assign || $node instanceof Expr\AssignRef || $node instanceof Node\FunctionLike;
+                || $node instanceof Assign || $node instanceof Expr\AssignRef || $node instanceof Node\FunctionLike;
         });
 
-        return $unsafe === null;
+        return ! $unsafe instanceof Node;
     }
 }

@@ -121,6 +121,7 @@ final class ParameterControlAnalysis
             if ($branch === null) {
                 continue;
             }
+
             foreach ($branch as $name => $sources) {
                 $origins[$name] = array_values(array_unique([...($origins[$name] ?? []), ...$sources]));
             }
@@ -138,10 +139,12 @@ final class ParameterControlAnalysis
         if (! $assignment instanceof Expr\Assign || ! $assignment->var instanceof Expr\Variable || ! is_string($assignment->var->name)) {
             return $this->branches($node, $origins);
         }
+
         $current = $this->scan([$assignment->expr], $origins);
         if ($current === null) {
             return null;
         }
+
         $current[$assignment->var->name] = $this->origins($assignment->expr, $current);
 
         return $current;
@@ -156,15 +159,18 @@ final class ParameterControlAnalysis
         if ($remaining === null) {
             return null;
         }
+
         $paths = [$this->scan($conditional->stmts, $remaining)];
         foreach ($conditional->elseifs as $elseif) {
             $remaining = $this->scan([$elseif->cond], $remaining);
             if ($remaining === null) {
                 return $this->conditionalJoin($conditional, $paths, $origins);
             }
+
             $paths[] = $this->scan($elseif->stmts, $remaining);
         }
-        $paths[] = $conditional->else === null ? $remaining : $this->scan($conditional->else->stmts, $remaining);
+
+        $paths[] = $conditional->else instanceof Node ? $this->scan($conditional->else->stmts, $remaining) : $remaining;
 
         return $this->conditionalJoin($conditional, $paths, $origins);
     }
@@ -178,15 +184,18 @@ final class ParameterControlAnalysis
         if ($joined === null) {
             return null;
         }
+
         $conditions = [$conditional->cond];
         foreach ($conditional->elseifs as $elseif) {
             $conditions[] = $elseif->cond;
         }
+
         $dependent = (new NodeFinder)->findFirst($conditions, static fn (Node $node): bool => $node instanceof Expr\Variable || $node instanceof Node\FunctionLike);
 
-        if ($dependent === null) {
+        if (! $dependent instanceof Node) {
             return $joined;
         }
+
         foreach ($origins as $name => $sources) {
             if ($this->hasUniformFinalLiteral($conditional, $paths, $name)) {
                 $origins[$name] = [];
@@ -205,12 +214,14 @@ final class ParameterControlAnalysis
         foreach ($conditional->elseifs as $elseif) {
             $bodies[] = $elseif->stmts;
         }
+
         $bodies[] = $conditional->else?->stmts ?? [];
         $values = [];
         foreach ($paths as $index => $path) {
             if ($path === null) {
                 continue;
             }
+
             $body = $bodies[$index];
             $statement = $body === [] ? null : $body[array_key_last($body)];
             $assignment = $statement instanceof Stmt\Expression ? $statement->expr : null;
@@ -218,6 +229,7 @@ final class ParameterControlAnalysis
             if ($value === null) {
                 return false;
             }
+
             $values[$value] = true;
         }
 
@@ -246,6 +258,7 @@ final class ParameterControlAnalysis
             if ($path === null) {
                 continue;
             }
+
             $origins ??= [];
             foreach ($path as $name => $sources) {
                 $origins[$name] = array_values(array_unique([...($origins[$name] ?? []), ...$sources]));

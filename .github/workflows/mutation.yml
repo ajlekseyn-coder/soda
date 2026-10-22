@@ -48,7 +48,7 @@ jobs:
         run: |
           mkdir -p build/infection
           vendor/bin/infection \
-            --threads=4 \
+            --threads=max \
             --logger-github=true \
             --logger-html=build/infection/index.html \
             --logger-summary-json=build/infection/summary.json \

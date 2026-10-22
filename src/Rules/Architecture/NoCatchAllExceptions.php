@@ -41,6 +41,7 @@ final class NoCatchAllExceptions extends Check
             if (! $this->isCatchAll($node) || $this->hasExplicitOutcome($node->stmts) || $hasReturnedFallback || isset($deferred[$node->getStartFilePos()])) {
                 continue;
             }
+
             $identity = CallableIdentity::enclosingMethod($node);
             $key = $identity !== null ? strtolower($identity) : null;
             if ($key !== null && isset($contracts[$key])) {
@@ -58,9 +59,10 @@ final class NoCatchAllExceptions extends Check
     {
         $parent = $node->getAttribute('parent');
         while ($parent instanceof Node && ! $parent instanceof Node\FunctionLike) {
-            if ($parent instanceof Stmt\TryCatch && $parent->finally !== null) {
+            if ($parent instanceof Stmt\TryCatch && $parent->finally instanceof Node) {
                 return true;
             }
+
             $parent = $parent->getAttribute('parent');
         }
 
@@ -91,6 +93,7 @@ final class NoCatchAllExceptions extends Check
             foreach ($outcomes['types'] ?? [] as $name => $type) {
                 $types[$name] = isset($types[$name]) ? ['declared' => false, 'standalone' => false] : $type;
             }
+
             foreach ($outcomes['callables'] ?? [] as $name => $callable) {
                 $callables[$name] = isset($callables[$name]) ? ['terminal' => false] : $callable;
             }
@@ -110,6 +113,7 @@ final class NoCatchAllExceptions extends Check
             if (array_intersect($catch['types'], ['Throwable', 'Exception']) === [] || isset($contracts[$identity]) || $this->hasTerminalTarget($catch, $types, $callables)) {
                 continue;
             }
+
             yield $this->violation($file, $catch['line']);
         }
     }
@@ -144,6 +148,7 @@ final class NoCatchAllExceptions extends Check
                 if ($node instanceof Stmt\Catch_) {
                     $catches[] = $node;
                 }
+
                 array_push($catches, ...$this->catches(get_object_vars($node)));
             }
         }
@@ -191,6 +196,7 @@ final class NoCatchAllExceptions extends Check
             if ($this->hasBareReturn($statement)) {
                 return false;
             }
+
             $isTermination = $statement instanceof Stmt\Expression && StatementLists::isExit($statement);
             if ($statement instanceof Stmt\Return_ || $isTermination) {
                 return true;
@@ -217,7 +223,7 @@ final class NoCatchAllExceptions extends Check
             return false;
         }
 
-        if ($node instanceof Stmt\Return_ && $node->expr === null) {
+        if ($node instanceof Stmt\Return_ && ! $node->expr instanceof Node) {
             return true;
         }
 
@@ -238,7 +244,7 @@ final class NoCatchAllExceptions extends Check
      */
     private function hasOutcomeInEveryBranch(Stmt\If_ $statement): bool
     {
-        if ($statement->else === null || ! $this->hasExplicitOutcome($statement->stmts)) {
+        if (! $statement->else instanceof Node || ! $this->hasExplicitOutcome($statement->stmts)) {
             return false;
         }
 
@@ -256,7 +262,7 @@ final class NoCatchAllExceptions extends Check
      */
     private function hasOutcomeInEveryCatch(Stmt\TryCatch $statement): bool
     {
-        if ($statement->finally !== null || $this->hasJump($statement) || ! $this->hasExplicitOutcome($statement->stmts)) {
+        if ($statement->finally instanceof Node || $this->hasJump($statement) || ! $this->hasExplicitOutcome($statement->stmts)) {
             return false;
         }
 
@@ -277,6 +283,7 @@ final class NoCatchAllExceptions extends Check
         if ($node instanceof Node\FunctionLike) {
             return false;
         }
+
         if (in_array($node->getType(), ['Stmt_Break', 'Stmt_Continue', 'Stmt_Goto'], true)) {
             return true;
         }
