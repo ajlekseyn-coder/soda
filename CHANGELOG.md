@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Fix a fatal `Undefined constant GLOB_BRACE` crash on PHP builds whose glob
+  lacks brace expansion, such as musl-based images.
+- Report findings as `json`, `junit` or `teamcity` with
+  `soda quality --report-type=`; pass `--report-file=` to write the report to a
+  file instead of stdout. TeamCity service messages and a JUnit XML file both
+  surface every violation as a failed test in the TeamCity Tests tab. Exit
+  status, human output and the JSON schema stay unchanged.
+
 ## 1.1.1 — 2026-10-15
 
 - Accept fluent predicates, nested argument calls and natural while conditions.

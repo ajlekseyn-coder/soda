@@ -84,8 +84,8 @@ final readonly class ComposerTypeSources
             }
 
             $packageRoot = dirname($path).'/'.$installPath;
-            $packageArchives = $project ? [] : glob($packageRoot.'/*.{phar,zip,tar}', GLOB_BRACE);
-            $archives = [...$archives, ...($packageArchives === false ? [] : $packageArchives)];
+            $packageArchives = $project ? [] : self::archivesIn($packageRoot);
+            $archives = [...$archives, ...$packageArchives];
 
             foreach ($autoload['psr-4'] ?? [] as $prefix => $roots) {
                 $directories = $prefixes[$prefix] ?? [];
@@ -98,6 +98,25 @@ final readonly class ComposerTypeSources
         }
 
         return new self($prefixes, $archives);
+    }
+
+    /**
+     * Collect package archives with one glob per extension; GLOB_BRACE is
+     * unavailable on PHP builds whose glob lacks brace expansion.
+     *
+     * @return list<string>
+     */
+    private static function archivesIn(string $packageRoot): array
+    {
+        $archives = [];
+        foreach (['phar', 'zip', 'tar'] as $extension) {
+            $matches = glob($packageRoot.'/*.'.$extension);
+            $archives = [...$archives, ...($matches === false ? [] : $matches)];
+        }
+
+        sort($archives);
+
+        return $archives;
     }
 
     /**

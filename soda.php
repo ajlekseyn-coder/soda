@@ -137,7 +137,7 @@ return Soda::configure()
         new MaxLayerDominancePercentage(50, 4),
         new MaxNamespaceDepth(5),
         new MaxClassesPerNamespace(40),
-        new MaxClassesPerProject(289),
+        new MaxClassesPerProject(291),
 
         // Owner behavior
         new FragmentedOwnerBehavior(),

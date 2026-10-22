@@ -58,7 +58,8 @@ final class QualityCommandTest extends TestCase
         $input = new ArrayInput([
             'command'       => 'quality',
             'path'          => [__DIR__.'/../quality-fixture'],
-            '--report-json' => $reportPath,
+            '--report-type' => 'json',
+            '--report-file' => $reportPath,
         ]);
         $output = new BufferedOutput();
 
@@ -100,7 +101,8 @@ final class QualityCommandTest extends TestCase
                 'command'       => 'quality',
                 'path'          => [$project['dir']],
                 '--config'      => $project['soda'],
-                '--report-json' => $reportPath,
+                '--report-type' => 'json',
+                '--report-file' => $reportPath,
             ]);
             $output = new BufferedOutput();
 
@@ -134,6 +136,103 @@ final class QualityCommandTest extends TestCase
 
             $this->cleanupAssignmentInConditionProject($project);
         }
+    }
+
+    public function testReportJunitWritesFailedTestCases(): void
+    {
+        $project = $this->assignmentInConditionProject('soda-quality-junit');
+        $reportPath = $project['dir'].'/quality-junit.xml';
+
+        try {
+            $container = new Application();
+            $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
+            $artisan->setAutoExit(false);
+            $artisan->add($container->make(QualityCommand::class));
+
+            $input = new ArrayInput([
+                'command'       => 'quality',
+                'path'          => [$project['dir']],
+                '--config'      => $project['soda'],
+                '--report-type' => 'junit',
+                '--report-file' => $reportPath,
+            ]);
+            $output = new BufferedOutput();
+
+            $exitCode = $artisan->run($input, new OutputStyle($input, $output));
+
+            $this->assertSame(1, $exitCode);
+            $xml = file_get_contents($reportPath);
+            $this->assertNotFalse($xml);
+            $this->assertStringContainsString('<testsuite name="soda quality" tests="1" failures="1" errors="0">', $xml);
+            $this->assertStringContainsString(
+                '<testcase name="'.realpath($project['php']).':7 no_assignment_in_condition" file="'.realpath($project['php']).'" line="7">',
+                $xml,
+            );
+            $this->assertStringContainsString('<failure type="no_assignment_in_condition" message="Assignment inside condition', $xml);
+        } finally {
+            if (is_file($reportPath)) {
+                unlink($reportPath);
+            }
+
+            $this->cleanupAssignmentInConditionProject($project);
+        }
+    }
+
+    public function testReportTeamCityPrintsFindingsAsFailedTests(): void
+    {
+        $project = $this->assignmentInConditionProject('soda-quality-teamcity');
+
+        try {
+            $container = new Application();
+            $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
+            $artisan->setAutoExit(false);
+            $artisan->add($container->make(QualityCommand::class));
+
+            $input = new ArrayInput([
+                'command'       => 'quality',
+                'path'          => [$project['dir']],
+                '--config'      => $project['soda'],
+                '--report-type' => 'teamcity',
+            ]);
+            $output = new BufferedOutput();
+
+            $exitCode = $artisan->run($input, new OutputStyle($input, $output));
+            $text = $output->fetch();
+
+            $this->assertSame(1, $exitCode);
+            $this->assertStringContainsString("##teamcity[testSuiteStarted name='soda quality']", $text);
+            $this->assertStringContainsString(
+                "##teamcity[testFailed name='".realpath($project['php']).':7 no_assignment_in_condition',
+                $text,
+            );
+            $this->assertStringContainsString("message='Assignment inside condition", $text);
+            $this->assertStringContainsString("##teamcity[testSuiteFinished name='soda quality']", $text);
+        } finally {
+            $this->cleanupAssignmentInConditionProject($project);
+        }
+    }
+
+    #[TestWith(['xml'])]
+    #[TestWith([null])]
+    public function testUnknownReportTypeFailsBeforeAnalysis(?string $type): void
+    {
+        $container = new Application();
+        $artisan = new ConsoleApplication($container, new Dispatcher($container), '8.0');
+        $artisan->setAutoExit(false);
+        $artisan->add($container->make(QualityCommand::class));
+
+        $input = new ArrayInput([
+            'command'       => 'quality',
+            'path'          => [__DIR__.'/../quality-fixture'],
+            '--report-type' => $type,
+        ]);
+        $output = new BufferedOutput();
+
+        $exitCode = $artisan->run($input, new OutputStyle($input, $output));
+        $text = $output->fetch();
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('json, junit, teamcity', $text);
     }
 
     public function testTextReportIncludesAssignmentInConditionLineAndMessage(): void
@@ -180,7 +279,8 @@ final class QualityCommandTest extends TestCase
                 'command'       => 'quality',
                 'path'          => [$project['dir']],
                 '--config'      => $project['soda'],
-                '--report-json' => $reportPath,
+                '--report-type' => 'json',
+                '--report-file' => $reportPath,
             ]);
             $output = new BufferedOutput();
 

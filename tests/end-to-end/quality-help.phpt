@@ -22,4 +22,6 @@ Arguments:
 
 Options:
 %A--config%A
-%A--report-json%AWrite quality report to JSON file%A
+%A--report-type%AReport format: json, junit or teamcity%A
+%A--report-file%AWrite the report to this file instead of stdout%A
+%A--research-json%AWrite nongating research evidence to a separate JSON file%A

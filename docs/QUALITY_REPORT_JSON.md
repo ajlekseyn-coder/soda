@@ -1,9 +1,10 @@
 # Report JSON
 
-Use `--report-json=` to write a machine-readable quality report:
+Use `--report-type=json` to emit a machine-readable quality report; add
+`--report-file=` to write it to a file instead of stdout:
 
 ```bash
-php soda quality --report-json=build/soda-quality.json
+php soda quality --report-type=json --report-file=build/soda-quality.json
 ```
 
 The top-level `schema_version` is an integer. The current schema is **4**.
@@ -38,7 +39,7 @@ Research checks, including `representation_churn` in the standard bundle, write
 evidence with `--research-json=`:
 
 ```bash
-php soda quality --report-json=build/soda-quality.json --research-json=build/soda-research.json
+php soda quality --report-type=json --report-file=build/soda-quality.json --research-json=build/soda-research.json
 ```
 
 This separate report has schema **1**:
@@ -64,5 +65,5 @@ when none are configured). Each report retains candidates, partial paths,
 exclusions, coverage, limits and profiles. Unknown and truncated evidence is
 research uncertainty, not a violation or proof of absence. Console output also
 shows research summaries when there are no candidates. Research evidence does
-not affect `passed` or the exit status; `--report-json` remains schema 4 with the
+not affect `passed` or the exit status; `--report-type=json` remains schema 4 with the
 same three top-level fields and only ordinary violations.

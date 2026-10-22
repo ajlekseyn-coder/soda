@@ -20,6 +20,7 @@ Inside this repository, use `php soda` instead of `vendor/bin/soda`.
 | [Configuration](SODA_PHP_CONFIG.md) | Paths, named checks and the root `soda.php`. |
 | [Rule catalog](rules/README.md) | Individual rules, examples and options. |
 | [JSON reports](QUALITY_REPORT_JSON.md) | Machine-readable findings and exit status. |
+| [TeamCity reports](QUALITY_REPORT_TEAMCITY.md) | Service messages and JUnit XML for the TeamCity Tests tab. |
 | [Migration](MIGRATION.md) | Previous package names, namespaces and extension contracts. |
 
 ## Rule references
